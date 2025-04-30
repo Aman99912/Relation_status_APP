@@ -3,22 +3,23 @@ import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, ImageBackgr
 import { SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './loginSignupStyle';
+import { useNavigation } from '@react-navigation/native';
 
 
 const RegisterScreen = () => {
 
-
+const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
 
   const RegisterLink = () => {
-   
+   navigation.navigate('login')
   }
 
-  const handleRegister = async () => {
-   
+  const handleRegister =  () => {
+   navigation.navigate('home')
     
   };
 
