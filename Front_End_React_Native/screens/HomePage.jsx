@@ -1,34 +1,43 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
 import React from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-export default function HomePage() {
-  const navigation = useNavigation();
-
-  const logoutHandle = async () => {
-    try {
-      await AsyncStorage.removeItem("token");  
-      navigation.replace("login");             
-    } catch (error) {
-      console.log("Logout error:", error.message);
-    }
-  };
-
+const HomePage = () => {
   return (
-    <View style={homeStyle.homeContainer}>
-      <Text>Homepage</Text>
-      <Pressable onPress={logoutHandle}>
-        <Text>Logout</Text>
+    <View style={Homestyles.wrapper}>
+      <Pressable style={Homestyles.card}>
+        <FontAwesome name="user" size={65} color="black" />
+        {/* You can add additional text or actions inside the Pressable component */}
       </Pressable>
     </View>
   );
-}
+};
 
-export const homeStyle = StyleSheet.create({
-  homeContainer: {
-    flex: 1,
+const Homestyles = StyleSheet.create({
+  wrapper: {
     justifyContent: 'center',
     alignItems: 'center',
+    flex: 1,
+  },
+  card: {
+    width: '90%',
+    height: '40%',
+    margin: 20,
+    backgroundColor: 'rgba(217, 217, 217, 0.58)',
+    borderColor: 'white',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 12, height: 17 },
+    shadowOpacity: 0.22,
+    shadowRadius: 51,
+    borderRadius: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: 'black',
+    overflow: 'hidden',
   },
 });
+
+export default HomePage;

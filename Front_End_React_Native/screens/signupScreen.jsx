@@ -17,7 +17,7 @@ import { styles } from './loginSignupStyle';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
-const RegisterScreen = () => {
+const Registerpage = () => {
   const navigation = useNavigation();
 
   const [username, setUsername] = useState('');
@@ -195,4 +195,4 @@ const RegisterScreen = () => {
   );
 };
 
-export default RegisterScreen;
+export default Registerpage;

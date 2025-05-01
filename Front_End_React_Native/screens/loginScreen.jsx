@@ -1,35 +1,23 @@
-import React, { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
-  Platform,
-  Alert
-} from 'react-native';
-import { SafeAreaView } from 'react-native';
+// LoginScreen.js
+import React, { useState, useContext } from 'react';
+import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Platform, Alert, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import { AuthContext } from '../App'; // Import the context
 import { styles } from './loginSignupStyle';
 
-const LoginScreen = () => {
-  const navigation = useNavigation();
+const LoginPage = ({ navigation }) => {
+  const { setIsLoggedIn } = useContext(AuthContext); // Access setIsLoggedIn from context
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
 
   const RegisterLink = () => {
-    navigation.navigate("register");
+    navigation.navigate('register');
   };
 
   const handleLogin = async () => {
     if (!login || !password) {
-      Alert.alert("Error", "Please enter both login and password.");
+      Alert.alert('Error', 'Please enter both login and password.');
       return;
     }
 
@@ -39,30 +27,27 @@ const LoginScreen = () => {
         password
       });
 
-      if (response.status==200) {
-        navigation.navigate("home");
-        Alert.alert("Success", "Login successful");
+      if (response.status === 200) {
+        setIsLoggedIn(true); // Update login state
+        Alert.alert('Success', 'Login successful');
+        navigation.navigate('home'); // Navigate to home after successful login
       } else {
-        Alert.alert("Login Failed", response.data.message || "Invalid credentials");
+        Alert.alert('Login Failed', response.data.message || 'Invalid credentials');
       }
-
     } catch (error) {
-      console.error("Login Error:", error.message);
-      const errorMessage = error.response ? error.response.data.message : "Unable to connect to server";
-      Alert.alert("Error", errorMessage);
+      console.error('Login Error:', error.message);
+      const errorMessage = error.response ? error.response.data.message : 'Unable to connect to server';
+      Alert.alert('Error', errorMessage);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
             <View style={styles.topimgContainer}>
-              <Image source={require("../assets/topLogin.png")} style={styles.topimg} />
+              <Image source={require('../assets/topLogin.png')} style={styles.topimg} />
             </View>
 
             <View style={styles.Hello_Text_Area}>
@@ -74,7 +59,7 @@ const LoginScreen = () => {
             </View>
 
             <View style={styles.input_Container}>
-              <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
+              <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
               <TextInput
                 placeholder='Login'
                 style={styles.InputText}
@@ -84,7 +69,7 @@ const LoginScreen = () => {
             </View>
 
             <View style={styles.input_Container}>
-              <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
+              <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
               <TextInput
                 placeholder='Password'
                 secureTextEntry
@@ -98,7 +83,7 @@ const LoginScreen = () => {
 
             <View style={styles.signInContainer}>
               <TouchableOpacity onPress={handleLogin} style={{ width: '100%', alignItems: 'center' }}>
-                <LinearGradient colors={["#F97794", "#623AA2"]} style={styles.Signcontainer}>
+                <LinearGradient colors={['#F97794', '#623AA2']} style={styles.Signcontainer}>
                   <Text style={styles.signIn}>Login</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -109,7 +94,6 @@ const LoginScreen = () => {
                 Don't have an account? <Text style={styles.signup_text}>Sign-Up</Text>
               </Text>
             </TouchableOpacity>
-
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -117,4 +101,4 @@ const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
+export default LoginPage;
