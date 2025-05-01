@@ -2,11 +2,11 @@ import React, { useState, createContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import HomePage from './screens/HomePage';
-import ProfilePage from './screens/ProfilePage';
-import NotificationPage from './screens/notificationPage';
-import AddUser from './screens/addUser';
-import Registerpage from './screens/signupScreen';
+import HomePage from './screens/HomePage.jsx';
+import ProfilePage from './screens/ProfilePage.jsx';
+import NotificationPage from './screens/notificationPage.jsx';
+import AddUser from './screens/addUser.jsx';
+import Registerpage from './screens/signupScreen.jsx';
 import LoginPage from './screens/loginScreen.jsx';
 import Navbar from './components/Navbar.jsx';
 
@@ -20,10 +20,10 @@ const MainStack = createNativeStackNavigator();
 function AuthNavigator({ setIsLoggedIn }) {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-      <AuthStack.Screen name="login">
+      <AuthStack.Screen name="LoginPage">
         {(props) => <LoginPage {...props} setIsLoggedIn={setIsLoggedIn} />}
       </AuthStack.Screen>
-      <AuthStack.Screen name="register" component={Registerpage} />
+      <AuthStack.Screen name="Registerpage" component={Registerpage} />
     </AuthStack.Navigator>
   );
 }
@@ -32,10 +32,10 @@ function MainNavigator() {
   return (
     <>
       <MainStack.Navigator screenOptions={{ headerShown: false }}>
-        <MainStack.Screen name="home" component={HomePage} />
-        <MainStack.Screen name="profile" component={ProfilePage} />
-        <MainStack.Screen name="notification" component={NotificationPage} />
-        <MainStack.Screen name="addUser" component={AddUser} />
+        <MainStack.Screen name="HomePage" component={HomePage} />
+        <MainStack.Screen name="ProfilePage" component={ProfilePage} />
+        <MainStack.Screen name="NotificationPage" component={NotificationPage} />
+        <MainStack.Screen name="AddUser" component={AddUser} />
       </MainStack.Navigator>
       <Navbar />
     </>

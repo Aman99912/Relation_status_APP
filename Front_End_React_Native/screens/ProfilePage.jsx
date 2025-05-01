@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { AsyncStorage } from 'react-native'; // Import AsyncStorage
+// import { AsyncStorage } from 'react-native'; // Import AsyncStorage
 import { AuthContext } from '../App'; // Import the context
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';

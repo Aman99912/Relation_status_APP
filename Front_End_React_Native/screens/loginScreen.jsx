@@ -5,14 +5,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import { AuthContext } from '../App'; // Import the context
 import { styles } from './loginSignupStyle';
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginPage = ({ navigation }) => {
   const { setIsLoggedIn } = useContext(AuthContext); // Access setIsLoggedIn from context
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
-
+ const [showPassword, setShowPassword] = useState(false);
   const RegisterLink = () => {
-    navigation.navigate('register');
+    navigation.navigate('Registerpage');
   };
 
   const handleLogin = async () => {
@@ -30,7 +31,7 @@ const LoginPage = ({ navigation }) => {
       if (response.status === 200) {
         setIsLoggedIn(true); // Update login state
         Alert.alert('Success', 'Login successful');
-        navigation.navigate('home'); // Navigate to home after successful login
+        navigation.navigate('HomePage'); // Navigate to home after successful login
       } else {
         Alert.alert('Login Failed', response.data.message || 'Invalid credentials');
       }
@@ -61,22 +62,30 @@ const LoginPage = ({ navigation }) => {
             <View style={styles.input_Container}>
               <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
               <TextInput
-                placeholder='Login'
+                placeholder='E-mail'
                 style={styles.InputText}
                 value={login}
                 onChangeText={setLogin}
               />
             </View>
 
-            <View style={styles.input_Container}>
-              <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
-              <TextInput
-                placeholder='Password'
-                secureTextEntry
-                style={styles.InputText}
-                value={password}
-                onChangeText={setPassword}
-              />
+           <View style={styles.input_Container}>
+                      <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
+                      <TextInput
+                        placeholder="Password"
+                        secureTextEntry={!showPassword}
+                        style={[styles.InputText, { flex: 1 }]}
+                        value={password}
+                        onChangeText={setPassword}
+                      /> 
+                       <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                    <Ionicons
+                                      name={showPassword ? 'eye' : 'eye-off'}
+                                      size={20}
+                                      color="gray"
+                                      style={{ marginRight: 10 }}
+                                    />
+                                  </TouchableOpacity>
             </View>
 
             <Text style={styles.forgotPasswordText}>Forgot Password</Text>

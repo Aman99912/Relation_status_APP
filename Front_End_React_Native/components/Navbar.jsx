@@ -6,10 +6,10 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 export default function Navbar() {
   const navigation = useNavigation();
 
-  const HomeHandle = () => navigation.navigate('home');
-  const PlusHandle = () => navigation.navigate('addUser');
-  const NotificationHandle = () => navigation.navigate('notification');
-  const ProfileHandle = () => navigation.navigate('profile');
+  const HomeHandle = () => navigation.navigate('HomePage');
+  const PlusHandle = () => navigation.navigate('AddUser');
+  const NotificationHandle = () => navigation.navigate('NotificationPage');
+  const ProfileHandle = () => navigation.navigate('ProfilePage');
 
   return (
     <View style={navStyle.container}>

@@ -11,14 +11,17 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './loginSignupStyle';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
 const Registerpage = () => {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -26,6 +29,7 @@ const Registerpage = () => {
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const RegisterLink = () => {
     navigation.navigate('login');
@@ -33,16 +37,21 @@ const Registerpage = () => {
 
   const handleRegister = async () => {
     if (!username || !email || !mobile || !password) {
-      Alert.alert('All fields are required!');
+      Alert.alert(' All fields are required!');
+      return;
+    }
+
+    if (mobile.length !== 10) {
+      Alert.alert('Mobile number must be exactly 10 digits.');
       return;
     }
 
     try {
+      setLoading(true);
       const response = await axios.post('http://192.168.206.121:8000/api/user/send-otp', { email });
 
       if (response.status === 200) {
         Alert.alert('OTP sent to your email');
-
         setShowOtpInput(true);
       } else {
         Alert.alert('Error sending OTP');
@@ -50,6 +59,8 @@ const Registerpage = () => {
     } catch (error) {
       console.error('Send OTP Error:', error);
       Alert.alert('Error', 'Could not send OTP. Try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,7 +77,6 @@ const Registerpage = () => {
       });
 
       if (verifyRes.status === 200) {
-        // OTP is correct, now register the user
         const finalRes = await axios.post('http://192.168.206.121:8000/api/user/finalize-register', {
           username,
           email,
@@ -131,7 +141,9 @@ const Registerpage = () => {
               placeholder="Mobile No."
               style={styles.InputText}
               value={mobile}
-              onChangeText={setMobile}
+              onChangeText={(text) => {
+                if (/^\d{0,10}$/.test(text)) setMobile(text);
+              }}
               keyboardType="phone-pad"
             />
           </View>
@@ -141,11 +153,14 @@ const Registerpage = () => {
             <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
             <TextInput
               placeholder="Password"
-              secureTextEntry
-              style={styles.InputText}
+              secureTextEntry={!showPassword}
+              style={[styles.InputText, { flex: 1 }]}
               value={password}
               onChangeText={setPassword}
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="gray" style={{ marginRight: 10 }} />
+            </TouchableOpacity>
           </View>
 
           {/* Register or OTP Button */}
@@ -153,7 +168,11 @@ const Registerpage = () => {
             <View style={styles.signInContainer}>
               <TouchableOpacity onPress={handleRegister} style={{ width: '100%', alignItems: 'center' }}>
                 <LinearGradient colors={['#F97794', '#623AA2']} style={styles.Signcontainer}>
-                  <Text style={styles.signIn}>Send OTP</Text>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.signIn}>Send OTP</Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -168,7 +187,9 @@ const Registerpage = () => {
                   placeholder="Enter OTP"
                   style={styles.InputText}
                   value={otp}
-                  onChangeText={setOtp}
+                  onChangeText={(text) => {
+                    if (/^\d{0,6}$/.test(text)) setOtp(text);
+                  }}
                   keyboardType="number-pad"
                 />
               </View>
