@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import { styles } from './loginSignupStyle'; 
+import { styles } from './loginSignupStyle';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -28,21 +28,28 @@ const LoginScreen = () => {
   };
 
   const handleLogin = async () => {
+    if (!login || !password) {
+      Alert.alert("Error", "Please enter both login and password.");
+      return;
+    }
+
     try {
       const response = await axios.post('http://192.168.206.121:8000/api/user/login', {
         login,
         password
       });
 
-      if (response.data.success) {
+      if (response.status==200) {
+        navigation.navigate("home");
         Alert.alert("Success", "Login successful");
-        navigation.navigate("home"); 
+      } else {
         Alert.alert("Login Failed", response.data.message || "Invalid credentials");
       }
 
     } catch (error) {
       console.error("Login Error:", error.message);
-      Alert.alert("Error", "Unable to connect to server");
+      const errorMessage = error.response ? error.response.data.message : "Unable to connect to server";
+      Alert.alert("Error", errorMessage);
     }
   };
 

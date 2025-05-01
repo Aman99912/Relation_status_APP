@@ -7,6 +7,8 @@ const UserSchema = new mongoose.Schema(
     phone: { type: String, unique: true },
     password: String,
     SubPassword: String,
+    otp: { type: String }, 
+    otpExpiration: { type: Date }, 
   },
   {
     collection: 'userInfo',
