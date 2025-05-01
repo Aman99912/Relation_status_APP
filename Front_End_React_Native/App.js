@@ -9,6 +9,7 @@ import AddUser from './screens/addUser.jsx';
 import Registerpage from './screens/signupScreen.jsx';
 import LoginPage from './screens/loginScreen.jsx';
 import Navbar from './components/Navbar.jsx';
+import ForgotPasswordPage from './screens/forgotPass.jsx';
 
 
 // Create the AuthContext
@@ -24,6 +25,7 @@ function AuthNavigator({ setIsLoggedIn }) {
         {(props) => <LoginPage {...props} setIsLoggedIn={setIsLoggedIn} />}
       </AuthStack.Screen>
       <AuthStack.Screen name="Registerpage" component={Registerpage} />
+      <AuthStack.Screen name="ForgotPasswordPage" component={ForgotPasswordPage} />
     </AuthStack.Navigator>
   );
 }

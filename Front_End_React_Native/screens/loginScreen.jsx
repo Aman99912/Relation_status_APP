@@ -1,6 +1,19 @@
 // LoginScreen.js
 import React, { useState, useContext } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Platform, Alert, SafeAreaView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+  Alert,
+  SafeAreaView,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import { AuthContext } from '../App'; // Import the context
@@ -11,9 +24,12 @@ const LoginPage = ({ navigation }) => {
   const { setIsLoggedIn } = useContext(AuthContext); // Access setIsLoggedIn from context
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
- const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const RegisterLink = () => {
     navigation.navigate('Registerpage');
+  };
+  const handleForgot = () => {
+    navigation.navigate('ForgotPasswordPage');
   };
 
   const handleLogin = async () => {
@@ -25,7 +41,7 @@ const LoginPage = ({ navigation }) => {
     try {
       const response = await axios.post('http://192.168.206.121:8000/api/user/login', {
         login,
-        password
+        password,
       });
 
       if (response.status === 200) {
@@ -61,35 +77,25 @@ const LoginPage = ({ navigation }) => {
 
             <View style={styles.input_Container}>
               <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
+              <TextInput placeholder="E-mail" style={styles.InputText} value={login} onChangeText={setLogin} />
+            </View>
+
+            <View style={styles.input_Container}>
+              <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
               <TextInput
-                placeholder='E-mail'
-                style={styles.InputText}
-                value={login}
-                onChangeText={setLogin}
+                placeholder="Password"
+                secureTextEntry={!showPassword}
+                style={[styles.InputText, { flex: 1 }]}
+                value={password}
+                onChangeText={setPassword}
               />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="gray" style={{ marginRight: 10 }} />
+              </TouchableOpacity>
             </View>
-
-           <View style={styles.input_Container}>
-                      <Image source={require('../assets/favicon.png')} style={styles.inputIcon} />
-                      <TextInput
-                        placeholder="Password"
-                        secureTextEntry={!showPassword}
-                        style={[styles.InputText, { flex: 1 }]}
-                        value={password}
-                        onChangeText={setPassword}
-                      /> 
-                       <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                    <Ionicons
-                                      name={showPassword ? 'eye' : 'eye-off'}
-                                      size={20}
-                                      color="gray"
-                                      style={{ marginRight: 10 }}
-                                    />
-                                  </TouchableOpacity>
-            </View>
-
+       <TouchableOpacity onPress={handleForgot}>
             <Text style={styles.forgotPasswordText}>Forgot Password</Text>
-
+        </TouchableOpacity>
             <View style={styles.signInContainer}>
               <TouchableOpacity onPress={handleLogin} style={{ width: '100%', alignItems: 'center' }}>
                 <LinearGradient colors={['#F97794', '#623AA2']} style={styles.Signcontainer}>

@@ -6,6 +6,14 @@ import {StyleSheet} from "react-native"
       flex: 1,
       position: 'relative',
     },
+    backButton:{
+      position:"absolute",
+      top: 50,
+      left:20,
+      borderWidth:3,
+      borderRadius: "50%",
+      padding: 5,
+    },
     Signcontainer: {
       height: 44,
       width: "80%",
