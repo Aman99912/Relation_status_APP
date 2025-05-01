@@ -1,37 +1,62 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import {
+  StyleSheet, Text, View, Image, TextInput,
+  TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, Alert
+} from 'react-native';
 import { SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './loginSignupStyle';
 import { useNavigation } from '@react-navigation/native';
-
+import axios from 'axios';
 
 const RegisterScreen = () => {
+  const navigation = useNavigation();
 
-const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
 
   const RegisterLink = () => {
-   navigation.navigate('login')
-  }
+    navigation.navigate('login');
+  };
 
-  const handleRegister =  () => {
-   navigation.navigate('home')
-    
+  const handleRegister = async () => {
+    if (!username || !email || !mobile || !password) {
+      Alert.alert('All fields are required!');
+      return;
+    }
+
+    try {
+      const body = {
+        username,
+        email,
+        mobile,
+        password
+      }
+      const response = await axios.post('http://192.168.206.121:8000/api/user/register', body);
+      console.log("resoonse from frontend--------", response.data);
+      if (response.status == 200) {
+        Alert.alert('Registration successful!');
+        navigation.navigate('home');
+      } else {
+        Alert.alert('Registration failed', response.data.message || 'Please try again.');
+      }
+    } catch (error) {
+      console.error('Registration Error:', error);
+      Alert.alert('Error', 'Something went wrong. Please check your internet or server.');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
           <View style={styles.topimgContainer}>
-              <Image source={require("../assets/topLogin.png")} style={styles.topimg} />
+            <Image source={require("../assets/topLogin.png")} style={styles.topimg} />
           </View>
 
           <View style={styles.Hello_Text_Area}>
@@ -44,8 +69,8 @@ const navigation = useNavigation();
 
           {/* Username */}
           <View style={styles.input_Container}>
-          <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
-          <TextInput
+            <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
+            <TextInput
               placeholder='Username'
               style={styles.InputText}
               value={username}
@@ -68,8 +93,8 @@ const navigation = useNavigation();
 
           {/* Mobile */}
           <View style={styles.input_Container}>
-          <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
-          <TextInput
+            <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
+            <TextInput
               placeholder='Mobile No.'
               style={styles.InputText}
               value={mobile}
@@ -80,8 +105,8 @@ const navigation = useNavigation();
 
           {/* Password */}
           <View style={styles.input_Container}>
-          <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
-          <TextInput
+            <Image source={require("../assets/favicon.png")} style={styles.inputIcon} />
+            <TextInput
               placeholder='Password'
               secureTextEntry
               style={styles.InputText}
@@ -105,13 +130,11 @@ const navigation = useNavigation();
               Already have an account? <Text style={styles.signup_text}>Login</Text>
             </Text>
           </TouchableOpacity>
-
-         
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+};
 
 export default RegisterScreen;
 
