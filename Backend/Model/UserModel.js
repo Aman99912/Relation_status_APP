@@ -2,16 +2,18 @@ import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema(
   {
-    username: { type: String, unique: true },
-    email: { type: String, unique: true },
-    phone: { type: String, unique: true },
-    password: String,
-    SubPassword: String,
-    otp: { type: String }, 
-    otpExpiration: { type: Date }, 
+    name: { type: String, required: true },               // 👈 Full Name
+    username: { type: String, unique: true, required: true },
+    email: { type: String, unique: true, required: true },
+    mobile: { type: String, unique: true, required: true }, // 👈 Renamed from `mobile`
+    password: { type: String, required: true },
+    SubPassword: { type: String },
+    otp: { type: String },
+    otpExpiration: { type: Date },
   },
   {
     collection: 'userInfo',
+    timestamps: true, // Optional: adds createdAt and updatedAt
   }
 );
 

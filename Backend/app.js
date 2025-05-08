@@ -42,9 +42,11 @@ dotenv.config(); // ✅ Load env before using it
 
 const app = express();
 
+
 // ✅ Middleware
 app.use(cors());
 app.use(express.json()); // ✅ Required for req.body parsing
+app.use(express.urlencoded({ extended: true }));
 
 // ✅ Routes
 app.use("/api/user", userRoutes);
