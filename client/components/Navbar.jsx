@@ -3,13 +3,13 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-export default function Navbar() {
+export default function NavBar() {
   const navigation = useNavigation();
 
-  const HomeHandle = () => navigation.navigate('HomePage');
-  const PlusHandle = () => navigation.navigate('AddUser');
-  const NotificationHandle = () => navigation.navigate('NotificationPage');
-  const ProfileHandle = () => navigation.navigate('ProfilePage');
+  const HomeHandle = () =>navigation.navigate('MainApp', { screen: 'Home' });
+  const PlusHandle = () => navigation.navigate('MainApp', { screen: 'Adduser' });
+  const NotificationHandle = () => navigation.navigate('MainApp', { screen: 'notification' });
+  const ProfileHandle = () => navigation.navigate('MainApp', { screen: 'Logout' });
 
   return (
     <View style={navStyle.container}>

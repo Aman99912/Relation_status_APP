@@ -153,7 +153,7 @@ export default function OtpScreen({ route }) {
       });
 
       if (res.status === 200) {
-        navigation.navigate('Home');
+        navigation.navigate('MainApp');
       }
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Invalid OTP');

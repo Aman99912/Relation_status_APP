@@ -10,6 +10,7 @@ const UserSchema = new mongoose.Schema(
     SubPassword: { type: String },
     otp: { type: String },
     otpExpiration: { type: Date },
+    code: { type: String, required: true, unique: true },
   },
   {
     collection: 'userInfo',

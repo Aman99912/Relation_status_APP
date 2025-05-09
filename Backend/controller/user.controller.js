@@ -2,9 +2,10 @@ import { UserModel } from "../Model/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
-import GenerateUsername from "../utils/usernameGen.js";
 
-const otpStore = {}; // Temporary store for OTP
+
+
+const otpStore = {}; 
 
 // 🧾 Finalize Registration
 // export const finalizeRegister = async (req, res) => {
@@ -44,6 +45,7 @@ const otpStore = {}; // Temporary store for OTP
 // };
 
 
+import crypto from 'crypto';
 
 export const finalizeRegister = async (req, res) => {
   const { name, email, password, mobile } = req.body;
@@ -54,29 +56,37 @@ export const finalizeRegister = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // Generate 20 character unique code with letters, digits, and special characters
+    const generateUniqueCode = () => {
+      return crypto.randomBytes(10).toString('hex') + Math.random().toString(36).slice(2, 6); // Creates 20-character code
+    };
+
+    const code = generateUniqueCode();
+
     const generateUsername = (name) => {
       const base = name.toLowerCase().replace(/\s+/g, '');
       const random = Math.floor(1000 + Math.random() * 9000);
       return `${base}${random}`;
     };
 
-    let username = GenerateUsername(name || email.split('@')[0]);
+    let username = generateUsername(name || email.split('@')[0]);
     while (await UserModel.findOne({ username })) {
-      username = GenerateUsername(name || email.split('@')[0]);
+      username = generateUsername(name || email.split('@')[0]);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user in the database
+    // Create new user in the database with the unique code
     await UserModel.create({
       name,
       username,
       email,
+      code, 
       password: hashedPassword,
       mobile,
     });
 
-    // Send email with username and password (Note: Do not send plain password in real apps)
+    // Send email with username, password, and the generated code
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -89,7 +99,7 @@ export const finalizeRegister = async (req, res) => {
       from: process.env.EMAIL_ID,
       to: email,
       subject: "Welcome to Our Service!",
-      text: `Hello ${name},\n\nThank you for signing up! Here are your login details:\n\nUsername: ${username}\nPassword: ${password}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
+      text: `Hello ${name},\n\nThank you for signing up! Here are your login details:\n\nUsername: ${username}\nPassword: ${password}\nUnique Code: ${code}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -100,6 +110,7 @@ export const finalizeRegister = async (req, res) => {
     res.status(500).json({ status: "error", message: error.message });
   }
 };
+
 
 
 // 📤 Send OTP

@@ -45,7 +45,7 @@ export default function LoginScreen() {
       });
   
       if (res.data?.token) {
-        // 🚫 Removed OTP sending from here
+       
         navigation.navigate('OtpScreen', { email: res.data?.user?.email });  // Only navigate
       } else {
         Alert.alert('Login Failed', res.data?.message || 'Invalid credentials');

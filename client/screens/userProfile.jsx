@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import NavBar from '../components/Navbar';
 
-
-const LogoutScreen = () => {
+export default function HomeScreen() {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:8000/api/user/logout', {
+      const response = await axios.post('http://192.168.65.121:8000/api/user/logout', {
       });
       if (response.status === 200) {
         Alert.alert('Success', 'You have been logged out successfully!', [
@@ -39,6 +39,7 @@ const LogoutScreen = () => {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       )}
+      <NavBar/>
     </View>
   );
 };
@@ -74,5 +75,3 @@ const styles = StyleSheet.create({
     color: '#777',
   },
 });
-
-export default LogoutScreen;
