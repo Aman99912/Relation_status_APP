@@ -11,7 +11,7 @@ export const verifyToken = (req, res, next) => {
   }
 
   try {
-    // For Postman testing
+    
     const decoded = jwt.verify(token, process.env.JWT_KEY);
     req.user = decoded;
     next();

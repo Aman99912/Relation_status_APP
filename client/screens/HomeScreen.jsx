@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FloatingInput from './floatintext';
 import { COLORS } from '../Color';
+import axios from 'axios';
 
 export default function HomeScreen() {
   const [showOTPInput, setShowOTPInput] = useState(false);
@@ -17,7 +18,7 @@ export default function HomeScreen() {
   const handleVerify = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://192.168.65.121:8000/verify-otp', {
+      const response = await axios.post('http://192.168.65.121:8000/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ otp: enteredOTP }),
@@ -62,11 +63,11 @@ export default function HomeScreen() {
           
           <FloatingInput
          
-            keyboardType="numeric"
+            
             value={enteredOTP}
-            label={"Enter OTP"}
+            label="Enter OTP"
             onChangeText={setEnteredOTP}
-            placeholder="Enter OTP"
+           
           />
           <TouchableOpacity style={styles.verifyButton} onPress={handleVerify} disabled={loading}>
             <Text style={styles.verifyText}>{loading ? 'Verifying...' : 'Verify'}</Text>

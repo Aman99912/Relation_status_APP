@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
+  TextInput,
+ Picker
 } from 'react-native';
 import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
 import FloatingInput from './floatintext';
 import { Ionicons } from '@expo/vector-icons';
+
 
 export default function SignupScreen() {
   const navigation = useNavigation();
@@ -20,45 +23,46 @@ export default function SignupScreen() {
   const [email, setEmail] = React.useState('');
   const [mobile, setmobile] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [gender, setGender] = React.useState(''); // New state for gender
+  const [dob, setDob] = React.useState(''); // New state for date of birth
 
-// Add at the top
-const BACKEND_URL = 'http://192.168.65.121:8000/api/user/finalize-register'; // replace with your actual backend URL
+  const BACKEND_URL = 'http://192.168.65.121:8000/api/user/finalize-register'; // replace with your actual backend URL
 
-const handleSignup = async () => {
-  if (!name || !email || !mobile || !password) {
-    alert('Please fill all fields');
-    return;
-  }
-
-  try {
-    const response = await fetch(BACKEND_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        mobile,
-        password,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert('Signup successful!');
-      navigation.navigate('Login');
-    } else {
-      alert(data.message || 'Signup failed');
+  const handleSignup = async () => {
+    if (!name || !email || !mobile || !password || !gender || !dob) {
+      alert('Please fill all fields');
+      return;
     }
-  } catch (error) {
-    console.error('Signup error:', error);
-    alert(`An error occure ${error}`);
-  }
-};
 
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          mobile,
+          password,
+          gender,  // Send gender to backend
+          dob,     // Send date of birth to backend
+        }),
+      });
 
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Signup successful!');
+        navigation.navigate('Login');
+      } else {
+        alert(data.message || 'Signup failed');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert(`An error occurred: ${error}`);
+    }
+  };
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -72,7 +76,7 @@ const handleSignup = async () => {
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-      <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+        <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
       </TouchableOpacity>
 
       <Text style={styles.heading}>Let's get{'\n'}started</Text>
@@ -80,13 +84,34 @@ const handleSignup = async () => {
       <View style={styles.inputBox}>
         <FloatingInput label="Full Name" value={name} setValue={setname} />
         <FloatingInput label="Email" value={email} setValue={setEmail}  />
-        <FloatingInput label="mobile Number" value={mobile} setValue={setmobile}  />
+        <FloatingInput label="Mobile Number" value={mobile} setValue={setmobile}  />
         <FloatingInput label="Password" value={password} setValue={setPassword} secure />
+
+        {/* Gender Dropdown */}
+        <Text style={styles.label}>Gender</Text>
+        <Picker
+          selectedValue={gender}
+          style={styles.picker}
+          onValueChange={(itemValue) => setGender(itemValue)}
+        >
+          <Picker.Item label="Select Gender" value="" />
+          <Picker.Item label="Male" value="male" />
+          <Picker.Item label="Female" value="female" />
+        </Picker>
+
+        {/* Date of Birth Input */}
+        <Text style={styles.label}>Date of Birth</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="MM/DD/YYYY"
+          value={dob}
+          onChangeText={setDob}
+        />
       </View>
 
-    <TouchableOpacity style={styles.signupBtn} onPress={handleSignup}>
-  <Text style={styles.signupText}>Sign up</Text>
-</TouchableOpacity>
+      <TouchableOpacity style={styles.signupBtn} onPress={handleSignup}>
+        <Text style={styles.signupText}>Sign up</Text>
+      </TouchableOpacity>
 
       <Text style={styles.orText}>or continue with</Text>
 
@@ -165,5 +190,26 @@ const styles = StyleSheet.create({
   loginLink: {
     fontWeight: 'bold',
     color: COLORS.primary,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+    marginBottom: 5,
+  },
+  picker: {
+    height: 50,
+    borderColor: COLORS.inputBorder,
+    borderWidth: 1,
+    borderRadius: 25,
+    marginBottom: 15,
+  },
+  input: {
+    height: 50,
+    borderColor: COLORS.inputBorder,
+    borderWidth: 1,
+    borderRadius: 25,
+    marginBottom: 15,
+    paddingLeft: 15,
   },
 });

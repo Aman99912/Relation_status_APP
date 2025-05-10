@@ -33,10 +33,10 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* <Stack.Screen name="Startup" component={StartupScreen} />
+        <Stack.Screen name="Startup" component={StartupScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="OtpScreen" component={OtpScreen} />
-        <Stack.Screen name="Signup" component={SignupScreen} /> */}
+        <Stack.Screen name="Signup" component={SignupScreen} />
         
         {/* {/* The MainApp screen contains the Tab navigator */}
         <Stack.Screen name="MainApp" component={MainAppTabs} />

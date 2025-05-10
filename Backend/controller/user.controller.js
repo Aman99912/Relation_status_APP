@@ -48,7 +48,7 @@ const otpStore = {};
 import crypto from 'crypto';
 
 export const finalizeRegister = async (req, res) => {
-  const { name, email, password, mobile } = req.body;
+  const { name, email, password, mobile ,gender , dob} = req.body;
 
   try {
     const existingUser = await UserModel.findOne({ email });
@@ -63,11 +63,19 @@ export const finalizeRegister = async (req, res) => {
 
     const code = generateUniqueCode();
 
-    const generateUsername = (name) => {
-      const base = name.toLowerCase().replace(/\s+/g, '');
-      const random = Math.floor(1000 + Math.random() * 9000);
-      return `${base}${random}`;
-    };
+    // const generateUsername = (name) => {
+    //   const base = name.toLowerCase().replace(/\s+/g, '');
+    //   const random = Math.floor(1000 + Math.random() * 9000);
+    //   return `${base}${random}`;
+    // };
+    const generateUsername = (name, email) => {
+  const base = (name || email.split('@')[0])
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+  const suffix = crypto.randomBytes(2).toString('hex'); // 4 random chars
+  return `${base}${suffix}`;
+};
+
 
     let username = generateUsername(name || email.split('@')[0]);
     while (await UserModel.findOne({ username })) {
@@ -82,6 +90,8 @@ export const finalizeRegister = async (req, res) => {
       username,
       email,
       code, 
+      dob,
+      gender,
       password: hashedPassword,
       mobile,
     });
@@ -272,7 +282,9 @@ export const updateUser = async (req, res) => {
 // 🚪 Logout
 export const logoutUser = async (req, res) => {
   try {
-    res.clearCookie("token"); 
+    // res.clearCookie("token"); 
+    res.cookie("token", token, { httpOnly: true, secure: true });
+
     res.status(200).json({ message: "User logged out SuccessFully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
