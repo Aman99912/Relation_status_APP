@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { UserModel } from "../Model/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -7,45 +8,8 @@ import nodemailer from "nodemailer";
 
 const otpStore = {}; 
 
-// 🧾 Finalize Registration
-// export const finalizeRegister = async (req, res) => {
-//   const { name, email, password, mobile } = req.body;
-
-//   try {
-//     const existingUser = await UserModel.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     const generateUsername = (name) => {
-//       const base = name.toLowerCase().replace(/\s+/g, '');
-//       const random = Math.floor(1000 + Math.random() * 9000);
-//       return `${base}${random}`;
-//     };
-
-//     let username = GenerateUsername(name || email.split('@')[0]);
-//     while (await UserModel.findOne({ username })) {
-//       username = GenerateUsername(name || email.split('@')[0]);
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     await UserModel.create({
-//       name,
-//       username,
-//       email,
-//       password: hashedPassword,
-//       mobile,
-//     });
-
-//     res.status(200).json({ message: "User created successfully", username });
-//   } catch (error) {
-//     res.status(500).json({ status: "error", message: error.message });
-//   }
-// };
 
 
-import crypto from 'crypto';
 
 export const finalizeRegister = async (req, res) => {
   const { name, email, password, mobile ,gender , dob} = req.body;

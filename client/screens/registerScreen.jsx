@@ -1,19 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Easing,
-  TextInput,
- Picker
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
 import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
 import FloatingInput from './floatintext';
-import { Ionicons } from '@expo/vector-icons';
-
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 
 export default function SignupScreen() {
   const navigation = useNavigation();
@@ -22,20 +13,37 @@ export default function SignupScreen() {
   const [name, setname] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [mobile, setmobile] = React.useState('');
+  const [dob, setDob] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [gender, setGender] = React.useState(''); // New state for gender
-  const [dob, setDob] = React.useState(''); // New state for date of birth
+  const [gender, setGender] = React.useState('');
 
+  // Add at the top
   const BACKEND_URL = 'http://192.168.65.121:8000/api/user/finalize-register'; // replace with your actual backend URL
 
+  const handleDobChange = (text) => {
+    // Remove all non-digit characters
+    const cleaned = text.replace(/\D/g, '');
+
+    let formatted = cleaned;
+    if (cleaned.length > 2 && cleaned.length <= 4) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    } else if (cleaned.length > 4) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4, 8)}`;
+    }
+
+    setDob(formatted);
+  };
+
   const handleSignup = async () => {
-    if (!name || !email || !mobile || !password || !gender || !dob) {
+    console.log("Clicked");
+    
+    if (!name || !email || !mobile || !password || !Dob) {
       alert('Please fill all fields');
       return;
     }
 
     try {
-      const response = await fetch(BACKEND_URL, {
+      const response = await axios.post("http://192.168.65.121:8000/api/user/register", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,8 +53,8 @@ export default function SignupScreen() {
           email,
           mobile,
           password,
-          gender,  // Send gender to backend
-          dob,     // Send date of birth to backend
+          dob,
+          gender
         }),
       });
 
@@ -60,7 +68,7 @@ export default function SignupScreen() {
       }
     } catch (error) {
       console.error('Signup error:', error);
-      alert(`An error occurred: ${error}`);
+      alert(`An error occure ${error}`);
     }
   };
 
@@ -83,41 +91,30 @@ export default function SignupScreen() {
 
       <View style={styles.inputBox}>
         <FloatingInput label="Full Name" value={name} setValue={setname} />
-        <FloatingInput label="Email" value={email} setValue={setEmail}  />
-        <FloatingInput label="Mobile Number" value={mobile} setValue={setmobile}  />
+        <FloatingInput label="Email" value={email} setValue={setEmail} />
+        <FloatingInput label="mobile Number" value={mobile} setValue={setmobile} />
         <FloatingInput label="Password" value={password} setValue={setPassword} secure />
-
-        {/* Gender Dropdown */}
-        <Text style={styles.label}>Gender</Text>
-        <Picker
-          selectedValue={gender}
-          style={styles.picker}
-          onValueChange={(itemValue) => setGender(itemValue)}
-        >
-          <Picker.Item label="Select Gender" value="" />
-          <Picker.Item label="Male" value="male" />
-          <Picker.Item label="Female" value="female" />
-        </Picker>
-
-        {/* Date of Birth Input */}
-        <Text style={styles.label}>Date of Birth</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="MM/DD/YYYY"
-          value={dob}
-          onChangeText={setDob}
-        />
+        <FloatingInput label="Date Of Birth (DD/MM/YYYY)" value={dob} setValue={handleDobChange} />
+        <View style={styles.genderContainer}>
+          <Text style={styles.genderLabel}>Gender</Text>
+          <View style={styles.radioGroup}>
+            {['Male', 'Female'].map((option) => (
+              <TouchableOpacity key={option} style={styles.radioButton} onPress={() => setGender(option.toLowerCase())}>
+                <View style={[styles.radioOuter, gender === option.toLowerCase() && styles.radioOuterSelected]}>
+                  {gender === option.toLowerCase() && <View style={styles.radioInner} />}
+                </View>
+                <Text style={styles.radioText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </View>
 
       <TouchableOpacity style={styles.signupBtn} onPress={handleSignup}>
-        <Text style={styles.signupText}>Sign up</Text>
+        <Text style={styles.signupText} >Sign up</Text>
       </TouchableOpacity>
 
-      <Text style={styles.orText}>or continue with</Text>
-
-      <TouchableOpacity style={styles.googleBtn}>
-        <Text style={styles.googleText}>🔍 Google</Text>
-      </TouchableOpacity>
+      <Text style={styles.orText}> Or </Text>
 
       <TouchableOpacity style={styles.bottomText} onPress={() => navigation.navigate('Login')}>
         <Text>
@@ -191,25 +188,47 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.primary,
   },
-  label: {
+  genderContainer: {
+    marginBottom: 20,
+  },
+  genderLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.text,
-    marginBottom: 5,
+    color: "#ccc",
+    marginBottom: 10,
   },
-  picker: {
-    height: 50,
-    borderColor: COLORS.inputBorder,
-    borderWidth: 1,
-    borderRadius: 25,
-    marginBottom: 15,
+  radioGroup: {
+    flexDirection: 'row',
+    
+    justifyContent: 'space-around',
   },
-  input: {
-    height: 50,
-    borderColor: COLORS.inputBorder,
-    borderWidth: 1,
-    borderRadius: 25,
-    marginBottom: 15,
-    paddingLeft: 15,
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radioOuter: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: COLORS.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  radioOuterSelected: {
+    // borderColor: COLORS.text,
+    color:"#ccc",
+  },
+  radioInner: {
+    height: 10,
+    width: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.text,
+  },
+  radioText: {
+    fontSize: 16,
+    color:"#ccc",
+    
   },
 });
