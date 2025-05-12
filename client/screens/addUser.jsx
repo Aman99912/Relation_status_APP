@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
 import FloatingInput from './floatintext';
+import { APIPATH } from '../utils/apiPath';
+
 
 export default function AddUser() {
   const [generatedCode, setGeneratedCode] = useState('');
@@ -11,7 +13,7 @@ export default function AddUser() {
   const handleGenerateCode = async () => {
     try {
       // Send POST request using axios
-      const response = await axios.post('http://192.168.65.121:8000/api/user/gen-code', {}, {
+      const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}`, {
         headers: {
           'Content-Type': 'application/json',
         },

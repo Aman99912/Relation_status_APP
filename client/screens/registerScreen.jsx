@@ -1,74 +1,86 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
+
+
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Alert } from 'react-native';
 import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
-import FloatingInput from './floatintext';
+import FloatingInput from './floatintext';// Corrected the import name to match your actual component
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { APIPATH } from '../utils/apiPath';
 
 export default function SignupScreen() {
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const [name, setname] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [mobile, setmobile] = React.useState('');
-  const [dob, setDob] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [gender, setGender] = React.useState('');
-
-  // Add at the top
-  const BACKEND_URL = 'http://192.168.65.121:8000/api/user/finalize-register'; // replace with your actual backend URL
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [dob, setDob] = useState('');
+  const [password, setPassword] = useState('');
+  const [gender, setGender] = useState('');
 
   const handleDobChange = (text) => {
-    // Remove all non-digit characters
     const cleaned = text.replace(/\D/g, '');
-
     let formatted = cleaned;
     if (cleaned.length > 2 && cleaned.length <= 4) {
       formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
     } else if (cleaned.length > 4) {
       formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4, 8)}`;
     }
-
     setDob(formatted);
   };
 
+  const validateDob = (dob) => {
+    const regex = /^(0[1-9]|1[0-9]|2[0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+    return regex.test(dob);
+  };
+
+  const validateMobile = (mobile) => {
+    const regex = /^\d{10}$/;
+    return regex.test(mobile);
+  };
+
   const handleSignup = async () => {
-    console.log("Clicked");
-    
-    if (!name || !email || !mobile || !password || !Dob) {
-      alert('Please fill all fields');
+    if (!name || !email || !mobile || !password || !dob || !gender) {
+      Alert.alert('Error', 'Please fill all fields');
       return;
     }
-
+    
+    if (!validateDob(dob)) {
+      Alert.alert('Error', 'Please enter a valid date (DD/MM/YYYY)');
+      return;
+    }
+    
+    if (!validateMobile(mobile)) {
+      Alert.alert('Error', 'Please enter a valid mobile number');
+      return;
+    }
+    
     try {
-      const response = await axios.post("http://192.168.65.121:8000/api/user/register", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          mobile,
-          password,
-          dob,
-          gender
-        }),
+      setLoading(true);
+      const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.REGISTER_API}`, {
+        name,
+        email,
+        mobile,
+        password,
+        dob,
+        gender,
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        alert('Signup successful!');
+      if (response.status === 200) {
+        Alert.alert('Signup successful!');
         navigation.navigate('Login');
       } else {
-        alert(data.message || 'Signup failed');
+        Alert.alert(data.message || 'Signup failed');
       }
+      setLoading(false);
     } catch (error) {
       console.error('Signup error:', error);
-      alert(`An error occure ${error}`);
+      Alert.alert(`An error occurred: ${error}`);
+      setLoading(false);  // Ensure loading is stopped in case of an error
     }
   };
 
@@ -90,9 +102,9 @@ export default function SignupScreen() {
       <Text style={styles.heading}>Let's get{'\n'}started</Text>
 
       <View style={styles.inputBox}>
-        <FloatingInput label="Full Name" value={name} setValue={setname} />
+        <FloatingInput label="Full Name" value={name} setValue={setName} />
         <FloatingInput label="Email" value={email} setValue={setEmail} />
-        <FloatingInput label="mobile Number" value={mobile} setValue={setmobile} />
+        <FloatingInput label="Mobile Number" value={mobile} setValue={setMobile} />
         <FloatingInput label="Password" value={password} setValue={setPassword} secure />
         <FloatingInput label="Date Of Birth (DD/MM/YYYY)" value={dob} setValue={handleDobChange} />
         <View style={styles.genderContainer}>
@@ -110,11 +122,15 @@ export default function SignupScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.signupBtn} onPress={handleSignup}>
-        <Text style={styles.signupText} >Sign up</Text>
+      <TouchableOpacity
+        style={[styles.signupBtn, loading && { backgroundColor: COLORS.gray }]} // Disable button when loading
+        onPress={handleSignup}
+        disabled={loading}
+      >
+        <Text style={styles.signupText}>{loading ? 'Signing Up......' : 'Sign Up'}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.orText}> Or </Text>
+      <Text style={styles.orText}>Or</Text>
 
       <TouchableOpacity style={styles.bottomText} onPress={() => navigation.navigate('Login')}>
         <Text>
@@ -134,12 +150,8 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     position: 'absolute',
-    top: 60,
+    top: 40,
     left: 20,
-  },
-  backText: {
-    fontSize: 22,
-    color: COLORS.primary,
   },
   heading: {
     fontSize: 28,
@@ -169,18 +181,6 @@ const styles = StyleSheet.create({
     color: COLORS.gray,
     marginBottom: 10,
   },
-  googleBtn: {
-    borderColor: COLORS.primary,
-    borderWidth: 1,
-    borderRadius: 25,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  googleText: {
-    fontSize: 16,
-    color: COLORS.primary,
-  },
   bottomText: {
     alignSelf: 'center',
   },
@@ -194,12 +194,11 @@ const styles = StyleSheet.create({
   genderLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: "#ccc",
+    color: '#ccc',
     marginBottom: 10,
   },
   radioGroup: {
     flexDirection: 'row',
-    
     justifyContent: 'space-around',
   },
   radioButton: {
@@ -217,8 +216,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   radioOuterSelected: {
-    // borderColor: COLORS.text,
-    color:"#ccc",
+    // Style for selected radio button
   },
   radioInner: {
     height: 10,
@@ -228,7 +226,7 @@ const styles = StyleSheet.create({
   },
   radioText: {
     fontSize: 16,
-    color:"#ccc",
-    
+    color: '#ccc',
   },
 });
+

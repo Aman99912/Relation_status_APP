@@ -4,63 +4,66 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
-
-
 const otpStore = {}; 
 
-
-
-
 export const finalizeRegister = async (req, res) => {
-  const { name, email, password, mobile ,gender , dob} = req.body;
+  const { name, email, password, mobile, gender, dob } = req.body;
+
+  // Basic validation
+  if (!name || !email || !password || !mobile || !gender || !dob) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
   try {
+    // Check if user already exists
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Generate 20 character unique code with letters, digits, and special characters
-    const generateUniqueCode = () => {
-      return crypto.randomBytes(10).toString('hex') + Math.random().toString(36).slice(2, 6); // Creates 20-character code
+    // Generate unique code
+    const code = crypto.randomBytes(10).toString('hex') + Math.random().toString(36).slice(2, 6);
+
+    // Generate 4-digit PIN
+    const Pass = Math.floor(1000 + Math.random() * 9000);
+
+    // Generate username
+    const generateUsername = (baseName) => {
+      const base = baseName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const suffix = crypto.randomBytes(2).toString('hex'); // 4 random chars
+      return `${base}${suffix}`;
     };
-
-    const code = generateUniqueCode();
-
-    // const generateUsername = (name) => {
-    //   const base = name.toLowerCase().replace(/\s+/g, '');
-    //   const random = Math.floor(1000 + Math.random() * 9000);
-    //   return `${base}${random}`;
-    // };
-    const generateUsername = (name, email) => {
-  const base = (name || email.split('@')[0])
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
-  const suffix = crypto.randomBytes(2).toString('hex'); // 4 random chars
-  return `${base}${suffix}`;
-};
-
 
     let username = generateUsername(name || email.split('@')[0]);
     while (await UserModel.findOne({ username })) {
       username = generateUsername(name || email.split('@')[0]);
     }
 
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user in the database with the unique code
-    await UserModel.create({
-      name,
-      username,
-      email,
-      code, 
-      dob,
-      gender,
-      password: hashedPassword,
-      mobile,
-    });
+    const parseDOB = (dobString) => {
+  const [day, month, year] = dobString.split('/');
+  return new Date(`${year}-${month}-${day}`);
+};
 
-    // Send email with username, password, and the generated code
+
+const parsedDOB = parseDOB(dob); 
+
+   await UserModel.create({
+  name,
+  username,
+  email,
+  code,
+  Pass,
+  dob: parsedDOB,
+  gender,
+  password: hashedPassword,
+  mobile,
+});
+
+
+  
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -73,55 +76,49 @@ export const finalizeRegister = async (req, res) => {
       from: process.env.EMAIL_ID,
       to: email,
       subject: "Welcome to Our Service!",
-      text: `Hello ${name},\n\nThank you for signing up! Here are your login details:\n\nUsername: ${username}\nPassword: ${password}\nUnique Code: ${code}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
+      text: `Hello ${name},\n\nThank you for signing up! Here are your login details:\n\nUsername: ${username}\n Temporary Passcode: ${Pass}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
     };
 
     await transporter.sendMail(mailOptions);
 
-    // Respond to the client
-    res.status(200).json({ message: "User created successfully", username });
+    // Final response
+    res.status(200).json({
+      success: true,
+      message: "User created successfully",
+      username,
+    });
+
   } catch (error) {
-    res.status(500).json({ status: "error", message: error.message });
+    console.error("Error in finalizeRegister:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 
 
-// 📤 Send OTP
-// export const sendOtp = async (req, res) => {
-//   const { email } = req.body;
 
-//   if (!email) {
-//     return res.status(400).json({ message: "Email is required" });
-//   }
 
-//   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-//   const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-//   otpStore[email] = { otp, expiresAt };
+export const GetUserByEmail = async (req, res) => {
+  const { email } = req.params;
+  // console.log('Email received:', email); // Log the email
 
-//   try {
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: process.env.EMAIL_ID,
-//         pass: process.env.EMAIL_PASS,
-//       },
-//     });
+  try {
+    // Find the user in the database
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
-//     await transporter.sendMail({
-//       from: process.env.EMAIL_ID,
-//       to: email,
-//       subject: "Your OTP Code",
-//       text: `Your OTP is: ${otp}`,
-//     });
+    // Send the user data as a response
+    return res.json({ success: true, data: user });
+  } catch (err) {
+    console.error('Error during fetching user:', err); // Log the error for more details
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
 
-//     res.status(200).json({ message: "OTP sent successfully" });
-//   } catch (error) {
-//     console.error("Error sending OTP:", error.message);
-//     res.status(500).json({ message: "OTP sending failed", error: error.message });
-//   }
-// };
+
 export const sendOtp = async (req, res) => {
   const { email } = req.body;
 
@@ -246,11 +243,34 @@ export const updateUser = async (req, res) => {
 // 🚪 Logout
 export const logoutUser = async (req, res) => {
   try {
-    // res.clearCookie("token"); 
-    res.cookie("token", token, { httpOnly: true, secure: true });
+   res.clearCookie("token");
+res.status(200).json({ message: "User logged out successfully" });
 
-    res.status(200).json({ message: "User logged out SuccessFully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const PassVerify = async (req, res) => {
+  const { Pass, email } = req.body;
+
+  try {
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    
+    if (user.Pass !== Pass) {
+      return res.status(400).json({ success: false, message: 'Invalid OTP' });
+    }
+
+    // OTP is valid, now proceed with password verification or any additional logic
+    return res.json({ success: true, message: 'OTP verified successfully', password: user.password });
+  } catch (err) {
+    console.error('Error during OTP verification:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };

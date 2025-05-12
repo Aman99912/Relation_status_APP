@@ -1,21 +1,21 @@
-
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   Animated, Easing, Alert
 } from 'react-native';
 import { COLORS } from '../Color';
-
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import FloatingInput from './floatintext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { APIPATH } from '../utils/apiPath';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const [login, setLogin] = useState('');  // Can be email, mobile, or username
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,37 +27,53 @@ export default function LoginScreen() {
       easing: Easing.out(Easing.ease),
     }).start();
   }, []);
+const handleforgot = async ()=>{
+  navigation.navigate('forgot-password')
+}
+
   const handleLogin = async () => {
-    if (!login || !password) {
-      Alert.alert('Error', 'Please fill in both fields');
-      return;
+    console.log("login button clicked");
+    
+  if (!login || !password) {
+    Alert.alert('Error', 'Please fill in both fields');
+    return;
+  }
+
+  try {
+    setLoading(true);  
+    console.log('Sending login request...', login, password);
+    console.log(APIPATH.LOGIN_API);
+    const body = {
+      login,
+      password
     }
-  
-    try {
-      setLoading(true);
-      const res = await axios.post(`http://192.168.65.121:8000/api/user/login`, {
-        login,
-        password,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-  
-      if (res.data?.token) {
-       
-        navigation.navigate('OtpScreen', { email: res.data?.user?.email });  // Only navigate
-      } else {
-        Alert.alert('Login Failed', res.data?.message || 'Invalid credentials');
+
+    const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.LOGIN_API}`,body,
+      {
+        headers: { 'Content-Type': 'application/json' }
       }
-    } catch (err) {
-      Alert.alert('Error', err.response?.data?.message || 'Something went wrong');
-      console.log(err);
-    } finally {
-      setLoading(false);
+    );
+
+    console.log('Response:--------', res.data);
+
+    if (res.data?.token) {
+      const userEmail = res.data?.user?.email;
+      await AsyncStorage.setItem('userEmail', userEmail);
+      // navigation.navigate('OtpScreen', { email :userEmail });
+     navigation.navigate('MainApp', { screen: 'Home' });
+    } else {
+      Alert.alert('Login Failed', res.data?.message || 'Invalid credentials');
     }
-  };
-  
+  } catch (err) {
+    console.log(err);
+    const errorMessage = err?.response?.data?.message || 'Something went wrong';
+    Alert.alert('Error', errorMessage);
+  } finally {
+    setLoading(false);  
+  }
+};
+
+
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -71,7 +87,7 @@ export default function LoginScreen() {
         <FloatingInput label="Password" value={password} setValue={setPassword} secure />
       </View>
 
-      <TouchableOpacity style={styles.forgot}>
+      <TouchableOpacity  onPress={handleforgot} style={styles.forgot}>
         <Text style={styles.forgotText}>Forgot Password?</Text>
       </TouchableOpacity>
 
@@ -79,16 +95,11 @@ export default function LoginScreen() {
         <Text style={styles.loginText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.orText}>or continue with</Text>
-
-      <TouchableOpacity style={styles.googleBtn}>
-        <Text style={styles.googleText}><FontAwesome name='google' size={18} /> Google</Text>
-      </TouchableOpacity>
+      <Text style={styles.orText}>or</Text>
 
       <TouchableOpacity style={styles.bottomText} onPress={() => navigation.navigate('Signup')}>
         <Text>
-          Don't have an account?{' '}
-          <Text style={styles.signUpLink}>Sign up</Text>
+          Don't have an account? <Text style={styles.signUpLink}>Sign up</Text>
         </Text>
       </TouchableOpacity>
     </Animated.View>
@@ -111,15 +122,6 @@ const styles = StyleSheet.create({
   },
   loginText: { color: '#fff', fontSize: 16, fontWeight: '500' },
   orText: { textAlign: 'center', color: COLORS.gray, marginBottom: 10 },
-  googleBtn: {
-    borderColor: COLORS.primary,
-    borderWidth: 1,
-    borderRadius: 25,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  googleText: { fontSize: 16, color: COLORS.primary },
   bottomText: { alignSelf: 'center' },
   signUpLink: { fontWeight: 'bold', color: COLORS.primary },
 });

@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import NavBar from '../components/Navbar';
+import { APIPATH } from '../utils/apiPath';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -11,7 +12,7 @@ export default function HomeScreen() {
   const handleLogout = async () => {
     try {
       setLoading(true);
-      const response = await axios.post('http://192.168.65.121:8000/api/user/logout', {
+      const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.LOGOUT_API}`, {
       });
       if (response.status === 200) {
         Alert.alert('Success', 'You have been logged out successfully!', [

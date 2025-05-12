@@ -1,15 +1,43 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FloatingInput from './floatintext';
 import { COLORS } from '../Color';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { APIPATH } from '../utils/apiPath';
+import Backbtn from '../components/backbtn.jsx'
 
 export default function HomeScreen() {
   const [showOTPInput, setShowOTPInput] = useState(false);
   const [enteredOTP, setEnteredOTP] = useState('');
   const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState(null); // State to store user data
+  const [otpLoading, setOtpLoading] = useState(false); // For OTP verification loading
+
+
+
+ useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const email = await AsyncStorage.getItem('userEmail');
+      if (!email) return;
+
+
+    const response = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}/${email}`);
+
+      setUserData(response.data);
+    } catch (err) {
+      console.error('Axios Error:', err.response?.data || err.message || err);
+      alert('Failed to fetch user data');
+    }
+  };
+
+  fetchUserData();
+}, []);
+
+
 
   const handleStatusClick = () => {
     setShowOTPInput(true);
@@ -17,24 +45,21 @@ export default function HomeScreen() {
 
   const handleVerify = async () => {
     try {
-      setLoading(true);
-      const response = await axios.post('http://192.168.65.121:8000/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp: enteredOTP }),
+      setOtpLoading(true);
+      const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.VERIFY_PASS}`, {
+        Pass: enteredOTP,
+        email
       });
 
-      const result = await response.json();
-      setLoading(false);
-
-      if (response.ok && result.success) {
+      setOtpLoading(false);
+      if (response.data.success) {
         setVerified(true);
         setShowOTPInput(false);
       } else {
-        alert(result.message || 'Invalid OTP');
+        alert(response.data.message || 'Invalid OTP');
       }
     } catch (err) {
-      setLoading(false);
+      setOtpLoading(false);
       alert('Server error');
     }
   };
@@ -47,32 +72,32 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {!verified && !showOTPInput && (
+      {!verified && !showOTPInput && userData && (
         <UserCard
-          username="John Doe"
-          email="john@example.com"
-          gender="Male"
-          age={28}
+          username={userData.username}
+          email={userData.email}
+          gender={userData.gender}
+          age={userData.age}
           status="Hidden"
           onStatusClick={handleStatusClick}
         />
       )}
 
       {showOTPInput && (
+        
+        <>
+        
         <View style={styles.otpBox}>
-          
-          <FloatingInput
-         
-            
-            value={enteredOTP}
-            label="Enter OTP"
-            onChangeText={setEnteredOTP}
-           
-          />
-          <TouchableOpacity style={styles.verifyButton} onPress={handleVerify} disabled={loading}>
-            <Text style={styles.verifyText}>{loading ? 'Verifying...' : 'Verify'}</Text>
+         <FloatingInput  label={"Your Secret Pass Code"} value={enteredOTP} setValue={setEnteredOTP}  />
+          <TouchableOpacity style={styles.verifyButton} onPress={handleVerify} disabled={otpLoading}>
+            {otpLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.verifyText}>Verify</Text>
+            )}
           </TouchableOpacity>
         </View>
+            </>
       )}
 
       {verified && (
@@ -83,16 +108,9 @@ export default function HomeScreen() {
 
           <View style={styles.linkBox}>
             <FontAwesome name="link" size={26} color="#4A90E2" />
-           
           </View>
 
-          <UserCard
-            username="Jane Smith"
-            email="jane@example.com"
-            gender="Female"
-            age={25}
-            status="Hidden"
-          />
+          <UserCard username="Jane Smith" email="jane@example.com" gender="Female" age={25} status="Verified" />
         </>
       )}
     </View>
@@ -102,7 +120,7 @@ export default function HomeScreen() {
 const UserCard = ({ username, email, gender, age, status, onStatusClick }) => (
   <View style={styles.userBox}>
     <View style={styles.avatarContainer}>
-      <FontAwesome name='user' size={55} color='#333' />
+      <FontAwesome name="user" size={55} color="#333" />
     </View>
     <Text style={styles.userText}>Welcome, {username}</Text>
 
@@ -123,8 +141,8 @@ const UserCard = ({ username, email, gender, age, status, onStatusClick }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent:'center',
-    alignItems:'center',
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#F5F7FA',
     padding: 20,
   },
@@ -188,12 +206,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 4,
   },
-  linkText: {
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#4A90E2',
-    fontWeight: '500',
-  },
   otpBox: {
     backgroundColor: '#fff',
     width: 300,
@@ -202,20 +214,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     elevation: 3,
-  },
-  otpLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  otpInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    width: '100%',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 15,
-    textAlign: 'center',
   },
   verifyButton: {
     backgroundColor: COLORS.primary,

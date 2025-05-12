@@ -12,6 +12,10 @@ import LogoutScreen from './screens/userProfile';
 import NavBar from './components/Navbar';
 import AddUser from './screens/addUser';
 import NotificationScreen from './screens/notificationScreen';
+import forgotPass from './screens/forgotPass';
+import ForgotPass from './screens/forgotPass';
+import ResetPasswordScreen from './screens/newPass';
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -37,6 +41,8 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="OtpScreen" component={OtpScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
+        <Stack.Screen name="newPass" component={ResetPasswordScreen} />
+        <Stack.Screen name="forgot-password" component={ForgotPass} />
         
         {/* {/* The MainApp screen contains the Tab navigator */}
         <Stack.Screen name="MainApp" component={MainAppTabs} />

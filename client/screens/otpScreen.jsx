@@ -1,143 +1,55 @@
-// import React, { useState, useEffect } from 'react';
-// import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-// import axios from 'axios';
-// import { useNavigation } from '@react-navigation/native';
-// import { COLORS } from '../Color';
-// import FloatingInput from './floatintext';
 
-// export default function OtpScreen({ route }) {
-//   const { email } = route.params;  // Retrieve email passed from previous screen
-//   const navigation = useNavigation();
-//   const [otp, setOtp] = useState('');
-//   const [loading, setLoading] = useState(false);
-
-//   // useEffect(() => {
-//   //   const sendOtp = async () => {
-//   //     try {
-//   //       await axios.post('http://192.168.65.121:8000/api/user/send-otp', { email });
-//   //     } catch (error) {
-//   //       console.error('Error sending OTP:', error);
-//   //     }
-//   //   };
-//   //   sendOtp();
-//   // }, [email]);
-  
-//   useEffect(() => {
-//     let hasSent = false;
-  
-//     const sendOtp = async () => {
-//       if (hasSent) return;
-//       hasSent = true;
-  
-//       try {
-//         await axios.post('http://192.168.65.121:8000/api/user/send-otp', { email });
-//       } catch (error) {
-//         console.error('Error sending OTP:', error);
-//       }
-//     };
-  
-//     sendOtp();
-//   }, []);
-  
-//   const handleVerifyOtp = async () => {
-//     if (!otp) {
-//       Alert.alert('Error', 'Please enter OTP');
-//       return;
-//     }
-
-//     setLoading(true);
-//     try {
-//       const res = await axios.post('http://192.168.65.121:8000/api/user/verify-otp', { email, otp });
-      
-//       if (res.status === 200) {
-//         // Alert.alert('Success', 'OTP Verified!');
-//         navigation.navigate('Home'); // Or redirect to the next screen
-//       }
-//     } catch (err) {
-//       Alert.alert('Error', err.response?.data?.message || 'Invalid OTP');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>Enter OTP</Text>
-//       <View style={styles.inputBox}>
-//              <FloatingInput label="Enter Otp" value={otp} setValue={setOtp} /> 
-//              </View>
-      
-//       <TouchableOpacity onPress={handleVerifyOtp} style={styles.button}>
-//         <Text style={styles.buttonText}>
-//           {loading ? 'Verifying...' : 'Verify OTP'}
-//         </Text>
-//       </TouchableOpacity>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     padding: 20,
-//     backgroundColor: '#f7f7f7',
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//     marginBottom: 20,
-//     textAlign: 'center',
-//   },
-//   input: {
-//     height: 50,
-//     borderColor: '#ccc',
-//     borderWidth: 1,
-//     borderRadius: 10,
-//     marginBottom: 20,
-//     paddingHorizontal: 15,
-//     fontSize: 16,
-//   },
-//   button: {
-//     backgroundColor: COLORS.primary,
-//     paddingVertical: 15,
-//     borderRadius: 25,
-//     alignItems: 'center',
-//   },
-//   buttonText: {
-//     color: 'white',
-//     fontSize: 16,
-//   },
-// });
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Alert, TouchableOpacity, StyleSheet } from 'react-native';
-import axios from 'axios';
+import {
+  View,
+  Text,
+  Alert,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS } from '../Color';
+import axios from 'axios';
+import { APIPATH } from '../utils/apiPath';
 import FloatingInput from './floatintext';
+import { COLORS } from '../Color';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import BackButton from '../components/backbtn';
 
 export default function OtpScreen({ route }) {
-  const { email } = route.params;
   const navigation = useNavigation();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const hasSentOtp = useRef(false); // 👈 tracks if OTP is already sent
+  const [resending, setResending] = useState(false);
+  const [hasSentOnce, setHasSentOnce] = useState(false);
+  const email = route.params?.email;
 
   useEffect(() => {
-    const sendOtp = async () => {
-      if (hasSentOtp.current) return; // 👈 Prevent duplicate
-      hasSentOtp.current = true;
+    if (!hasSentOnce && email) {
+      sendOtp(); // Initial OTP send
+    }
+  }, [email]);
 
-      try {
-        await axios.post('http://192.168.65.121:8000/api/user/send-otp', { email });
-      } catch (error) {
-        console.error('Error sending OTP:', error);
-      }
-    };
+  const sendOtp = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Email not found');
+      return;
+    }
 
-    sendOtp();
-  }, []); // ✅ empty array ensures it runs only once
+    try {
+      setResending(true);
+      const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_API}`, { email });
+      console.log('OTP sent:', res.data.message);
+      setHasSentOnce(true);
+      Alert.alert('OTP Sent', 'A new OTP has been sent to your email');
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      Alert.alert('Error', 'Failed to send OTP. Please try again.');
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleVerifyOtp = async () => {
     if (!otp) {
@@ -147,15 +59,16 @@ export default function OtpScreen({ route }) {
 
     setLoading(true);
     try {
-      const res = await axios.post('http://192.168.65.121:8000/api/user/verify-otp', {
+      const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.VERIFY_API}`, {
         email,
         otp,
       });
 
       if (res.status === 200) {
-        navigation.navigate('MainApp');
+        navigation.navigate('MainApp', { screen: 'Home' });
       }
     } catch (err) {
+      console.log('OTP verification error:', err);
       Alert.alert('Error', err.response?.data?.message || 'Invalid OTP');
     } finally {
       setLoading(false);
@@ -164,27 +77,73 @@ export default function OtpScreen({ route }) {
 
   return (
     <View style={styles.container}>
+      <BackButton  navigation={navigation}/>
+
       <Text style={styles.title}>Enter OTP</Text>
+      <Text style={styles.subTitle}>Sent to: {email}</Text>
+
       <View style={styles.inputBox}>
-        <FloatingInput label="Enter OTP" value={otp} setValue={setOtp} />
+        <FloatingInput label="Enter OTP" value={otp} setValue={setOtp} keyboardType="numeric" />
       </View>
 
-      <TouchableOpacity onPress={handleVerifyOtp} style={styles.button}>
-        <Text style={styles.buttonText}>{loading ? 'Verifying...' : 'Verify OTP'}</Text>
+      <TouchableOpacity onPress={handleVerifyOtp} style={styles.button} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Verify OTP</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={sendOtp} style={styles.resendBtn} disabled={resending}>
+        <Text style={styles.resendText}>
+          {resending ? 'Resending OTP...' : 'Resend OTP'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#f7f7f7' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  inputBox: { marginBottom: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subTitle: {
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666',
+  },
+  inputBox: {
+    marginBottom: 20,
+  },
+  
   button: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 15,
-    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  resendBtn: {
     alignItems: 'center',
   },
-  buttonText: { color: 'white', fontSize: 16 },
+  resendText: {
+    color: '#007bff',
+    fontSize: 14,
+  },
 });
