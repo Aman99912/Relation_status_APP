@@ -2,6 +2,7 @@
 import {UserModel} from "../Model/UserModel.js"
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv'
+import bcrypt from 'bcrypt'
 dotenv.config()
 
 
@@ -49,6 +50,31 @@ export const SendForgotPass = async (req, res) => {
     console.error(error);
     return res.status(500).json({ message: 'Failed to send email' });
   }
+};
+
+
+export const verifyForgotOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: 'Email and OTP are required' });
+  }
+
+  const user = await UserModel.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  // Check OTP and expiry
+  if (user.otp !== otp) {
+    return res.status(400).json({ message: 'Invalid OTP' });
+  }
+
+  if (Date.now() > user.otpExpire) {
+    return res.status(400).json({ message: 'OTP has expired' });
+  }
+
+  return res.status(200).json({ success: true, message: 'OTP verified successfully' });
 };
 
 export const resetPassword = async (req, res) => {

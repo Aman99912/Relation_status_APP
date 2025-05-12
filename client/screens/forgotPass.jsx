@@ -28,35 +28,33 @@ export default function ForgotPass() {
     }).start();
   }, []);
 
-  const handleSendLink = async () => {
-    console.log(`${APIPATH.BASE_URL}/${APIPATH.SEND_API}`);
+ const handleSendLink = async () => {
+  if (!email) {
+    Alert.alert('Error', 'Please enter your email');
+    return;
+  }
 
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email');
-      return;
-    }
+  try {
+    setLoading(true);
+    const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.PF_API}`, 
+      { email },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    
+    console.log('OTP response:', res.data); 
+    
+    Alert.alert('Success', 'OTP sent to your email');
+    setShowOtp(true); 
+  } catch (err) {
+    console.log('Error 2:', `${APIPATH.BASE_URL}/${APIPATH.PF_API}`);
+    console.log('Error:', err);
+    const errorMessage = err?.response?.data?.message || 'Something went wrong';
+    Alert.alert('Error', errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    try {
-      setLoading(true);
-      const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_OTP}`, // Changed to specific send OTP endpoint
-        { email },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      if (res.data?.success) {
-        Alert.alert('Success', 'OTP sent to your email');
-        setShowOtp(true); 
-      } else {
-        Alert.alert('Failed', res.data?.message || 'Unable to send reset link');
-      }
-    } catch (err) {
-      console.log('Error:', err);
-      const errorMessage = err?.response?.data?.message || 'Something went wrong';
-      Alert.alert('Error', errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleVerifyOtp = async () => {
     if (!otp) {
@@ -67,7 +65,7 @@ export default function ForgotPass() {
     try {
       setLoading(true);
       const res = await axios.post(
-        `${APIPATH.BASE_URL}/${APIPATH.PF_API_VERIFY_OTP}`, // Changed to specific verify OTP endpoint
+        `${APIPATH.BASE_URL}/${APIPATH.VERIFY_OTP_PASS}`, // Changed to specific verify OTP endpoint
         { email, otp },
         { headers: { 'Content-Type': 'application/json' } }
       );
@@ -79,7 +77,7 @@ export default function ForgotPass() {
         Alert.alert('Invalid OTP', res.data?.message || 'OTP verification failed');
       }
     } catch (err) {
-      console.log('Error:', err);
+      // console.log('Error:', err);
       const errorMessage = err?.response?.data?.message || 'Something went wrong';
       Alert.alert('Error', errorMessage);
     } finally {

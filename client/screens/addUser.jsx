@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'reac
 import axios from 'axios';
 import FloatingInput from './floatintext';
 import { APIPATH } from '../utils/apiPath';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function AddUser() {
@@ -10,28 +11,33 @@ export default function AddUser() {
   const [inputCode, setInputCode] = useState('');
   const [isCodeGenerated, setIsCodeGenerated] = useState(false);
 
-  const handleGenerateCode = async () => {
-    try {
-      // Send POST request using axios
-      const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}`, {
+const handleGenerateCode = async () => {
+  try {
+    const email = await AsyncStorage.getItem('userEmail');
+    console.log('Email from AsyncStorage:', email);
+
+    const response = await axios.get(
+      `${APIPATH.BASE_URL}/${APIPATH.GETDATA}/${email}`,
+      {
         headers: {
           'Content-Type': 'application/json',
         },
-        // Optionally send user ID or token here
-      });
-
-      if (response.status === 200) {
-        setGeneratedCode(response.data.code);
-        setIsCodeGenerated(true);
-      } else {
-        Alert.alert('Error', response.data.message || 'Something went wrong');
       }
-    } catch (error) {
-      // Handle error
-      console.error('Error during code generation:', error);
-      Alert.alert('Error', 'Server error: ' + error.message);
+    );
+
+    if (response.status === 200) {
+      setGeneratedCode(response.data.code); // Directly set the received code
+      console.log(response.data.code);
+      setIsCodeGenerated(false);
+    } else {
+      Alert.alert('Error', response.data.message || 'Something went wrong');
     }
-  };
+  } catch (error) {
+    console.error('Error during code generation:', error);
+    Alert.alert('Error', 'Server error: ' + error.message);
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -43,7 +49,7 @@ export default function AddUser() {
         disabled={isCodeGenerated}
       >
         <Text style={styles.buttonText}>
-          {isCodeGenerated ? 'Code Generated' : 'Click to Generate ID'}
+          {isCodeGenerated ? 'Code Generated' : 'Code ID'}
         </Text>
       </TouchableOpacity>
 

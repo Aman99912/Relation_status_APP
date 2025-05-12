@@ -14,6 +14,7 @@ import {
  
   resetPassword,
   SendForgotPass,
+  verifyForgotOtp,
 
 } from "../controller/forgotPass.controller.js";
 
@@ -31,6 +32,7 @@ router.post("/verify-otp", verifyOtp);
 router.get('/email/:email', GetUserByEmail);
 router.post("/register", finalizeRegister);
 router.post("/forgot-password", SendForgotPass);
+router.post("/verify-password-otp", verifyForgotOtp);
 router.post("/reset-password",resetPassword);
 
 // ✅ Routes that need authentication

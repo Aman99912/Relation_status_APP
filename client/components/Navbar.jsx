@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { COLORS } from '../Color';
 
 export default function NavBar() {
   const navigation = useNavigation();
@@ -38,7 +39,7 @@ const navStyle = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'pink',
+    backgroundColor: COLORS.primary,
     height: 60,
     flexDirection: 'row',
     justifyContent: 'space-around',

@@ -101,19 +101,19 @@ const parsedDOB = parseDOB(dob);
 
 export const GetUserByEmail = async (req, res) => {
   const { email } = req.params;
-  // console.log('Email received:', email); // Log the email
-
+  
   try {
-    // Find the user in the database
-    const user = await UserModel.findOne({ email });
+    // Find the user in the database and return only the 'code' field
+    const user = await UserModel.findOne({ email }, 'code'); // Specify 'code' field
+    
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Send the user data as a response
-    return res.json({ success: true, data: user });
+    // Send the code data as a response
+    return res.json({ success: true, code: user.code }); // Return the 'code' directly
   } catch (err) {
-    console.error('Error during fetching user:', err); // Log the error for more details
+    console.error('Error during fetching user:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };

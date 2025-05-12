@@ -54,7 +54,7 @@ const handleforgot = async ()=>{
       }
     );
 
-    console.log('Response:--------', res.data);
+    // console.log('Response:--------', res.data);
 
     if (res.data?.token) {
       const userEmail = res.data?.user?.email;

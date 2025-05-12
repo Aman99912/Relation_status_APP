@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Alert } from 'react-native';
 import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
-import FloatingInput from './floatintext';// Corrected the import name to match your actual component
+import FloatingInput from './floatintext';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
@@ -80,7 +80,7 @@ export default function SignupScreen() {
     } catch (error) {
       console.error('Signup error:', error);
       Alert.alert(`An error occurred: ${error}`);
-      setLoading(false);  // Ensure loading is stopped in case of an error
+      setLoading(false); 
     }
   };
 
@@ -123,7 +123,7 @@ export default function SignupScreen() {
       </View>
 
       <TouchableOpacity
-        style={[styles.signupBtn, loading && { backgroundColor: COLORS.gray }]} // Disable button when loading
+        style={[styles.signupBtn, loading && { backgroundColor: COLORS.gray }]} 
         onPress={handleSignup}
         disabled={loading}
       >
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   radioOuterSelected: {
-    // Style for selected radio button
+  
   },
   radioInner: {
     height: 10,
