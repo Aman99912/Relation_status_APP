@@ -33,7 +33,7 @@ export const sendFriendRequest = async (req, res) => {
     receiver.friendRequests.push({ from: senderId });
     await receiver.save();
 
-    res.json({ success: true, message: 'Request sent' });
+    res.status(200).json({ success: true, message: 'Request sent' });
   } catch (err) {
     res.status(500).json({ message: 'Error sending request' });
   }

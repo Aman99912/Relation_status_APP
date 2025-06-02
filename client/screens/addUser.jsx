@@ -113,33 +113,65 @@ export default function AddUser() {
     fetchUserData(inputCode.trim());
   };
 
-  const handleAddRequest = async (receiverId) => {
-    try {
-      const senderEmail = await AsyncStorage.getItem('userEmail');
-      if (!senderEmail) return Alert.alert('Error', 'Sender email not found');
+const handleAddRequest = async (receiverId) => {
+  try {
+    const senderEmail = await AsyncStorage.getItem('userEmail');
+    if (!senderEmail) return Alert.alert('Error', 'Sender email not found');
 
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
-      if (res.status === 200 && res.data._id) {
-        const senderId = res.data._id;
+    const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
+    
+    if (res.status === 200 && res.data._id) { // 👈 changed from _id to id
+      const senderId = res.data.id;
 
-        const sendRes = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
-          senderId,
-          receiverId,
-        });
+      const sendRes = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
+        senderId,
+        receiverId,
+      });
 
-        if (sendRes.status === 200 && sendRes.data.success) {
-          Alert.alert('Success', 'Friend request sent');
-        } else {
-          Alert.alert('Error', sendRes.data.message || 'Failed to send request');
-        }
+      if (sendRes.status === 200) {
+        Alert.alert('Success', 'Friend request sent');
       } else {
-        Alert.alert('Error', 'Failed to fetch sender ID');
+        Alert.alert('Error', sendRes.data.message || 'Failed to send request');
       }
-    } catch (err) {
-      console.log(err);
-      Alert.alert('Error', 'Something went wrong');
+    } else {
+      Alert.alert('Error', 'Failed to fetch sender ID');
     }
-  };
+  } catch (err) {
+    console.log(err);
+    Alert.alert('Error', 'Something went wrong');
+  }
+};
+
+
+  // const handleAddRequest = async (receiverId) => {
+  //   try {
+  //     const senderEmail = await AsyncStorage.getItem('userEmail');
+  //     if (!senderEmail) return Alert.alert('Error', 'Sender email not found');
+
+  //     const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
+  //     if (res.status === 200 && res.data._id) {
+  //       const senderId = res.data._id;
+
+  //       const sendRes = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
+  //         senderId,
+  //         receiverId,
+  //       });
+
+  //       if (sendRes.status === 200 ) {
+  //         Alert.alert('Success', 'Friend request sent');
+  //       } else {
+  //         Alert.alert('Error', sendRes.data.message || 'Failed to send request');
+  //       }
+  //     } else {
+  //       console.log("'Error', 'Failed to fetch sender ID'");
+        
+  //       Alert.alert('Error', 'Failed to fetch sender ID');
+  //     }
+  //   } catch (err) {
+  //     console.log(err);
+  //     Alert.alert('Error', 'Something went wrong');
+  //   }
+  // };
 
   return (
     <View style={styles.container}>

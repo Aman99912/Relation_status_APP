@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import NavBar from '../components/Navbar';
 import { APIPATH } from '../utils/apiPath';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -15,6 +16,11 @@ export default function HomeScreen() {
       const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.LOGOUT_API}`, {
       });
       if (response.status === 200) {
+        await AsyncStorage.clear()
+        // await AsyncStorage.clear();
+const checkEmail = await AsyncStorage.getItem('userEmail');
+console.log('Post-clear email:', checkEmail); // should log null
+
         Alert.alert('Success', 'You have been logged out successfully!', [
           {
             text: 'OK',
