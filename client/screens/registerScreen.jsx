@@ -1,17 +1,21 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Alert } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, Animated,
+  Easing, Alert, Image
+} from 'react-native';
 import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
 import FloatingInput from './floatintext';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 
 export default function SignupScreen() {
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,6 +23,7 @@ export default function SignupScreen() {
   const [dob, setDob] = useState('');
   const [password, setPassword] = useState('');
   const [gender, setGender] = useState('');
+  const [avatar, setAvatar] = useState(null);
 
   const handleDobChange = (text) => {
     const cleaned = text.replace(/\D/g, '');
@@ -41,24 +46,52 @@ export default function SignupScreen() {
     return regex.test(mobile);
   };
 
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("Permission required", "Camera roll access is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+  mediaTypes: ImagePicker.MediaType.Images,  
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
   const handleSignup = async () => {
     if (!name || !email || !mobile || !password || !dob || !gender) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
-    
+
     if (!validateDob(dob)) {
       Alert.alert('Error', 'Please enter a valid date (DD/MM/YYYY)');
       return;
     }
-    
+
     if (!validateMobile(mobile)) {
       Alert.alert('Error', 'Please enter a valid mobile number');
       return;
     }
-    
+
     try {
       setLoading(true);
+
+      let avatarBase64 = null;
+      if (avatar) {
+        const base64 = await FileSystem.readAsStringAsync(avatar, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        avatarBase64 = `data:image/jpeg;base64,${base64}`;
+      }
+
       const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.REGISTER_API}`, {
         name,
         email,
@@ -66,6 +99,7 @@ export default function SignupScreen() {
         password,
         dob,
         gender,
+        avatar: avatarBase64,
       });
 
       const data = response.data;
@@ -76,11 +110,11 @@ export default function SignupScreen() {
       } else {
         Alert.alert(data.message || 'Signup failed');
       }
-      setLoading(false);
     } catch (error) {
       console.error('Signup error:', error);
-      Alert.alert(`An error occurred: ${error}`);
-      setLoading(false); 
+      Alert.alert(`Server Error`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,12 +135,34 @@ export default function SignupScreen() {
 
       <Text style={styles.heading}>Let's get{'\n'}started</Text>
 
+      {/* Avatar Picker */}
+      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+        <TouchableOpacity onPress={pickImage}>
+          {/* {avatar ? (
+            <Image
+              source={{ uri: avatar }}
+              style={{ width: 50, height: 50, borderRadius: 50, marginBottom: 10 }}
+            />
+          ) : (
+            <View style={{
+              width: 50,marginRight:30, height: 50, borderRadius: 50,
+              backgroundColor: COLORS.gray,
+              justifyContent: 'center', alignItems: 'center', marginBottom: 10,
+            }}>
+              <FontAwesome name="user" size={40} color="#fff" />
+            </View>
+          )} */}
+          {/* <Text style={{ color: COLORS.primary }}>Choose Avatar</Text> */}
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.inputBox}>
         <FloatingInput label="Full Name" value={name} setValue={setName} />
         <FloatingInput label="Email" value={email} setValue={setEmail} />
         <FloatingInput label="Mobile Number" value={mobile} setValue={setMobile} />
         <FloatingInput label="Password" value={password} setValue={setPassword} secure />
         <FloatingInput label="Date Of Birth (DD/MM/YYYY)" value={dob} setValue={handleDobChange} />
+
         <View style={styles.genderContainer}>
           <Text style={styles.genderLabel}>Gender</Text>
           <View style={styles.radioGroup}>
@@ -123,7 +179,7 @@ export default function SignupScreen() {
       </View>
 
       <TouchableOpacity
-        style={[styles.signupBtn, loading && { backgroundColor: COLORS.gray }]} 
+        style={[styles.signupBtn, loading && { backgroundColor: COLORS.gray }]}
         onPress={handleSignup}
         disabled={loading}
       >
@@ -155,9 +211,11 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 28,
+    marginTop:60,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 40,
+    marginBottom: 10,
+    marginLeft:20,
   },
   inputBox: {
     marginBottom: 25,
@@ -215,9 +273,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  radioOuterSelected: {
-  
-  },
+  radioOuterSelected: {},
   radioInner: {
     height: 10,
     width: 10,
@@ -229,4 +285,3 @@ const styles = StyleSheet.create({
     color: '#ccc',
   },
 });
-

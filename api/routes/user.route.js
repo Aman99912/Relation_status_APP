@@ -8,17 +8,16 @@ import {
   verifyOtp,
   GetUserByEmail,
   PassVerify,
+  getUserByCode,
+  GetUserFriends,
 } from "../controller/user.controller.js";
-
 import {
- 
   resetPassword,
   SendForgotPass,
   verifyForgotOtp,
-
 } from "../controller/forgotPass.controller.js";
-
-import { verifyToken } from "../middlewar/middleware.js"; // ✅ Make sure the path is correct (should be "middleware" not "middlewar" if that's a typo)
+import { verifyToken } from "../middlewar/middleware.js"; 
+import { getFriendRequests, respondToRequest, sendFriendRequest } from "../controller/Notif.js";
 
 
 const router = express.Router();
@@ -27,15 +26,24 @@ const router = express.Router();
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.post("/send-otp", sendOtp);
-router.post("/verify-Pass", PassVerify);
+router.post("/verify-pass", PassVerify);
 router.post("/verify-otp", verifyOtp);
-router.get('/email/:email', GetUserByEmail);
 router.post("/register", finalizeRegister);
 router.post("/forgot-password", SendForgotPass);
 router.post("/verify-password-otp", verifyForgotOtp);
 router.post("/reset-password",resetPassword);
 
 // ✅ Routes that need authentication
+router.get('/friend', GetUserFriends);
+router.get('/email', GetUserByEmail);
+router.get('/code', getUserByCode);
 router.put("/update/:id", verifyToken, updateUser); // middleware applied to this route only
+
+
+// add frnd
+router.post('/send-req', sendFriendRequest);
+router.get('/requests/:userId', getFriendRequests);
+router.post('/respond', respondToRequest);
+
 
 export default router;

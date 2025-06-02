@@ -1,8 +1,11 @@
 export const APIPATH = {
-  BASE_URL : "http://192.168.180.121:5000",  
+  BASE_URL : "http://192.168.165.121:5000",  
   LOGIN_API : "api/user/login",
-  VERIFY_PASS : "api/user/verify-Pass",
+  VERIFY_PASS : "api/user/verify-pass",
+  FRIENDDATA : "api/user/friend",
   GETDATA : "api/user/email",
+  SEND_REQ : "api/user/send-req",
+  GETCODE : "api/user/code",
   SEND_API : "api/user/send-otp",
   VERIFY_API : "api/user/verify-otp",
   VERIFY_OTP_PASS : "api/user/verify-password-otp",

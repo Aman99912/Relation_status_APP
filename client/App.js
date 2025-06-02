@@ -11,10 +11,9 @@ import HomeScreen from './screens/HomeScreen';
 import LogoutScreen from './screens/userProfile';
 import NavBar from './components/Navbar';
 import AddUser from './screens/addUser';
-import NotificationScreen from './screens/notificationScreen';
-import forgotPass from './screens/forgotPass';
 import ForgotPass from './screens/forgotPass';
 import ResetPasswordScreen from './screens/newPass';
+import NotificationCard from './screens/notificationScreen';
 
 
 const Stack = createStackNavigator();
@@ -27,7 +26,7 @@ function MainAppTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Logout" component={LogoutScreen} />
       <Tab.Screen name="Adduser" component={AddUser} />
-      <Tab.Screen name="notification" component={NotificationScreen} />
+      <Tab.Screen name="notification" component={NotificationCard} />
     </Tab.Navigator>
   );
 }

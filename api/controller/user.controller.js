@@ -7,7 +7,7 @@ import nodemailer from "nodemailer";
 const otpStore = {}; 
 
 export const finalizeRegister = async (req, res) => {
-  const { name, email, password, mobile, gender, dob } = req.body;
+  const { name, email, password, mobile, gender, dob, avatar } = req.body; 
 
   // Basic validation
   if (!name || !email || !password || !mobile || !gender || !dob) {
@@ -21,16 +21,21 @@ export const finalizeRegister = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Generate unique code
-    const code = crypto.randomBytes(10).toString('hex') + Math.random().toString(36).slice(2, 6);
+    const existingMobile = await UserModel.findOne({ mobile });
+    if (existingMobile) {
+      return res.status(400).json({ message: "Mobile number already registered" });
+    }
 
-    // Generate 4-digit PIN
-    const Pass = Math.floor(1000 + Math.random() * 9000);
+    // Generate unique 10-digit numeric code
+    const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
-    // Generate username
+    // Generate 4-digit numeric temporary passcode
+    const pass = Math.floor(1000 + Math.random() * 9000);
+
+    // Generate unique username
     const generateUsername = (baseName) => {
       const base = baseName.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const suffix = crypto.randomBytes(2).toString('hex'); // 4 random chars
+      const suffix = crypto.randomBytes(2).toString('hex'); // 4 chars
       return `${base}${suffix}`;
     };
 
@@ -39,31 +44,31 @@ export const finalizeRegister = async (req, res) => {
       username = generateUsername(name || email.split('@')[0]);
     }
 
-    
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Parse DOB (DD/MM/YYYY)
     const parseDOB = (dobString) => {
-  const [day, month, year] = dobString.split('/');
-  return new Date(`${year}-${month}-${day}`);
-};
+      const [day, month, year] = dobString.split('/');
+      return new Date(`${year}-${month}-${day}`);
+    };
+    const parsedDOB = parseDOB(dob);
 
+    // Create user
+    await UserModel.create({
+      name,
+      username,
+      email,
+      code,
+      pass,
+      dob: parsedDOB,
+      gender,
+      password: hashedPassword,
+      mobile,
+      avatar: avatar || undefined, // ⬅️ Optional avatar field added
+    });
 
-const parsedDOB = parseDOB(dob); 
-
-   await UserModel.create({
-  name,
-  username,
-  email,
-  code,
-  Pass,
-  dob: parsedDOB,
-  gender,
-  password: hashedPassword,
-  mobile,
-});
-
-
-  
+    // Setup nodemailer transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -72,16 +77,18 @@ const parsedDOB = parseDOB(dob);
       },
     });
 
+    // Email content
     const mailOptions = {
       from: process.env.EMAIL_ID,
       to: email,
       subject: "Welcome to Our Service!",
-      text: `Hello ${name},\n\nThank you for signing up! Here are your login details:\n\nUsername: ${username}\n Temporary Passcode: ${Pass}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
+      text: `Hello ${name},\n\nThank you for signing up!\n\nYour login details:\nUsername: ${username}\nTemporary Passcode: ${pass}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
     };
 
+    // Send mail
     await transporter.sendMail(mailOptions);
 
-    // Final response
+    // Final success response
     res.status(200).json({
       success: true,
       message: "User created successfully",
@@ -104,14 +111,14 @@ export const GetUserByEmail = async (req, res) => {
   
   try {
     // Find the user in the database and return only the 'code' field
-    const user = await UserModel.findOne({ email }, 'code'); // Specify 'code' field
+    const user = await UserModel.findOne(email); // Specify 'code' field
     
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Send the code data as a response
-    return res.json({ success: true, code: user.code }); // Return the 'code' directly
+    
+    return res.json({ success: true,_id: user._id ,avatar : user.avatar ,code: user.code  , username: user.username, gender: user.gender ,email: user.email}); 
   } catch (err) {
     console.error('Error during fetching user:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
@@ -252,8 +259,9 @@ res.status(200).json({ message: "User logged out successfully" });
 };
 
 
+
 export const PassVerify = async (req, res) => {
-  const { Pass, email } = req.body;
+  const { UserPass, email } = req.body;
 
   try {
     const user = await UserModel.findOne({ email });
@@ -262,15 +270,68 @@ export const PassVerify = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    
-    if (user.Pass !== Pass) {
-      return res.status(400).json({ success: false, message: 'Invalid OTP' });
+    if (user.pass !== UserPass) {
+      return res.status(400).json({ success: false, message: 'Invalid Secret Code' });
     }
 
-    // OTP is valid, now proceed with password verification or any additional logic
-    return res.json({ success: true, message: 'OTP verified successfully', password: user.password });
+    return res.status(200).json({ success: true, message: 'Secret Code verified successfully' });
   } catch (err) {
-    console.error('Error during OTP verification:', err);
+    console.error('Error during Secret Code verification:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+
+
+
+export const GetUserFriends = async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
+
+  try {
+    const user = await UserModel.findOne({ email }).populate({
+      path: 'friends',
+      select: 'username email gender avatar',
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // friends ko safe tariqe se handle karo:
+    const friendsList = user.friends || [];
+
+    return res.json({ success: true, friends: friendsList, frind: user._id });
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+
+
+
+export const getUserByCode = async (req, res) => {
+  const { code } = req.query; 
+
+  try {
+    const user = await UserModel.findOne({ code }).select('_id username avatarUrl'); 
+  
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      id: user._id,
+      username: user.username,
+      avatarUrl: user.avatarUrl || null,
+    });
+  } catch (err) {
+    console.error('Error during fetching user by code:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };

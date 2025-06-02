@@ -1,371 +1,229 @@
-// import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-// import React, { useState, useEffect } from 'react';
-// import FontAwesome from 'react-native-vector-icons/FontAwesome';
-// import FloatingInput from './floatintext';
-// import { COLORS } from '../Color';
-// import axios from 'axios';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { APIPATH } from '../utils/apiPath';
-// import BackButton from '../components/backbtn.jsx'
-// import { useNavigation } from '@react-navigation/native';
-// export default function HomeScreen() {
-//   const navigation = useNavigation(); // ✅ FIXED: useNavigation at top level
-//   const [showOTPInput, setShowOTPInput] = useState(false);
-//   const [enteredOTP, setEnteredOTP] = useState('');
-//   const [verified, setVerified] = useState(false);
-//   const [loading, setLoading] = useState(false);
-//   const [userData, setUserData] = useState(null);
-//   const [otpLoading, setOtpLoading] = useState(false);
-
-//   useEffect(() => {
-//     const fetchUserData = async () => {
-//       try {
-//         const email = await AsyncStorage.getItem('userEmail');
-//         if (!email) return;
-
-//         const response = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}/${email}`);
-//         setUserData(response.data);
-//       } catch (err) {
-//         console.error('Axios Error:', err.response?.data || err.message || err);
-//         alert('Failed to fetch user data');
-//       }
-//     };
-
-//     fetchUserData();
-//   }, []);
-
-//   const handleVerify = async () => {
-//     try {
-//       setOtpLoading(true);
-//       const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.VERIFY_PASS}`, {
-//         Pass: enteredOTP,
-//         email: userData?.email // ✅ FIXED: pass correct email
-//       });
-
-//       setOtpLoading(false);
-//       if (response.data.success) {
-//         setVerified(true);
-//         setShowOTPInput(false);
-//         navigation.navigate('MainApp', { screen: 'Home' }); // ✅ Should go here only on success
-//       } else {
-//         alert(response.data.message || 'Invalid OTP');
-//       }
-//     } catch (err) {
-//       setOtpLoading(false);
-//       alert('Server error');
-//     }
-//   };
-// }
-
-// const UserCard = ({ username, email, gender, age, status, onStatusClick }) => (
-//   <View style={styles.userBox}>
-//     <View style={styles.avatarContainer}>
-//       <FontAwesome name="user" size={55} color="#333" />
-//     </View>
-//     <Text style={styles.userText}>Welcome, {username}</Text>
-
-//     <View style={styles.infoContainer}>
-//       <Text style={styles.infoText}>Email: {email}</Text>
-//       <Text style={styles.infoText}>Gender: {gender}</Text>
-//       <Text style={styles.infoText}>Age: {age}</Text>
-//     </View>
-
-//     {onStatusClick && (
-//       <TouchableOpacity onPress={onStatusClick}>
-//         <Text style={styles.statusText}>Status: {status}</Text>
-//       </TouchableOpacity>
-//     )}
-//   </View>
-// );
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     backgroundColor: '#F5F7FA',
-//     padding: 20,
-//   },
-//   userBox: {
-//     backgroundColor: '#fff',
-//     borderRadius: 20,
-//     width: 320,
-//     paddingVertical: 30,
-//     paddingHorizontal: 20,
-//     alignItems: 'center',
-//     marginBottom: 30,
-//     elevation: 5,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.1,
-//     shadowRadius: 6,
-//     position: 'relative',
-//   },
-//   avatarContainer: {
-//     backgroundColor: '#E0E0E0',
-//     borderRadius: 50,
-//     padding: 15,
-//     marginBottom: 10,
-//     elevation: 3,
-//   },
-//   userText: {
-//     fontSize: 18,
-//     color: '#333',
-//     fontWeight: '600',
-//     marginBottom: 10,
-//   },
-//   infoContainer: {
-//     width: '100%',
-//     alignItems: 'flex-start',
-//     paddingLeft: 10,
-//     marginBottom: 20,
-//   },
-//   infoText: {
-//     fontSize: 14,
-//     color: '#555',
-//     marginVertical: 2,
-//   },
-//   statusText: {
-//     textAlign: 'center',
-//     fontSize: 13,
-//     color: '#4A90E2',
-//     fontStyle: 'italic',
-//     textDecorationLine: 'underline',
-//   },
-//   linkBox: {
-//     backgroundColor: '#fff',
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     paddingVertical: 15,
-//     paddingHorizontal: 25,
-//     borderRadius: 15,
-//     elevation: 4,
-//     marginBottom: 30,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.08,
-//     shadowRadius: 4,
-//   },
-//   otpBox: {
-//     backgroundColor: '#fff',
-//     width: 300,
-//     padding: 20,
-//     borderRadius: 15,
-//     alignItems: 'center',
-//     marginBottom: 20,
-//     elevation: 3,
-//   },
-//   verifyButton: {
-//     backgroundColor: COLORS.primary,
-//     paddingHorizontal: 20,
-//     paddingVertical: 10,
-//     borderRadius: 10,
-//   },
-//   verifyText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
-//   },
-//   closeBtn: {
-//     position: 'absolute',
-//     top: 50,
-//     right: 30,
-//     backgroundColor: '#ff4d4d',
-//     padding: 8,
-//     borderRadius: 20,
-//     zIndex: 99,
-//   },
-// });
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Modal,
+  Alert,
+} from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import FloatingInput from './floatintext'; // Adjust according to your component
-import { COLORS } from '../Color'; // Adjust according to your color file
+import FloatingInput from './floatintext';
+import { COLORS } from '../Color';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
-import BackButton from '../components/backbtn.jsx';
 import { useNavigation } from '@react-navigation/native';
+import { styles } from './HomepageCss';
 
 export default function HomeScreen() {
-  const navigation = useNavigation(); // useNavigation at top level
-  const [showOTPInput, setShowOTPInput] = useState(false);
-  const [Pass, setPass] = useState('');
-  const [verified, setVerified] = useState(false);
+  const navigation = useNavigation();
+
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState(null);
-  const [otpLoading, setOtpLoading] = useState(false);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [inputPassword, setInputPassword] = useState('');
+  const [passwordVerifying, setPasswordVerifying] = useState(false);
+  const [friendsList, setFriendsList] = useState([]);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+
+  const scrollRef = useRef();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        setLoading(true);
         const email = await AsyncStorage.getItem('userEmail');
         if (!email) return;
 
-        console.log('Fetching data for email:', email);
+        const response = await axios.get(
+          `${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`
+        );
 
-        const response = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}/${email}`);
-        console.log('User Data:', response.data); // Debugging the response
-
-        setUserData(response.data); // Storing user data in state
+        setUserData(response.data);
       } catch (err) {
-        console.error('Axios Error:', err.response?.data || err.message || err);
         alert('Failed to fetch user data');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-  const handleVerify = async () => {
-    try {
-      setOtpLoading(true);
-      const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.VERIFY_PASS}`, {
-        Pass: Pass,
-        email: userData?.email, 
-      });
+  const verifyPasswordAndFetchFriends = async () => {
+    if (!inputPassword.trim()) {
+      alert('Please enter the secret code');
+      return;
+    }
 
-      setOtpLoading(false);
-      if (response.data.success) {
-        setVerified(true);
-        setShowOTPInput(false);
-        navigation.navigate('MainApp', { screen: 'Home' }); 
+    try {
+      setPasswordVerifying(true);
+
+      const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.VERIFY_PASS}`, {
+        UserPass: inputPassword,
+        email: userData.email,
+      });
+      console.log("success", res.data);
+      
+      
+      
+      
+      if (res.status===200) {
+        const friendsRes = await axios.get(
+          `${APIPATH.BASE_URL}/${APIPATH.FRIENDDATA}?email=${userData.email}`
+        );
+           
+        setFriendsList(friendsRes.data.friends || []);
+        setPasswordModalVisible(false);
+        setInputPassword('');
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
       } else {
-        alert(response.data.message || 'Invalid OTP');
+        alert('Incorrect secret code');
       }
-    } catch (err) {
-      setOtpLoading(false);
-      alert('Server error');
+    } catch (error) {
+      console.error('Password verify/fetch friends error:', error?.response?.data || error.message);
+      alert(
+        error.response?.data?.message ||
+        'Error verifying secret code or fetching friends'
+      );
+    } finally {
+      setPasswordVerifying(false);
     }
   };
 
+  const onUserCardPress = () => {
+    setPasswordModalVisible(true);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      {loading && <ActivityIndicator size="large" color={COLORS.primary} />}
-      
-      {userData ? (
+    <ScrollView
+      contentContainerStyle={styles.container}
+      ref={scrollRef}
+      keyboardShouldPersistTaps="handled"
+    >
+      {friendsLoading && (
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      )}
+
+      {friendsList.length > 0 &&
+        friendsList.map(friend => (
+          <UserCard
+            key={friend._id}
+            username={friend.username}
+            email={friend.email}
+            gender={friend.gender}
+            avatar={friend.avatar}
+            status={friend.status || 'Status: hide'}
+            disabled={true}
+          />
+        ))}
+
+      {userData && (
         <UserCard
           username={userData.username}
           email={userData.email}
           gender={userData.gender}
-          age={userData.age}
-          status={userData.status}
+          avatar={userData.avatar}
+          status="Status: hide"
+          onPress={onUserCardPress}
+          disabled={false}
+          style={
+            friendsList.length > 0
+              ? styles.mainUserCardBelow
+              : styles.mainUserCardCenter
+          }
         />
-      ) : (
-        <Text>Loading...</Text>
       )}
 
-      {/* OTP Verification Section */}
-      {showOTPInput && (
-        <View style={styles.otpBox}>
-          <FloatingInput
-            label="Enter Secret Code"
-            value={Pass}
-            onChangeText={setPass}
-          />
-          <TouchableOpacity onPress={handleVerify} style={styles.verifyButton}>
-            {otpLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.verifyText}>Verify OTP</Text>
-            )}
-          </TouchableOpacity>
+      {/* Password Modal */}
+      <Modal
+        visible={passwordModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setPasswordModalVisible(false);
+          setInputPassword('');
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Enter Secret Code</Text>
+
+            <FloatingInput
+              label="Secret Code"
+              value={inputPassword}
+              setValue={setInputPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity
+              onPress={verifyPasswordAndFetchFriends}
+              style={styles.verifyButton}
+              disabled={passwordVerifying}
+            >
+              {passwordVerifying ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.verifyText}>Verify</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setPasswordModalVisible(false);
+                setInputPassword('');
+              }}
+              style={styles.cancelButton}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      )}
-    </View>
+      </Modal>
+    </ScrollView>
   );
 }
 
-// User Card to Display User Info
-const UserCard = ({ username, email, gender, age, status }) => (
-  <View style={styles.userBox}>
+const UserCard = ({
+  username,
+  email,
+  gender,
+  avatar,
+  onPress,
+  status,
+  disabled,
+  style,
+}) => (
+  <TouchableOpacity
+    activeOpacity={disabled ? 1 : 0.8}
+    onPress={disabled ? null : onPress}
+    style={[styles.userBox, style]}
+  >
     <View style={styles.avatarContainer}>
-      <FontAwesome name="user" size={55} color="#333" />
+      {avatar ? (
+        <Image source={{ uri: avatar }} style={styles.avatarImage} />
+      ) : (
+        <FontAwesome name="user" size={55} color="#666" />
+      )}
     </View>
     <Text style={styles.userText}>Welcome, {username}</Text>
-
     <View style={styles.infoContainer}>
       <Text style={styles.infoText}>Email: {email}</Text>
       <Text style={styles.infoText}>Gender: {gender}</Text>
-      <Text style={styles.infoText}>Age: {age}</Text>
     </View>
-
-    {status && (
-      <TouchableOpacity>
-        <Text style={styles.statusText}>Status: {status}</Text>
-      </TouchableOpacity>
-    )}
-  </View>
+    <View style={styles.statusContainer}>
+      <Text style={styles.statusText}>{status || 'Status: hide'}</Text>
+    </View>
+  </TouchableOpacity>
 );
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F7FA',
-    padding: 20,
-  },
-  userBox: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    width: 320,
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 30,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-  },
-  avatarContainer: {
-    backgroundColor: '#E0E0E0',
-    borderRadius: 50,
-    padding: 15,
-    marginBottom: 10,
-  },
-  userText: {
-    fontSize: 18,
-    color: '#333',
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  infoContainer: {
-    width: '100%',
-    alignItems: 'flex-start',
-    paddingLeft: 10,
-    marginBottom: 20,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#555',
-    marginVertical: 2,
-  },
-  statusText: {
-    textAlign: 'center',
-    fontSize: 13,
-    color: '#4A90E2',
-    fontStyle: 'italic',
-    textDecorationLine: 'underline',
-  },
-  otpBox: {
-    backgroundColor: '#fff',
-    width: 300,
-    padding: 20,
-    borderRadius: 15,
-    alignItems: 'center',
-    marginBottom: 20,
-    elevation: 3,
-  },
-  verifyButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  verifyText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-});

@@ -23,6 +23,7 @@
     "dotenv": "^16.5.0",
     "expo": "~52.0.46",
     "expo-constants": "~17.0.8",
+    "expo-image-picker": "^16.1.4",
     "expo-linear-gradient": "^14.0.2",
     "expo-status-bar": "~2.0.1",
     "formik": "^2.4.6",
