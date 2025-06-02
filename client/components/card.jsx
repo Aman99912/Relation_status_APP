@@ -4,7 +4,6 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS } from '../Color';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-
 export default function Card({ username, avatarUrl, onAddPress }) {
   return (
     <View style={styles.card}>
@@ -16,10 +15,8 @@ export default function Card({ username, avatarUrl, onAddPress }) {
         </View>
       )}
       <Text style={styles.username}>{username}</Text>
-      <TouchableOpacity style={styles.addButton} onPress={onAddPress}>
-       
-          <FontAwesome name="plus" size={36} color="green" /> 
-          
+      <TouchableOpacity style={styles.addButton} onPress={onAddPress} activeOpacity={0.7}>
+        <FontAwesome name="plus" size={28} color="#4CAF50" />
       </TouchableOpacity>
     </View>
   );
@@ -30,10 +27,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background || '#fff',
     borderRadius: 12,
     padding: 16,
-    marginVertical: 10,
+    marginVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
     elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
   },
   avatar: {
     width: 50,
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.text || "green",
+    backgroundColor: COLORS.primary || '#4e73df',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -59,12 +60,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text || '#333',
   },
   addButton: {
-    
-    paddingVertical: 8,
-    paddingHorizontal: 18,
+    padding: 8,
     borderRadius: 25,
-  }
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

@@ -1,3 +1,5 @@
+
+
 import {
   View,
   Text,
@@ -31,27 +33,32 @@ export default function HomeScreen() {
 
   const scrollRef = useRef();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        const email = await AsyncStorage.getItem('userEmail');
-        if (!email) return;
+ useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
 
-        const response = await axios.get(
-          `${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`
-        );
-
-        setUserData(response.data);
-      } catch (err) {
-        alert('Failed to fetch user data');
-      } finally {
-        setLoading(false);
+      const email = await AsyncStorage.getItem('userEmail'); // ✅ only email
+      if (!email) {
+        Alert.alert('Error', 'User email not found');
+        return;
       }
-    };
 
-    fetchUserData();
-  }, []);
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+      if (res.status === 200 && res.data) {
+        setUserData(res.data); // Full user object from backend
+      } else {
+        Alert.alert('Error', 'Failed to fetch user data');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to load user data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchUserData();
+}, []);
 
   const verifyPasswordAndFetchFriends = async () => {
     if (!inputPassword.trim()) {
@@ -66,16 +73,12 @@ export default function HomeScreen() {
         UserPass: inputPassword,
         email: userData.email,
       });
-      console.log("success", res.data);
-      
-      
-      
-      
-      if (res.status===200) {
+
+      if (res.status === 200) {
         const friendsRes = await axios.get(
           `${APIPATH.BASE_URL}/${APIPATH.FRIENDDATA}?email=${userData.email}`
         );
-           
+
         setFriendsList(friendsRes.data.friends || []);
         setPasswordModalVisible(false);
         setInputPassword('');
@@ -84,10 +87,9 @@ export default function HomeScreen() {
         alert('Incorrect secret code');
       }
     } catch (error) {
-      console.error('Password verify/fetch friends error:', error?.response?.data || error.message);
       alert(
-        error.response?.data?.message ||
-        'Error verifying secret code or fetching friends'
+        error?.response?.data?.message ||
+        'Error verifying code or fetching friends'
       );
     } finally {
       setPasswordVerifying(false);
@@ -120,18 +122,18 @@ export default function HomeScreen() {
         friendsList.map(friend => (
           <UserCard
             key={friend._id}
-            username={friend.username}
+            username={friend.fullname}
             email={friend.email}
             gender={friend.gender}
             avatar={friend.avatar}
-            status={friend.status || 'Status: hide'}
+            status='Status: In Relation'
             disabled={true}
           />
         ))}
 
       {userData && (
         <UserCard
-          username={userData.username}
+          username={userData.fullname}
           email={userData.email}
           gender={userData.gender}
           avatar={userData.avatar}

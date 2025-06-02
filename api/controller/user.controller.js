@@ -30,7 +30,7 @@ export const finalizeRegister = async (req, res) => {
     const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
     // Generate 4-digit numeric temporary passcode
-    const pass = Math.floor(1000 + Math.random() * 9000);
+    const SubPass = Math.floor(1000 + Math.random() * 9000);
 
     // Generate unique username
     const generateUsername = (baseName) => {
@@ -60,7 +60,7 @@ export const finalizeRegister = async (req, res) => {
       username,
       email,
       code,
-      pass,
+      SubPass,
       dob: parsedDOB,
       gender,
       password: hashedPassword,
@@ -106,38 +106,20 @@ export const finalizeRegister = async (req, res) => {
 
 
 
-export const GetUserByEmail = async (req, res) => {
-  const { email } = req.params;
-  
-  try {
-    // Find the user in the database and return only the 'code' field
-    const user = await UserModel.findOne(email); // Specify 'code' field
-    
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    
-    return res.json({ success: true,_id: user._id ,avatar : user.avatar ,code: user.code  , username: user.username, gender: user.gender ,email: user.email}); 
-  } catch (err) {
-    console.error('Error during fetching user:', err);
-    return res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
 
 
 export const sendOtp = async (req, res) => {
   const { email } = req.body;
-
+  
   if (!email) {
     return res.status(400).json({ message: "Email is required" });
   }
-
+  
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
+  
   otpStore[email] = { otp, expiresAt };
-
+  
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -146,7 +128,7 @@ export const sendOtp = async (req, res) => {
         pass: process.env.EMAIL_PASS,
       },
     });
-
+    
     await transporter.sendMail({
       from: process.env.EMAIL_ID,
       to: email,
@@ -165,13 +147,13 @@ export const sendOtp = async (req, res) => {
 // ✅ Verify OTP
 export const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
-
+  
   if (!email || !otp) {
     return res.status(400).json({ message: "Email and OTP are required." });
   }
-
+  
   const storedOtp = otpStore[email];
-
+  
   if (!storedOtp) {
     return res.status(400).json({ message: "No OTP found for this email." });
   }
@@ -184,14 +166,14 @@ export const verifyOtp = async (req, res) => {
     delete otpStore[email];
     return res.status(400).json({ message: "OTP expired." });
   }
-
+  
   res.status(200).json({ message: "OTP verified successfully." });
 };
 
 // 🔐 Login (email, mobile or username + password)
 export const loginUser = async (req, res) => {
   const { login, password } = req.body;
-
+  
   try {
     const user = await UserModel.findOne({
       $or: [
@@ -200,7 +182,7 @@ export const loginUser = async (req, res) => {
         { username: login },
       ],
     });
-
+    
     if (!user) {
       return res.status(404).json({ status: "error", message: "User not found" });
     }
@@ -209,11 +191,11 @@ export const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ status: "error", message: "Invalid credentials" });
     }
-
+    
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
-
+    
     res.send({
       status: "ok",
       message: "Login successful",
@@ -234,13 +216,13 @@ export const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
     const { username, email, mobile } = req.body;
-
+    
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
       { username, email, mobile },
       { new: true }
     );
-
+    
     res.status(200).json({ message: "User updated", user: updatedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -250,9 +232,9 @@ export const updateUser = async (req, res) => {
 // 🚪 Logout
 export const logoutUser = async (req, res) => {
   try {
-   res.clearCookie("token");
-res.status(200).json({ message: "User logged out successfully" });
-
+    res.clearCookie("token");
+    res.status(200).json({ message: "User logged out successfully" });
+    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -262,18 +244,18 @@ res.status(200).json({ message: "User logged out successfully" });
 
 export const PassVerify = async (req, res) => {
   const { UserPass, email } = req.body;
-
+  
   try {
     const user = await UserModel.findOne({ email });
-
+    
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-
-    if (user.pass !== UserPass) {
+    
+    if (user.SubPass !== UserPass) {
       return res.status(400).json({ success: false, message: 'Invalid Secret Code' });
     }
-
+    
     return res.status(200).json({ success: true, message: 'Secret Code verified successfully' });
   } catch (err) {
     console.error('Error during Secret Code verification:', err);
@@ -282,8 +264,7 @@ export const PassVerify = async (req, res) => {
 };
 
 
-
-
+// Get all friends of a user by email
 export const GetUserFriends = async (req, res) => {
   const { email } = req.query;
 
@@ -301,25 +282,22 @@ export const GetUserFriends = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // friends ko safe tariqe se handle karo:
     const friendsList = user.friends || [];
 
-    return res.json({ success: true, friends: friendsList, frind: user._id });
+    return res.json({ success: true, friends: friendsList, userId: user._id });
   } catch (error) {
     console.error('Error fetching friends:', error);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-
-
-
+// Get a user by their unique code
 export const getUserByCode = async (req, res) => {
-  const { code } = req.query; 
+  const { code } = req.query;
 
   try {
-    const user = await UserModel.findOne({ code }).select('_id username avatarUrl'); 
-  
+    const user = await UserModel.findOne( {code} )
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
@@ -327,11 +305,37 @@ export const getUserByCode = async (req, res) => {
     return res.status(200).json({
       success: true,
       id: user._id,
-      username: user.username,
-      avatarUrl: user.avatarUrl || null,
+      fullname: user.name,
+      avatarUrl: user.avatar || null,
     });
   } catch (err) {
     console.error('Error during fetching user by code:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Get user by email from route param
+export const GetUserByEmail = async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const user = await UserModel.findOne( email );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      id: user._id,
+      avatar: user.avatar,
+      code: user.code,
+      fullname: user.name,
+      gender: user.gender,
+      email: user.email,
+    });
+  } catch (err) {
+    console.error('Error during fetching user:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
