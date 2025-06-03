@@ -93,14 +93,16 @@ export default function SignupScreen() {
       }
 
       const response = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.REGISTER_API}`, {
-        name,
-        email,
-        mobile,
-        password,
-        dob,
-        gender,
-        avatar: avatarBase64,
-      });
+          name: name.trim().replace(/\s+/g, ' '),                    // Remove extra spaces between words
+          email: email.trim().toLowerCase(),                         // Trim and lowercase
+           mobile: mobile.trim(),                                     // Remove leading/trailing spaces
+           password: password.trim(),                                 // Trim password
+           dob: dob.trim(),                                           // Ensure proper formatting
+           gender: gender.trim().toLowerCase(),                       // Trim and lowercase gender
+           avatar: avatarBase64,
+});
+
+     
 
       const data = response.data;
 
@@ -135,26 +137,7 @@ export default function SignupScreen() {
 
       <Text style={styles.heading}>Let's get{'\n'}started</Text>
 
-      {/* Avatar Picker */}
-      <View style={{ alignItems: 'center', marginBottom: 20 }}>
-        <TouchableOpacity onPress={pickImage}>
-          {/* {avatar ? (
-            <Image
-              source={{ uri: avatar }}
-              style={{ width: 50, height: 50, borderRadius: 50, marginBottom: 10 }}
-            />
-          ) : (
-            <View style={{
-              width: 50,marginRight:30, height: 50, borderRadius: 50,
-              backgroundColor: COLORS.gray,
-              justifyContent: 'center', alignItems: 'center', marginBottom: 10,
-            }}>
-              <FontAwesome name="user" size={40} color="#fff" />
-            </View>
-          )} */}
-          {/* <Text style={{ color: COLORS.primary }}>Choose Avatar</Text> */}
-        </TouchableOpacity>
-      </View>
+     
 
       <View style={styles.inputBox}>
         <FloatingInput label="Full Name" value={name} setValue={setName} />

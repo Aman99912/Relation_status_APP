@@ -80,3 +80,33 @@ export const respondToRequest = async (req, res) => {
     res.status(500).json({ message: 'Error responding to request' });
   }
 };
+
+
+export const GetFriendNotif = async (req, res) => {
+  try {
+    const email = req.query.email?.toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email required" });
+    }
+
+    // Find user and populate 'from' field inside friendRequests
+    const user = await UserModel.findOne({ email }).populate({
+      path: 'friendRequests.from',
+      select: 'name  avatar email', // Select only required fields
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Return all pending friend requests (by default they are pending)
+    res.json({
+      success: true,
+      pendingRequests: user.friendRequests, // Contains 'from' populated
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

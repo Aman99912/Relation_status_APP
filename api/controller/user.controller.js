@@ -54,6 +54,14 @@ export const finalizeRegister = async (req, res) => {
     };
     const parsedDOB = parseDOB(dob);
 
+    // Assign default avatar if not provided
+    let avatarUrl = avatar;
+    if (!avatar) {
+      avatarUrl = gender.toLowerCase() === 'female' 
+        ? 'https://static.vecteezy.com/system/resources/previews/028/597/534/original/young-cartoon-female-avatar-student-character-wearing-eyeglasses-file-no-background-ai-generated-png.png'
+        : 'https://png.pngtree.com/png-clipart/20231015/original/pngtree-man-avatar-clipart-illustration-png-image_13302499.png';
+    }
+
     // Create user
     await UserModel.create({
       name,
@@ -65,7 +73,7 @@ export const finalizeRegister = async (req, res) => {
       gender,
       password: hashedPassword,
       mobile,
-      avatar: avatar || undefined, // ⬅️ Optional avatar field added
+      avatar: avatarUrl, // use default if needed
     });
 
     // Setup nodemailer transporter
@@ -100,7 +108,6 @@ export const finalizeRegister = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 
 
@@ -358,7 +365,8 @@ export const GetUserByEmail = async (req, res) => {
       success: true,
       id: user._id,
       code: user.code,
-      fullname: user.fullname,
+      fullname: user.name,
+      avatar: user.avatar,
       gender: user.gender,
       email: user.email,
     });

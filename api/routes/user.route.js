@@ -17,7 +17,7 @@ import {
   verifyForgotOtp,
 } from "../controller/forgotPass.controller.js";
 import { verifyToken } from "../middlewar/middleware.js"; 
-import { getFriendRequests, respondToRequest, sendFriendRequest } from "../controller/Notif.js";
+import { GetFriendNotif, getFriendRequests, respondToRequest, sendFriendRequest } from "../controller/Notif.js";
 
 
 const router = express.Router();
@@ -41,6 +41,7 @@ router.put("/update/:id", verifyToken, updateUser); // middleware applied to thi
 
 
 // add frnd
+router.get('/friendnotif', GetFriendNotif);
 router.post('/send-req', sendFriendRequest);
 router.get('/requests/:userId', getFriendRequests);
 router.post('/respond', respondToRequest);
