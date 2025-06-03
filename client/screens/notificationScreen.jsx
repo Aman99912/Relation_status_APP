@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   noRequestsText: {
     fontSize: 16,
-    color: COLORS.gray,
+    color: "black",
   },
 });
 

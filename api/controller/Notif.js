@@ -1,4 +1,54 @@
+// import { UserModel } from "../Model/UserModel.js";
+// import mongoose from "mongoose"; // ✅ import for ObjectId check
+
+// export const sendFriendRequest = async (req, res) => {
+//   const { senderId, receiverId } = req.body;
+
+//   if (!senderId || !receiverId) {
+//     return res.status(400).json({ message: 'Missing IDs' });
+//   }
+
+//   if (senderId === receiverId) {
+//     return res.status(400).json({ message: 'Cannot send request to yourself' });
+//   }
+
+//   // ✅ Check for valid ObjectId format
+//   if (!mongoose.Types.ObjectId.isValid(senderId) || !mongoose.Types.ObjectId.isValid(receiverId)) {
+//     return res.status(400).json({ message: 'Invalid sender or receiver ID format' });
+//   }
+
+//   try {
+//     const receiver = await UserModel.findById(receiverId);
+//     if (!receiver) {
+//       return res.status(404).json({ message: 'Receiver user not found' });
+//     }
+
+//     const alreadySent = receiver.friendRequests.some(
+//       (r) => r.from.toString() === senderId
+//     );
+
+//     if (alreadySent) {
+//       return res.status(409).json({ message: 'Friend request already sent' });
+//     }
+
+//     const alreadyFriend = receiver.friends.includes(senderId);
+//     if (alreadyFriend) {
+//       return res.status(409).json({ message: 'User is already your friend' });
+//     }
+
+//     receiver.friendRequests.push({ from: senderId });
+//     await receiver.save();
+
+//     return res.status(200).json({ success: true, message: 'Friend request sent successfully' });
+
+//   } catch (error) {
+//     console.error('Friend Request Error:', error); // ⛳ log error for debugging
+//     return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+//   }
+// };
+
 import { UserModel } from "../Model/UserModel.js";
+import mongoose from "mongoose";
 
 export const sendFriendRequest = async (req, res) => {
   const { senderId, receiverId } = req.body;
@@ -6,8 +56,13 @@ export const sendFriendRequest = async (req, res) => {
   if (!senderId || !receiverId) {
     return res.status(400).json({ message: 'Missing IDs' });
   }
+
   if (senderId === receiverId) {
     return res.status(400).json({ message: 'Cannot send request to yourself' });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(senderId) || !mongoose.Types.ObjectId.isValid(receiverId)) {
+    return res.status(400).json({ message: 'Invalid sender or receiver ID format' });
   }
 
   try {
@@ -16,28 +71,42 @@ export const sendFriendRequest = async (req, res) => {
       return res.status(404).json({ message: 'Receiver user not found' });
     }
 
-    // Check if already sent
     const alreadySent = receiver.friendRequests.some(
       (r) => r.from.toString() === senderId
     );
     if (alreadySent) {
-      return res.status(409).json({ message: 'Request already sent' });
+      return res.status(409).json({ message: 'Friend request already sent' });
     }
 
-    // Check if already friends
-    if (receiver.friends.includes(senderId)) {
+    const alreadyFriend = receiver.friends.includes(senderId);
+    if (alreadyFriend) {
       return res.status(409).json({ message: 'User is already your friend' });
     }
 
-    // Add request
     receiver.friendRequests.push({ from: senderId });
     await receiver.save();
 
-    res.status(200).json({ success: true, message: 'Request sent' });
-  } catch (err) {
-    res.status(500).json({ message: 'Error sending request' });
+    // ✅ Emit real-time notification to the receiver if online
+    const io = req.app.get('io');
+    const connectedUsers = req.app.get('connectedUsers');
+    const receiverSocketId = connectedUsers.get(receiverId);
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('friendRequestNotification', {
+        from: senderId,
+        message: 'You received a new friend request!',
+      });
+    }
+
+    return res.status(200).json({ success: true, message: 'Friend request sent successfully' });
+
+  } catch (error) {
+    console.error('Friend Request Error:', error);
+    return res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 };
+
+
 
 export const getFriendRequests = async (req, res) => {
   const { userId } = req.params;

@@ -323,31 +323,8 @@ export const getUserByCode = async (req, res) => {
   }
 };
 
-// Get user by email from route param
-// export const GetUserByEmail = async (req, res) => {
-//   const { email } = req.params;
 
-//   try {
-//   const user = await UserModel.findOne( email );
 
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: 'User not found' });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       id: user._id,
-//       avatar: user.avatar,
-//       code: user.code,
-//       fullname: user.name,
-//       gender: user.gender,
-//       email: user.email,
-//     });
-//   } catch (err) {
-//     console.error('Error during fetching user:', err);
-//     return res.status(500).json({ success: false, message: 'Server error' });
-//   }
-// };
 export const GetUserByEmail = async (req, res) => {
   try {
     const email = req.query.email?.toLowerCase(); 

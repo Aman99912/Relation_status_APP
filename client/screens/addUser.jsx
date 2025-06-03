@@ -83,6 +83,8 @@ export default function AddUser() {
     setHasSearched(true);
     try {
       const response = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`);
+      
+      
       if (response.status === 200) {
         if (response.data.id === myUserId) {
           Alert.alert('You cannot add yourself');
@@ -114,13 +116,22 @@ export default function AddUser() {
   };
 
 const handleAddRequest = async (receiverId) => {
+  console.log('Sending request to receiverId:', receiverId);
+
   try {
     const senderEmail = await AsyncStorage.getItem('userEmail');
     if (!senderEmail) return Alert.alert('Error', 'Sender email not found');
 
     const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
     
-    if (res.status === 200 && res.data._id) { // 👈 changed from _id to id
+   console.log("SenderId",res.data.id );
+   console.log("Receiver Id : ",receiverId);
+   
+    
+    
+    
+    
+    if (res.status === 200) { 
       const senderId = res.data.id;
 
       const sendRes = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
@@ -142,36 +153,6 @@ const handleAddRequest = async (receiverId) => {
   }
 };
 
-
-  // const handleAddRequest = async (receiverId) => {
-  //   try {
-  //     const senderEmail = await AsyncStorage.getItem('userEmail');
-  //     if (!senderEmail) return Alert.alert('Error', 'Sender email not found');
-
-  //     const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
-  //     if (res.status === 200 && res.data._id) {
-  //       const senderId = res.data._id;
-
-  //       const sendRes = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
-  //         senderId,
-  //         receiverId,
-  //       });
-
-  //       if (sendRes.status === 200 ) {
-  //         Alert.alert('Success', 'Friend request sent');
-  //       } else {
-  //         Alert.alert('Error', sendRes.data.message || 'Failed to send request');
-  //       }
-  //     } else {
-  //       console.log("'Error', 'Failed to fetch sender ID'");
-        
-  //       Alert.alert('Error', 'Failed to fetch sender ID');
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //     Alert.alert('Error', 'Something went wrong');
-  //   }
-  // };
 
   return (
     <View style={styles.container}>
@@ -213,10 +194,10 @@ const handleAddRequest = async (receiverId) => {
         </Text>
       ) : userData ? (
         <Card
-          key={userData._id}
+          key={userData.id}
           username={userData.fullname}
           avatarUrl={userData.avatarUrl}
-          onAddPress={() => handleAddRequest(userData._id)}
+          onAddPress={() => handleAddRequest(userData.id)}
         />
       ) : null}
     </View>

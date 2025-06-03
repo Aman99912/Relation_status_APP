@@ -471,6 +471,7 @@ const UserCard = ({
   };
 
   const avatarSource = !avatar || imageError ? { uri: getDefaultAvatar() } : { uri: avatar };
+  
 
   return (
     <TouchableOpacity
@@ -489,6 +490,7 @@ const UserCard = ({
 
       <View style={styles.avatarContainer}>
         <Image
+          // source={avatarSource}
           source={avatarSource}
           style={styles.avatarImage}
           onError={() => setImageError(true)}
