@@ -242,15 +242,17 @@ const UserCard = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  const getDefaultAvatar = () => {
-    if (gender === 'female') {
-      return 'https://static.vecteezy.com/system/resources/previews/028/597/534/original/young-cartoon-female-avatar-student-character-wearing-eyeglasses-file-no-background-ai-generated-png.png';
-    } else {
-      return 'https://png.pngtree.com/png-clipart/20231015/original/pngtree-man-avatar-clipart-illustration-png-image_13302499.png';
-    }
-  };
+ const getDefaultAvatar = () => {
+  if (gender === 'female') {
+    return require('../assets/female.webp');
+  } else {
+    return require('../assets/male.png');
+  }
+};
 
-  const avatarSource = !avatar || imageError ? { uri: getDefaultAvatar() } : { uri: avatar };
+const avatarSource = !avatar || imageError
+  ? getDefaultAvatar()
+  : { uri: avatar };
 
   return (
     <TouchableOpacity
