@@ -18,6 +18,7 @@ import {
 } from "../controller/forgotPass.controller.js";
 import { verifyToken } from "../middlewar/middleware.js"; 
 import { GetFriendNotif, getFriendRequests, respondToRequest, sendFriendRequest } from "../controller/Notif.js";
+import { addDiary, getAllEntries  } from "../controller/DiaryController.js";
 
 
 const router = express.Router();
@@ -46,5 +47,9 @@ router.post('/send-req', sendFriendRequest);
 router.get('/requests/:userId', getFriendRequests);
 router.post('/respond', respondToRequest);
 
+//diary routes
+
+router.post('/add-diary', addDiary)
+router.get('/userId-diary', getAllEntries)
 
 export default router;

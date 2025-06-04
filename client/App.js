@@ -14,6 +14,7 @@ import AddUser from './screens/addUser';
 import ForgotPass from './screens/forgotPass';
 import ResetPasswordScreen from './screens/newPass';
 import NotificationCard from './screens/notificationScreen';
+import DiaryScreen from './screens/diaryScreen';
 
 
 const Stack = createStackNavigator();
@@ -26,6 +27,7 @@ function MainAppTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Logout" component={LogoutScreen} />
       <Tab.Screen name="Adduser" component={AddUser} />
+      <Tab.Screen name="diary" component={DiaryScreen} />
       <Tab.Screen name="notification" component={NotificationCard} />
     </Tab.Navigator>
   );
