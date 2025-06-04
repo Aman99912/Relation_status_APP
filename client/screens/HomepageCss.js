@@ -9,6 +9,14 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     minHeight: '100%',
   },
+  navItem:{
+   position:'absolute',
+   top: 45,
+   right: 30,
+   zIndex: 999,
+
+  },
+  
   userBox: {
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -25,11 +33,11 @@ export const styles = StyleSheet.create({
   },
   mainUserCardCenter: {
     // When no friends, main user card center vertically
-    marginTop: 100,
+    marginTop: "50%",
   },
   mainUserCardBelow: {
     // When friends exist, main user card below friends list with marginTop smaller
-    marginTop: 10,
+    marginTop: 50,
   },
   avatarContainer: {
     backgroundColor: '#f0f0f0',

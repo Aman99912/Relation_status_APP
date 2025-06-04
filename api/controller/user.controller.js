@@ -301,11 +301,37 @@ export const GetUserFriends = async (req, res) => {
 };
 
 // Get a user by their unique code
+// export const getUserByCode = async (req, res) => {
+//   const { code } = req.query;
+
+//   try {
+//     const user = await UserModel.findOne( {code} )
+
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: 'User not found' });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       id: user._id,
+//       fullname: user.name,
+//       avatarUrl: user.avatar || null,
+//     });
+//   } catch (err) {
+//     console.error('Error during fetching user by code:', err);
+//     return res.status(500).json({ success: false, message: 'Server error' });
+//   }
+// };
+
+
+
 export const getUserByCode = async (req, res) => {
   const { code } = req.query;
 
   try {
-    const user = await UserModel.findOne( {code} )
+    const user = await UserModel.findOne({ code })
+      .select('name avatar friends friendRequests')
+      .lean();
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -316,13 +342,14 @@ export const getUserByCode = async (req, res) => {
       id: user._id,
       fullname: user.name,
       avatarUrl: user.avatar || null,
+      friends: user.friends.map(id => id.toString()),
+      friendRequests: user.friendRequests.map(req => req.from.toString()),
     });
   } catch (err) {
     console.error('Error during fetching user by code:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-
 
 
 export const GetUserByEmail = async (req, res) => {

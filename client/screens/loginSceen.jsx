@@ -56,15 +56,31 @@ const handleforgot = async ()=>{
 
     console.log('Response:--------', res.data);
 
-    if (res.status===200) {
-      const userEmail = res.data?.user?.email;
-    console.log(userEmail);
+    // if (res.status===200) {
+    //   const userEmail = res.data?.user?.email;
+    // console.log(userEmail);
     
       
-      await AsyncStorage.setItem('userEmail',userEmail);
+    //   await AsyncStorage.setItem('userEmail',userEmail);
       // navigation.navigate('OtpScreen', { email :userEmail });
-     navigation.navigate('MainApp', { screen: 'Home' });
-    } else {
+    //  navigation.navigate('MainApp', { screen: 'Home' });
+if (res.status === 200) {
+  const userEmail = res.data?.user?.email;
+  const userId = res.data?.user?.id; // assuming your backend sends user._id
+
+  if (!userEmail || !userId) {
+    Alert.alert('Error', 'Incomplete user data received');
+    return;
+  }
+
+  await AsyncStorage.setItem('userEmail', userEmail);
+  await AsyncStorage.setItem('userId', userId); // ✅ Save userId
+
+  navigation.navigate('MainApp', { screen: 'Home' });
+}
+
+
+     else {
       Alert.alert('Login Failed', res.data?.message || 'Invalid credentials');
     }
   } catch (err) {

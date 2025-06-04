@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
@@ -12,17 +13,20 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingInput from './floatintext';
 import { APIPATH } from '../utils/apiPath';
-import Card from '../components/card';
 import { COLORS } from '../Color';
+import { Ionicons } from '@expo/vector-icons';
 
 function useDebounce(callback, delay) {
   const timer = useRef();
-  const debouncedCallback = useCallback((...args) => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }, [callback, delay]);
+  const debouncedCallback = useCallback(
+    (...args) => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  );
 
   useEffect(() => {
     return () => clearTimeout(timer.current);
@@ -44,21 +48,18 @@ export default function AddUser() {
   const [sendingRequestId, setSendingRequestId] = useState(null);
 
   useEffect(() => {
-    const fetchMyUserData = async () => {
+    const fetchMyData = async () => {
       try {
         const email = await AsyncStorage.getItem('userEmail');
         const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
         setMyUserId(res.data.id);
         setMyFriends(res.data.friends || []);
-
-        const reqRes = await axios.get(`${APIPATH.BASE_URL}/friendRequests/sent?userId=${res.data.id}`);
-        setSentRequests(reqRes.data.requests || []);
+        setSentRequests(res.data.sentRequests || []);
       } catch (err) {
         console.log('Failed to get user data:', err);
       }
     };
-
-    fetchMyUserData();
+    fetchMyData();
   }, []);
 
   const handleGenerateCode = async () => {
@@ -86,15 +87,28 @@ export default function AddUser() {
       return;
     }
 
+    if (!myUserId) return;
+
     setLoading(true);
     setHasSearched(true);
     try {
       const response = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`);
-      if (response.data.id === myUserId) {
+
+      const targetUser = response.data;
+
+      if (targetUser.id === myUserId) {
         setUserData(null);
         return;
       }
-      setUserData(response.data);
+
+      const isFriend = targetUser.friends.includes(myUserId);
+      const isRequestPending = targetUser.friendRequests.includes(myUserId);
+
+      setUserData({
+        ...targetUser,
+        isFriend,
+        isRequestPending,
+      });
     } catch (error) {
       setUserData(null);
     } finally {
@@ -106,7 +120,7 @@ export default function AddUser() {
 
   const handleInputChange = (text) => {
     setInputCode(text);
-    if (text.trim().length === 10 && myUserId) {
+    if (text.trim().length === 10) {
       debouncedFetchUserData(text.trim());
     } else {
       setUserData(null);
@@ -114,28 +128,87 @@ export default function AddUser() {
     }
   };
 
+  // const handleAddRequest = async (receiverId) => {
+  //   setSendingRequestId(receiverId);
+  //   try {
+  //     const senderEmail = await AsyncStorage.getItem('userEmail');
+  //     const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
+  //     const senderId = res.data.id;
+
+  //     await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
+  //       senderId,
+  //       receiverId,
+  //     });
+
+  //     setSentRequests((prev) => [...prev, receiverId]);
+  //   } catch (err) {
+  //     console.log('Send request error:', err?.response?.data?.message);
+  //   } finally {
+  //     setSendingRequestId(null);
+  //   }
+  // };
+
   const handleAddRequest = async (receiverId) => {
-    setSendingRequestId(receiverId);
-    try {
-      const senderEmail = await AsyncStorage.getItem('userEmail');
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
-      const senderId = res.data.id;
+  setSendingRequestId(receiverId);
+  try {
+    const senderEmail = await AsyncStorage.getItem('userEmail');
+    const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
+    const senderId = res.data.id;
 
-      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
-        senderId,
-        receiverId,
-      });
+    await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
+      senderId,
+      receiverId,
+    });
 
-      setSentRequests((prev) => [...prev, receiverId]);
-    } catch (err) {
-      console.log('Send request error:', err?.response?.data?.message);
-    } finally {
-      setSendingRequestId(null);
-    }
-  };
+    setSentRequests((prev) => [...prev, receiverId]);
 
-  const isUserAddedOrRequested = (userId) => {
-    return myFriends.includes(userId) || sentRequests.includes(userId);
+    // 🔁 Refresh user data after sending request
+    await fetchUserData(inputCode);
+
+  } catch (err) {
+    console.log('Send request error:', err?.response?.data?.message);
+  } finally {
+    setSendingRequestId(null);
+  }
+};
+
+  const renderCard = (user) => {
+    const isFriend = user.isFriend;
+    const isRequestPending = user.isRequestPending;
+    const isMyself = user.id === myUserId;
+    const isDisabled = isFriend || isRequestPending || isMyself;
+    const isLoading = sendingRequestId === user.id;
+
+    const getButtonContent = () => {
+      if (isLoading) return <ActivityIndicator color="#fff" />;
+      if (isMyself) return <Text style={styles.disabledText}>You</Text>;
+      if (isFriend) return <Text style={styles.disabledText}>Friend</Text>;
+      if (isRequestPending) return <Text style={styles.disabledText}>Requested</Text>;
+      return <Ionicons name="person-add" size={20} color="#fff" />;
+    };
+
+    return (
+      <View style={styles.card}>
+        <Image
+          source={
+            typeof user.avatarUrl === 'string'
+              ? { uri: user.avatarUrl }
+              : require('../assets/avatar.png')
+          }
+          style={styles.avatar}
+        />
+        <Text style={styles.name}>{user.fullname}</Text>
+
+        <TouchableOpacity
+          style={[styles.button, isDisabled && styles.disabledButton]}
+          onPress={!isDisabled && !isLoading ? () => handleAddRequest(user.id) : null}
+          activeOpacity={isDisabled ? 1 : 0.7}
+          disabled={isDisabled || isLoading}
+        >
+          {getButtonContent()}
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   return (
@@ -171,14 +244,7 @@ export default function AddUser() {
       ) : hasSearched && !userData ? (
         <Text style={styles.notFoundText}>User not found</Text>
       ) : userData ? (
-        <Card
-          username={userData.fullname}
-          avatarUrl={userData.avatarUrl || require('../assets/avatar.png')}
-          mode="addUser"
-          isAdded={isUserAddedOrRequested(userData.id)}
-          isLoading={sendingRequestId === userData.id}
-          onAddPress={() => handleAddRequest(userData.id)}
-        />
+        renderCard(userData)
       ) : null}
     </View>
   );
@@ -228,5 +294,40 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: 'red',
     textAlign: 'center',
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 16,
+  },
+  name: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  disabledText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

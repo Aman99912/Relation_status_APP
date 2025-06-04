@@ -1,129 +1,98 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { COLORS } from '../Color';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Card({
   username,
   avatarUrl,
-  mode,
-  isAdded,
-  isLoading,          // 👈 New prop to show loading spinner
   onAddPress,
-  onAcceptPress,
-  onRejectPress,
+  isFriend,
+  isRequestPending,
+  isMyself,
+  isLoading,
 }) {
+  // Ensure all props are boolean and compute disabled state
+  const isDisabled = !!isMyself || !!isFriend || !!isRequestPending || !!isLoading;
+
+  const renderButtonContent = () => {
+    if (isLoading) {
+      return <ActivityIndicator color="#fff" />;
+    }
+    if (isMyself) {
+      return <Text style={styles.disabledText}>You</Text>;
+    }
+    if (isFriend) {
+      return <Text style={styles.disabledText}>Friend</Text>;
+    }
+    if (isRequestPending) {
+      return <Text style={styles.disabledText}>Requested</Text>;
+    }
+    return <Ionicons name="person-add" size={20} color="#fff" />;
+  };
+
   return (
     <View style={styles.card}>
-      {typeof avatarUrl === 'string' ? (
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-      ) : (
-        <Image source={avatarUrl} style={styles.avatar} />
-      )}
+      <Image
+        source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl}
+        style={styles.avatar}
+        defaultSource={require('../assets/avatar.png')}
+      />
+      <Text style={styles.name}>{username}</Text>
 
-      <Text style={styles.username}>{username}</Text>
-
-      {mode === 'addUser' && (
-        isAdded ? (
-          <View style={styles.addedButton}>
-            <Text style={styles.addedText}>sending</Text>
-          </View>
-        ) : isLoading ? (
-          <ActivityIndicator size="small" color="#4CAF50" />
-        ) : (
-          <TouchableOpacity style={styles.addButton} onPress={onAddPress} activeOpacity={0.7}>
-            <FontAwesome name="plus" size={28} color="#4CAF50" />
-          </TouchableOpacity>
-        )
-      )}
-
-      {mode === 'notification' && (
-        <View style={styles.notificationButtons}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.acceptButton]}
-            onPress={onAcceptPress}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.actionText}>Accept</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.rejectButton]}
-            onPress={onRejectPress}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.actionText}>Reject</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <TouchableOpacity
+        style={[styles.button, isDisabled && styles.disabledButton]}
+        onPress={() => {
+          if (!isDisabled && onAddPress) {
+            onAddPress();
+          }
+        }}
+        activeOpacity={isDisabled ? 1 : 0.7}
+        disabled={isDisabled}
+      >
+        {renderButtonContent()}
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.background || '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 3,
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginTop: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    marginRight: 15,
+    marginRight: 16,
   },
-  username: {
+  name: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text || '#333',
-  },
-  addButton: {
-    padding: 8,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addedButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 25,
-    backgroundColor: '#d3f9d8',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addedText: {
-    color: 'green',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
   },
-  notificationButtons: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    paddingVertical: 6,
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
-    marginLeft: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  acceptButton: {
-    backgroundColor: '#4CAF50',
+  disabledButton: {
+    backgroundColor: '#aaa',
   },
-  rejectButton: {
-    backgroundColor: '#F44336',
-  },
-  actionText: {
+  disabledText: {
     color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
