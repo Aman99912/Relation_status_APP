@@ -14,14 +14,28 @@ import {
   Platform,
 } from 'react-native';
 import axios from 'axios';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker';
-import { COLORS } from '../Color'; // Your color constants
-import { APIPATH } from '../utils/apiPath';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { APIPATH } from '../utils/apiPath';
+import { useNavigation } from '@react-navigation/native';
+import CalendarNote from './calender';
+
+const COLORS = {
+  backgroundLight: '#FFF5F9',
+  primary: '#D14D72',
+  // primaryDark: '#872341',
+  primaryDark: 'black',
+  accent: '#fff',
+  textDark: '#2D2D2D',
+};
+
 
 export default function DiaryScreen() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
+   const navigation = useNavigation();
+  const calendarHandle = () => navigation.navigate('MainApp', { screen: 'calendarScreen' });
 
   const [modalVisible, setModalVisible] = useState(false);
   const [detailEntry, setDetailEntry] = useState(null);
@@ -145,11 +159,14 @@ export default function DiaryScreen() {
   );
 
   return (
+    <>
+    <CalendarNote/>
     <View style={styles.container}>
-      <Text style={styles.header}>My Diary</Text>
+      
+      <Text style={styles.header}>Memories</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 30 }} />
+        <ActivityIndicator size="large" color={COLORS.primaryDark} style={{ marginTop: 30 }} />
       ) : (
         <FlatList
           data={entries}
@@ -250,7 +267,7 @@ export default function DiaryScreen() {
                 disabled={addingEntry}
                 activeOpacity={0.7}
               >
-                <Text style={styles.modalActionText}>Cancel</Text>
+                <Text style={[styles.modalActionText, { color: '#333' }]}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -270,6 +287,7 @@ export default function DiaryScreen() {
         </View>
       </Modal>
     </View>
+    </>
   );
 }
 
@@ -278,27 +296,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.backgroundLight,
     paddingHorizontal: 16,
+    marginTop:-50,
     paddingTop: 32,
   },
   header: {
-    fontSize: 30,
-    fontWeight: '800',
-    marginBottom: 20,
+    fontSize: 32,
+    fontWeight: '900',
+    marginTop:-20,
+    marginBottom: 10,
     color: COLORS.primaryDark,
-    alignSelf: 'center',
+    textAlign: 'center',
+    textShadowColor: '#f8d3dd',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    marginBottom: 14,
-    elevation: 6,
+    backgroundColor: COLORS.accent,
+    borderRadius: 20,
+    marginBottom: 16,
+    padding: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    padding: 14,
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 5,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#fbd3e0',
   },
   cardImage: {
     width: 90,
@@ -330,15 +355,21 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    paddingHorizontal: 18,
+    alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 20,
+    backgroundColor: '#fff',
+    borderRadius: 24,
     padding: 24,
-    maxHeight: '80%',
+    width: '100%',
+    maxHeight: '85%',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   modalImage: {
     width: 320,
@@ -376,19 +407,20 @@ const styles = StyleSheet.create({
     bottom: 90,
     right: 25,
     backgroundColor: COLORS.primary,
-    borderRadius: 36,
-    paddingVertical: 16,
-    paddingHorizontal: 26,
-    elevation: 7,
+    borderRadius: 50,
+    paddingVertical: 18,
+    paddingHorizontal: 30,
+    elevation: 10,
     shadowColor: COLORS.primary,
     shadowOpacity: 0.4,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   addButtonText: {
     color: 'white',
-    fontWeight: '800',
+    fontWeight: 'bold',
     fontSize: 18,
+    letterSpacing: 0.5,
   },
   addModalContainer: {
     flex: 1,
@@ -409,13 +441,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   input: {
-    borderWidth: 1.5,
-    borderColor: '#ccc',
+    borderWidth: 1,
+    borderColor: '#f1b7c2',
     borderRadius: 14,
     padding: 14,
-    marginBottom: 18,
-    fontSize: 17,
-    color: COLORS.textDark || '#222',
+    marginBottom: 16,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    color: COLORS.textDark,
   },
   pickImageBtn: {
     borderWidth: 1.5,
@@ -423,10 +456,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
+    backgroundColor: '#fff0f5',
   },
   pickImageBtnText: {
-    color: COLORS.primary,
+    color: COLORS.primaryDark,
     fontWeight: '700',
     fontSize: 16,
   },
@@ -450,7 +484,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
   },
   cancelBtn: {
-    backgroundColor: '#bbb',
+    backgroundColor: '#ccc',
   },
   saveBtn: {
     backgroundColor: COLORS.primary,
@@ -461,3 +495,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+

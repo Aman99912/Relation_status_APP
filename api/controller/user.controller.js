@@ -284,7 +284,7 @@ export const GetUserFriends = async (req, res) => {
   try {
     const user = await UserModel.findOne({ email }).populate({
       path: 'friends',
-      select: 'username email gender avatar',
+      select: 'username name email gender avatar',
     });
 
     if (!user) {

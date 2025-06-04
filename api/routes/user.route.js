@@ -19,6 +19,7 @@ import {
 import { verifyToken } from "../middlewar/middleware.js"; 
 import { GetFriendNotif, getFriendRequests, respondToRequest, sendFriendRequest } from "../controller/Notif.js";
 import { addDiary, getAllEntries  } from "../controller/DiaryController.js";
+import { createOrUpdateNote, deleteNoteByDate, getAllNotes } from "../controller/calender.controller.js";
 
 
 const router = express.Router();
@@ -52,4 +53,8 @@ router.post('/respond', respondToRequest);
 router.post('/add-diary', addDiary)
 router.get('/userId-diary', getAllEntries)
 
+//calender route
+router.post('/calendar', createOrUpdateNote);
+router.get('/calendar', getAllNotes);
+router.delete('/calendar/:date', deleteNoteByDate);
 export default router;

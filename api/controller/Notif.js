@@ -136,7 +136,7 @@ export const GetFriendNotif = async (req, res) => {
 
     // Return all pending friend requests (by default they are pending)
     res.json({
-      success: true,
+      success: true, 
       pendingRequests: user.friendRequests, // Contains 'from' populated
     });
 

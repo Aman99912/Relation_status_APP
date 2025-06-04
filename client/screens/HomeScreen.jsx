@@ -347,6 +347,7 @@ export default function HomeScreen() {
           setUserData(res.data);
           setIsVerified(false);
           setFriendsList([]);
+          console.log("fd",res.data)
         } else {
           Alert.alert('Error', 'Failed to fetch user data');
         }
@@ -384,6 +385,8 @@ export default function HomeScreen() {
         setPasswordModalVisible(false);
         setInputPassword('');
         setIsVerified(true);
+        console.log("fdatat", friendsRes.data.friends || []);
+        
         scrollRef.current?.scrollTo({ y: 0, animated: true });
       } else {
         Alert.alert('Error', 'Incorrect secret code');
@@ -450,7 +453,7 @@ export default function HomeScreen() {
         friendsList.map((friend, index) => (
           <UserCard
             key={friend._id}
-            username={friend.fullname}
+            username={friend.name}
             email={friend.email}
             gender={friend.gender}
             avatar={friend.avatar}

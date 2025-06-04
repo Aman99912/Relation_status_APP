@@ -1,5 +1,7 @@
+import { Calendar } from "react-native-calendars";
+
 export const APIPATH = {
-  BASE_URL : "http://192.168.65.121:5000",  
+  BASE_URL : "http://192.168.165.121:5000",  
   LOGIN_API : "api/user/login",
   VERIFY_PASS : "api/user/verify-pass",
   FRIENDDATA : "api/user/friend",
@@ -21,7 +23,11 @@ export const APIPATH = {
 // diary API
   
 ADDDIARY:"api/user/add-diary",
-GETDIARY:"api/user/userid-diary"
+GETDIARY:"api/user/userid-diary",
+
+// Calendar Api
+
+CALENDERSEND :"api/user/calendar"
 
 };
 
