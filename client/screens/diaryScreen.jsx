@@ -23,7 +23,7 @@ import CalendarNote from './calender';
 
 const COLORS = {
   backgroundLight: '#FFF5F9',
-  primary: '#D14D72',
+  primary: '#ff98c3',
   // primaryDark: '#872341',
   primaryDark: 'black',
   accent: '#fff',

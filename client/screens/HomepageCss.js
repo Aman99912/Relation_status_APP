@@ -41,6 +41,7 @@ export const styles = StyleSheet.create({
   },
   avatarContainer: {
     backgroundColor: '#f0f0f0',
+    // backgroundColor:#ffd3e5,
     borderRadius: 50,
     padding: 18,
     marginBottom: 15,
