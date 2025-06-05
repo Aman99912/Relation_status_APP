@@ -1,51 +1,379 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+// import React, { useState, useRef, useEffect, useCallback } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   StyleSheet,
+//   ActivityIndicator,
+//   Vibration,
+//   Image,
+// } from 'react-native';
+// import axios from 'axios';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { APIPATH } from '../utils/apiPath';
+// import { COLORS } from '../Color';
+// import * as Haptics from 'expo-haptics';
+// import { Audio } from 'expo-av';
+// import FloatingInput from './floatintext';
+
+// function useDebounce(callback, delay) {
+//   const timer = useRef();
+//   const debouncedCallback = useCallback((...args) => {
+//     if (timer.current) clearTimeout(timer.current);
+//     timer.current = setTimeout(() => callback(...args), delay);
+//   }, [callback, delay]);
+
+//   useEffect(() => () => clearTimeout(timer.current), []);
+//   return debouncedCallback;
+// }
+
+// export default function AddUser() {
+//   const [generatedCode, setGeneratedCode] = useState('');
+//   const [inputCodeArray, setInputCodeArray] = useState(Array(10).fill(''));
+//   const inputRefs = useRef([]);
+//   const [isCodeGenerated, setIsCodeGenerated] = useState(false);
+//   const [userData, setUserData] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [hasSearched, setHasSearched] = useState(false);
+//   const [myUserId, setMyUserId] = useState('');
+//   const [sentRequests, setSentRequests] = useState([]);
+//   const [sendingRequestId, setSendingRequestId] = useState(null);
+//   const [prevInputArray, setPrevInputArray] = useState(Array(10).fill(''));
+
+
+//   useEffect(() => {
+//     const fetchMyData = async () => {
+//       try {
+//         const email = await AsyncStorage.getItem('userEmail');
+//         const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+//         setMyUserId(res.data.id);
+//         setSentRequests(res.data.sentRequests || []);
+//       } catch (err) {
+//         console.log('Error fetching self data:', err);
+//       }
+//     };
+//     fetchMyData();
+//   }, []);
+
+//   const playSound = async () => {
+//     const { sound } = await Audio.Sound.createAsync(require('../assets/beep.mp3'));
+//     await sound.playAsync();
+//   };
+
+//   const handleGenerateCode = async () => {
+//     setLoading(true);
+//     try {
+//       const email = await AsyncStorage.getItem('userEmail');
+//       const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+//       setGeneratedCode(res.data.code);
+//       setIsCodeGenerated(true);
+//       setTimeout(() => {
+//         setIsCodeGenerated(false);
+//         setGeneratedCode('');
+//       }, 60000);
+//     } catch (err) {
+//       console.log(err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+  
+//   const fetchUserData = async (code) => {
+//     console.log("length", code.length);
+//     console.log("digit", code);
+//     console.log("uid", myUserId);
+//     console.log(`${(code.length !== 10 || code.includes('') || !myUserId)}`);
+    
+//     if (code.length !== 10 || !myUserId) {
+//       setUserData(null);
+//       setHasSearched(false);
+//       return;
+//     }
+//     setLoading(true);
+//     setHasSearched(true);
+//     try {
+//       const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`);
+//       const user = res.data;
+//       const isFriend = user.friends.includes(myUserId);
+//       const isRequestPending = user.friendRequests.includes(myUserId);
+//       if (user.id === myUserId) {
+//         setUserData(null);
+//         return;
+//       }
+//       setUserData({ ...user, isFriend, isRequestPending });
+//     } catch {
+//       setUserData(null);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const debouncedFetchUserData = useDebounce(fetchUserData, 500);
+
+//   const handleAddRequest = async (receiverId) => {
+//     setSendingRequestId(receiverId);
+//     try {
+//       const email = await AsyncStorage.getItem('userEmail');
+//       const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+//       const senderId = res.data.id;
+//       await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, { senderId, receiverId });
+//       setSentRequests([...sentRequests, receiverId]);
+//       await fetchUserData(inputCodeArray.join(''));
+//     } catch (err) {
+//       console.log('Send error:', err?.response?.data?.message);
+//     } finally {
+//       setSendingRequestId(null);
+//     }
+//   };
+
+// const handleInputChange = async (text, index) => {
+//   const char = text.slice(-1);
+//   const updated = [...inputCodeArray];
+//   updated[index] = char;
+//   setInputCodeArray(updated);
+
+//   if (char) {
+//     Vibration.vibrate(10);
+//     Haptics.selectionAsync();
+//     await playSound();
+//     if (index < 9) inputRefs.current[index + 1]?.focus();
+//   }
+
+//   const fullCode = updated.join('');
+//   if (!updated.includes('') && fullCode.length === 10) {
+//     debouncedFetchUserData(fullCode);
+//   }
+// };
+
+
+
+//   const renderCard = (user) => {
+//     console.log(user);
+    
+//     const isDisabled = user.id === myUserId || user.isFriend || user.isRequestPending;
+//     return (
+//       <View style={styles.card}>
+//         <Image
+//   source={
+//     user.avatarUrl && user.avatarUrl.startsWith('http')
+//       ? { uri: user.avatarUrl }
+//       : require('../assets/male.png')
+//   }
+//   style={styles.avatar}
+//   onError={() => console.log("Failed to load image:", user.avatarUrl)}
+// />
+
+//         <Text style={styles.name}>{user.fullname}</Text>
+//         <TouchableOpacity
+//           style={[styles.button, isDisabled && styles.disabledButton]}
+//           disabled={isDisabled}
+//           onPress={() => handleAddRequest(user.id)}
+//         >
+//           {sendingRequestId === user.id ? (
+//             <ActivityIndicator color="#fff" />
+//           ) : (
+//             <Text style={styles.buttonText}>
+//               {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Add'}
+//             </Text>
+//           )}
+//         </TouchableOpacity>
+//       </View>
+//     );
+//   };
+
+//   return (
+//     <View style={styles.container}>
+//       <View style={styles.instructionsContainer}>
+//         <Text style={styles.instructionTitle}>Follow These 3 Simple Steps:</Text>
+//         <Text style={styles.instructionText}>1. Tap "Generate Code" to get your unique 10-digit code.</Text>
+//         <Text style={styles.instructionText}>2. Enter a friend's 10-digit code below to find them.</Text>
+//         <Text style={styles.instructionText}>3. Send a friend request by tapping the "Add" button.</Text>
+//       </View>
+
+//       <TouchableOpacity
+//         style={[styles.generateButton, isCodeGenerated && styles.disabledButton]}
+//         onPress={handleGenerateCode}
+//         disabled={isCodeGenerated || loading}
+//       >
+//         <Text style={styles.buttonText}>{isCodeGenerated ? 'Generatied Code' : loading ? 'Generating...' : 'Get Your Code'}</Text>
+//       </TouchableOpacity>
+
+//       <View style={styles.codeRow}>
+//         {Array.from({ length: 10 }).map((_, i) => (
+//           <View key={i} style={styles.displayBox}>
+//             <Text style={styles.codeDigit}>{generatedCode[i] || ''}</Text>
+//           </View>
+//         ))}
+//       </View>
+
+//       <Text style={styles.orText}>OR</Text>
+
+//    <FloatingInput
+//   style={[styles.inputBox, { width: 240, textAlign: 'center', letterSpacing: 8 }]}
+//   label="Enter 10-digit code"
+//   maxLength={10}
+//   keyboardType="numeric"
+//   value={inputCodeArray.join('')}
+//   setValue={(text) => {
+//     const digits = text.replace(/[^0-9]/g, '').slice(0, 10).split('');
+//     setInputCodeArray(Array(10).fill('').map((_, i) => digits[i] || ''));
+//     if (digits.length === 10) {
+//       debouncedFetchUserData(digits.join(''));
+//     } else {
+//       setUserData(null);
+//       setHasSearched(false);
+//     }
+//   }}
+// />
+
+
+
+
+
+//       {loading ? (
+//         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 20 }} />
+//       ) : hasSearched && !userData ? (
+//         <Text style={styles.notFound}>User not found</Text>
+//       ) : userData ? (
+//         renderCard(userData)
+//       ) : null}
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: { flex: 1, padding: 25, paddingTop: 60, backgroundColor: '#FFF5F9' },
+//   generateButton: {
+//     backgroundColor: COLORS.primary || '#4a90e2',
+//     paddingVertical: 14,
+//     borderRadius: 30,
+//     alignItems: 'center',
+//     marginBottom: 20,
+//   },
+//   disabledButton: { backgroundColor: '#aaa' },
+//   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+//   orText: { textAlign: 'center', marginVertical: 18, color: '#555', fontWeight: '600' },
+//   codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 15 },
+//   displayBox: {
+//     width: 32,
+//     height: 42,
+//     borderRadius: 10,
+//     borderWidth: 1.5,
+//     borderColor: '#6b9eff',
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: '#eaf3ff',
+//   },
+//   codeDigit: { fontSize: 18, fontWeight: '600', color: '#333' },
+//   inputBox: {
+//     width: 32,
+//     height: 42,
+//     borderRadius: 10,
+//     borderWidth: 1.5,
+//     borderColor: '#999',
+//     backgroundColor: '#fff',
+//     textAlign: 'center',
+//     fontSize: 18,
+//     color: '#000',
+//   },
+//   notFound: { marginTop: 15, textAlign: 'center', color: 'red' },
+//   card: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     backgroundColor: '#fff',
+//     borderRadius: 16,
+//     padding: 16,
+//     marginTop: 20,
+//     shadowColor: '#000',
+//     shadowOpacity: 0.1,
+//     shadowRadius: 8,
+//     shadowOffset: { width: 0, height: 4 },
+//     elevation: 5,
+//   },
+//   instructionsContainer: {
+//     backgroundColor: '#FFF5F9',
+//     borderRadius: 15,
+//     padding: 20,
+//     marginBottom: 30,
+//     shadowColor: '#5599ff',
+//     shadowOpacity: 0.3,
+//     shadowOffset: { width: 0, height: 3 },
+//     shadowRadius: 6,
+//     elevation: 5,
+//   },
+//   instructionTitle: {
+//     fontSize: 18,
+//     fontWeight: '700',
+//     marginBottom: 10,
+//     color: '#1a3d8f',
+//     textAlign: 'center',
+//   },
+//   instructionText: {
+//     fontSize: 15,
+//     color: '#0d2b66',
+//     marginBottom: 6,
+//     fontWeight: '600',
+//   },
+//   avatar: { width: 48, height: 48, borderRadius: 24, marginRight: 12 },
+//   name: { flex: 1, fontSize: 16, fontWeight: '600', color: '#333' },
+//   button: {
+//     backgroundColor: COLORS.primary || '#4a90e2',
+//     paddingHorizontal: 14,
+//     paddingVertical: 8,
+//     borderRadius: 20,
+//   },
+// });
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
   ActivityIndicator,
+  Vibration,
   Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FloatingInput from './floatintext';
 import { APIPATH } from '../utils/apiPath';
 import { COLORS } from '../Color';
-import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
+import FloatingInput from './floatintext';
 
 function useDebounce(callback, delay) {
   const timer = useRef();
-  const debouncedCallback = useCallback(
-    (...args) => {
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        callback(...args);
-      }, delay);
-    },
-    [callback, delay]
-  );
+  const debouncedCallback = useCallback((...args) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => callback(...args), delay);
+  }, [callback, delay]);
 
-  useEffect(() => {
-    return () => clearTimeout(timer.current);
-  }, []);
-
+  useEffect(() => () => clearTimeout(timer.current), []);
   return debouncedCallback;
 }
 
 export default function AddUser() {
   const [generatedCode, setGeneratedCode] = useState('');
-  const [inputCode, setInputCode] = useState('');
+  const [inputCodeArray, setInputCodeArray] = useState(Array(10).fill(''));
+  const inputRefs = useRef([]);
   const [isCodeGenerated, setIsCodeGenerated] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [myUserId, setMyUserId] = useState('');
-  const [myFriends, setMyFriends] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [sendingRequestId, setSendingRequestId] = useState(null);
+
+  // Track keyboard visibility
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
     const fetchMyData = async () => {
@@ -53,63 +381,65 @@ export default function AddUser() {
         const email = await AsyncStorage.getItem('userEmail');
         const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
         setMyUserId(res.data.id);
-        setMyFriends(res.data.friends || []);
         setSentRequests(res.data.sentRequests || []);
       } catch (err) {
-        console.log('Failed to get user data:', err);
+        console.log('Error fetching self data:', err);
       }
     };
     fetchMyData();
+
+    // Keyboard listeners
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, []);
+
+  const playSound = async () => {
+    const { sound } = await Audio.Sound.createAsync(require('../assets/beep.mp3'));
+    await sound.playAsync();
+  };
 
   const handleGenerateCode = async () => {
     setLoading(true);
     try {
       const email = await AsyncStorage.getItem('userEmail');
-      const response = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
-      setGeneratedCode(response.data.code);
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+      setGeneratedCode(res.data.code);
       setIsCodeGenerated(true);
       setTimeout(() => {
         setIsCodeGenerated(false);
         setGeneratedCode('');
-      }, 30000);
-    } catch (error) {
-      console.log(error);
+      }, 60000);
+    } catch (err) {
+      console.log(err);
     } finally {
       setLoading(false);
     }
   };
-
+  
   const fetchUserData = async (code) => {
-    if (code.length !== 10) {
+    if (code.length !== 10 || !myUserId) {
       setUserData(null);
       setHasSearched(false);
       return;
     }
-
-    if (!myUserId) return;
-
     setLoading(true);
     setHasSearched(true);
     try {
-      const response = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`);
-
-      const targetUser = response.data;
-
-      if (targetUser.id === myUserId) {
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`);
+      const user = res.data;
+      const isFriend = user.friends.includes(myUserId);
+      const isRequestPending = user.friendRequests.includes(myUserId);
+      if (user.id === myUserId) {
         setUserData(null);
         return;
       }
-
-      const isFriend = targetUser.friends.includes(myUserId);
-      const isRequestPending = targetUser.friendRequests.includes(myUserId);
-
-      setUserData({
-        ...targetUser,
-        isFriend,
-        isRequestPending,
-      });
-    } catch (error) {
+      setUserData({ ...user, isFriend, isRequestPending });
+    } catch {
       setUserData(null);
     } finally {
       setLoading(false);
@@ -118,225 +448,218 @@ export default function AddUser() {
 
   const debouncedFetchUserData = useDebounce(fetchUserData, 500);
 
-  const handleInputChange = (text) => {
-    setInputCode(text);
-    if (text.trim().length === 10) {
-      debouncedFetchUserData(text.trim());
-    } else {
-      setUserData(null);
-      setHasSearched(false);
+  const handleAddRequest = async (receiverId) => {
+    setSendingRequestId(receiverId);
+    try {
+      const email = await AsyncStorage.getItem('userEmail');
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+      const senderId = res.data.id;
+      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, { senderId, receiverId });
+      setSentRequests([...sentRequests, receiverId]);
+      await fetchUserData(inputCodeArray.join(''));
+    } catch (err) {
+      console.log('Send error:', err?.response?.data?.message);
+    } finally {
+      setSendingRequestId(null);
     }
   };
 
-  // const handleAddRequest = async (receiverId) => {
-  //   setSendingRequestId(receiverId);
-  //   try {
-  //     const senderEmail = await AsyncStorage.getItem('userEmail');
-  //     const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
-  //     const senderId = res.data.id;
+  const handleInputChange = async (text, index) => {
+    const char = text.slice(-1);
+    const updated = [...inputCodeArray];
+    updated[index] = char;
+    setInputCodeArray(updated);
 
-  //     await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
-  //       senderId,
-  //       receiverId,
-  //     });
+    if (char) {
+      Vibration.vibrate(10);
+      Haptics.selectionAsync();
+      await playSound();
+      if (index < 9) inputRefs.current[index + 1]?.focus();
+    }
 
-  //     setSentRequests((prev) => [...prev, receiverId]);
-  //   } catch (err) {
-  //     console.log('Send request error:', err?.response?.data?.message);
-  //   } finally {
-  //     setSendingRequestId(null);
-  //   }
-  // };
-
-  const handleAddRequest = async (receiverId) => {
-  setSendingRequestId(receiverId);
-  try {
-    const senderEmail = await AsyncStorage.getItem('userEmail');
-    const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${senderEmail}`);
-    const senderId = res.data.id;
-
-    await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, {
-      senderId,
-      receiverId,
-    });
-
-    setSentRequests((prev) => [...prev, receiverId]);
-
-    // 🔁 Refresh user data after sending request
-    await fetchUserData(inputCode);
-
-  } catch (err) {
-    console.log('Send request error:', err?.response?.data?.message);
-  } finally {
-    setSendingRequestId(null);
-  }
-};
+    const fullCode = updated.join('');
+    if (!updated.includes('') && fullCode.length === 10) {
+      debouncedFetchUserData(fullCode);
+    }
+  };
 
   const renderCard = (user) => {
-    const isFriend = user.isFriend;
-    const isRequestPending = user.isRequestPending;
-    const isMyself = user.id === myUserId;
-    const isDisabled = isFriend || isRequestPending || isMyself;
-    const isLoading = sendingRequestId === user.id;
-
-    const getButtonContent = () => {
-      if (isLoading) return <ActivityIndicator color="#fff" />;
-      if (isMyself) return <Text style={styles.disabledText}>You</Text>;
-      if (isFriend) return <Text style={styles.disabledText}>Friend</Text>;
-      if (isRequestPending) return <Text style={styles.disabledText}>Requested</Text>;
-      return <Ionicons name="person-add" size={20} color="#fff" />;
-    };
-
+    const isDisabled = user.id === myUserId || user.isFriend || user.isRequestPending;
     return (
       <View style={styles.card}>
         <Image
           source={
-            typeof user.avatarUrl === 'string'
+            user.avatarUrl && user.avatarUrl.startsWith('http')
               ? { uri: user.avatarUrl }
-              : require('../assets/avatar.png')
+              : require('../assets/male.png')
           }
           style={styles.avatar}
+          onError={() => console.log("Failed to load image:", user.avatarUrl)}
         />
         <Text style={styles.name}>{user.fullname}</Text>
-
         <TouchableOpacity
           style={[styles.button, isDisabled && styles.disabledButton]}
-          onPress={!isDisabled && !isLoading ? () => handleAddRequest(user.id) : null}
-          activeOpacity={isDisabled ? 1 : 0.7}
-          disabled={isDisabled || isLoading}
+          disabled={isDisabled}
+          onPress={() => handleAddRequest(user.id)}
         >
-          {getButtonContent()}
+          {sendingRequestId === user.id ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>
+              {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Add'}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={[styles.generateButton, isCodeGenerated && styles.disabledButton]}
-        onPress={handleGenerateCode}
-        disabled={isCodeGenerated || loading}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1, backgroundColor: '#FFF5F9' }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={{ padding: 25, paddingTop: 60 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.buttonText}>
-          {isCodeGenerated ? 'Code Generated' : loading ? 'Generating...' : 'Generate Code'}
-        </Text>
-      </TouchableOpacity>
+        <View style={styles.instructionsContainer}>
+          <Text style={styles.instructionTitle}>Follow These 3 Simple Steps:</Text>
+          <Text style={styles.instructionText}>1. Tap "Generate Code" to get your unique 10-digit code.</Text>
+          <Text style={styles.instructionText}>2. Enter a friend's 10-digit code below to find them.</Text>
+          <Text style={styles.instructionText}>3. Send a friend request by tapping the "Add" button.</Text>
+        </View>
 
-      <TextInput
-        style={styles.codeInput}
-        value={generatedCode}
-        editable={false}
-        placeholder="Your Generated Code"
-      />
+        <TouchableOpacity
+          style={[styles.generateButton, isCodeGenerated && styles.disabledButton]}
+          onPress={handleGenerateCode}
+          disabled={isCodeGenerated || loading}
+        >
+          <Text style={styles.buttonText}>{isCodeGenerated ? 'Generated Code' : loading ? 'Generating...' : 'Get Your Code'}</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.orText}>OR</Text>
+        <View style={styles.codeRow}>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <View key={i} style={styles.displayBox}>
+              <Text style={styles.codeDigit}>{generatedCode[i] || ''}</Text>
+            </View>
+          ))}
+        </View>
 
-      <FloatingInput
-        style={styles.codeEntry}
-        label="Enter User Code"
-        value={inputCode}
-        setValue={handleInputChange}
-      />
+        <Text style={styles.orText}>OR</Text>
 
-      {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      ) : hasSearched && !userData ? (
-        <Text style={styles.notFoundText}>User not found</Text>
-      ) : userData ? (
-        renderCard(userData)
-      ) : null}
-    </View>
+        {/* Input is always visible, keyboard pushing view up */}
+        <FloatingInput
+          style={[styles.inputBox, { width: 240, textAlign: 'center', letterSpacing: 8 }]}
+          label="Enter 10-digit code"
+          maxLength={10}
+          keyboardType="numeric"
+          value={inputCodeArray.join('')}
+          setValue={(text) => {
+            const digits = text.replace(/[^0-9]/g, '').slice(0, 10).split('');
+            setInputCodeArray(Array(10).fill('').map((_, i) => digits[i] || ''));
+            if (digits.length === 10) {
+              debouncedFetchUserData(digits.join(''));
+            } else {
+              setUserData(null);
+              setHasSearched(false);
+            }
+          }}
+        />
+
+        {loading ? (
+          <ActivityIndicator color={COLORS.primary} style={{ marginTop: 20 }} />
+        ) : hasSearched && !userData ? (
+          <Text style={styles.notFound}>User not found</Text>
+        ) : userData ? (
+          renderCard(userData)
+        ) : null}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
-    padding: 25,
-    paddingTop: 250,
-    backgroundColor: '#FFF5F9', // Light pastel background
-    flex: 1,
-  },
+  container: { flex: 1, padding: 25, paddingTop: 60, backgroundColor: '#FFF5F9' },
   generateButton: {
-    backgroundColor: '#ff98c3', // Soft blue
+    backgroundColor: COLORS.primary || '#4a90e2',
     paddingVertical: 14,
     borderRadius: 30,
     alignItems: 'center',
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+    marginBottom: 20,
   },
-  disabledButton: {
-    backgroundColor: '#e3d1d8',
-  },
-  codeInput: {
+  disabledButton: { backgroundColor: '#aaa' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  orText: { textAlign: 'center', marginVertical: 18, color: '#555', fontWeight: '600' },
+  codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 15 },
+  displayBox: {
+    width: 32,
+    height: 42,
+    borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: 'grey',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 10,
-    backgroundColor: '#ffd3e5',
-    color: '#333',
+    borderColor: '#6b9eff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#eaf3ff',
   },
-  orText: {
-    marginVertical: 20,
+  codeDigit: { fontSize: 18, fontWeight: '600', color: '#333' },
+  inputBox: {
+    width: 32,
+    height: 42,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#999',
+    backgroundColor: '#fff',
     textAlign: 'center',
-    color: '#666',
-    fontWeight: 'bold',
+    fontSize: 18,
+    color: '#000',
   },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  codeEntry: {
-    marginBottom: 10,
-  },
-  notFoundText: {
-    marginTop: 15,
-    color: '#ff4d4d',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
+  notFound: { marginTop: 15, textAlign: 'center', color: 'red' },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    marginTop: 15,
+    marginTop: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  instructionsContainer: {
+    backgroundColor: '#FFF5F9',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 30,
+    shadowColor: '#5599ff',
+    shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  avatar: {
-    width: 55,
-    height: 55,
-    borderRadius: 30,
-    marginRight: 16,
-    borderWidth: 1.5,
-    borderColor: '#dce3ff',
+  instructionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 10,
+    color: '#1a3d8f',
+    textAlign: 'center',
   },
-  name: {
-    flex: 1,
-    fontSize: 17,
+  instructionText: {
+    fontSize: 15,
+    color: '#0d2b66',
+    marginBottom: 6,
     fontWeight: '600',
-    color: '#333',
   },
+  avatar: { width: 48, height: 48, borderRadius: 24, marginRight: 12 },
+  name: { flex: 1, fontSize: 16, fontWeight: '600', color: '#333' },
   button: {
-    backgroundColor: '#5a8dee',
-    paddingVertical: 8,
+    backgroundColor: COLORS.primary || '#4a90e2',
     paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
-  },
-  disabledText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
 });
