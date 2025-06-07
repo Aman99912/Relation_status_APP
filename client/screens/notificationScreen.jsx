@@ -6,18 +6,26 @@ import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
 import { COLORS } from '../Color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomAlert from '../components/alert';
+
+
 
 const NotificationScreen = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+   const [showAlert, setShowAlert] = useState(false);
 
   const fetchFriendRequests = async () => {
     setLoading(true);
     try {
       const email = await AsyncStorage.getItem('userEmail');
       if (!email) {
-        Alert.alert('Error', 'User email not found, please login again');
+        // <MyAlert 
+        //  visible={showAlert}
+        // message="'Error', 'User email not found, please login again'"
+        // onClose={() => setShowAlert(false)}
+        // />
         setRequests([]);
         return;
       }
@@ -34,33 +42,36 @@ const NotificationScreen = () => {
     }
   };
 
-  const respondToRequest = async (requestId, senderId, action) => {
-    setActionLoadingId(requestId);
-    try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        Alert.alert('Error', 'User ID not found, please login again');
-        setActionLoadingId(null);
-        return;
-      }
-
-      const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_RESPON}`, {
-        userId,
-        senderId,
-        action,
-      });
-
-      if (res.data.success) {
-        setRequests((prev) => prev.filter((req) => req._id !== requestId));
-      } else {
-        Alert.alert('Error', res.data.message || 'Something went wrong');
-      }
-    } catch (error) {
-      Alert.alert('Ops', `Failed to ${action} the request. You can't accept more than one request.`);
-    } finally {
+const respondToRequest = async (requestId, senderId, action) => {
+  setActionLoadingId(requestId);
+  try {
+    const userId = await AsyncStorage.getItem('userId');
+    if (!userId) {
+      Alert.alert('Error', 'User ID not found, please login again');
       setActionLoadingId(null);
+      return;
     }
-  };
+
+    const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_RESPON}`, {
+      userId,
+      senderId,
+      action,
+    });
+
+    if (res.data.success) {
+      setRequests((prev) => prev.filter((req) => req._id !== requestId));
+    } else {
+      Alert.alert('Error', res.data.message || 'Something went wrong');
+    }
+  } catch (error) {
+    const serverMessage = error?.response?.data?.message;
+    
+     Alert.alert('Oops', serverMessage || `Failed to add the request. You can't accept more than one request.`);
+  } finally {
+    setActionLoadingId(null);
+  }
+};
+
 
   useEffect(() => {
     fetchFriendRequests();

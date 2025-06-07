@@ -67,9 +67,6 @@ export const getFriendRequests = async (req, res) => {
 export const respondToRequest = async (req, res) => {
   const { userId, senderId, action } = req.body;
 
-  console.log("User Id:", userId);
-  console.log("Sender Id:", senderId);
-
   if (!userId || !senderId || !action) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
@@ -84,12 +81,21 @@ export const respondToRequest = async (req, res) => {
     const userFriends = user.friends || [];
     const senderFriends = sender.friends || [];
 
-    // ❌ If either user already has one or more friends
-    if (action === 'accept' && (userFriends.length >= 1 || senderFriends.length >= 1)) {
-      return res.status(400).json({ message: 'You can only have one friend' });
+    // Agar action accept hai to dono ki friend limit check karenge
+    if (action === 'accept') {
+      if (userFriends.length >= 1) {
+        console.log("reciver name",user.name);
+        
+        return res.status(400).json({ message: `${user.name} cannot accept more than one friend.` });
+      }
+      if (senderFriends.length >= 1) {
+        console.log("sender name",sender.name);
+        
+        return res.status(400).json({ message: `${sender.name} cannot accept more than one friend.` });
+      }
     }
 
-    // ✅ Remove the friend request from user's friendRequests
+    // Friend request remove karna
     user.friendRequests = (user.friendRequests || []).filter(
       (req) => req.from.toString() !== senderId
     );
@@ -107,12 +113,13 @@ export const respondToRequest = async (req, res) => {
 
     await user.save();
 
-    return res.json({ success: true, message: `Request ${action}ed ` });
+    return res.json({ success: true, message: `Request ${action}ed` });
   } catch (error) {
     console.error('Error in respondToRequest:', error);
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 
 

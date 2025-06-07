@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -10,8 +8,6 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Animated,
-  Pressable,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import axios from 'axios';
@@ -29,7 +25,6 @@ export default function CalendarNote() {
   const [noteText, setNoteText] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [popupText, setPopupText] = useState('');
-  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const lastTap = useRef(null);
 
   useEffect(() => {
@@ -52,7 +47,7 @@ export default function CalendarNote() {
   const fetchNotes = async (id) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/?id=${id}`);
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}?userId=${id}`);
       const notesFromServer = {};
       res.data.forEach(note => {
         notesFromServer[note.date] = note.note;
@@ -151,7 +146,7 @@ export default function CalendarNote() {
 
   return (
     <View style={styles.container}>
-          <Text style={styles.header}>Calender</Text>
+      <Text style={styles.header}>Calendar</Text>
       <Calendar
         onDayPress={handleDayTap}
         markedDates={markedDates}
@@ -209,6 +204,7 @@ export default function CalendarNote() {
           </View>
         </View>
       </Modal>
+      {loading && <ActivityIndicator style={{ marginTop: 10 }} size="large" color={COLORS.primary} />}
     </View>
   );
 }
@@ -217,18 +213,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    paddingTop:50,
-    backgroundColor: "#FFF5F9",
+    paddingTop: 50,
+    backgroundColor: '#FFF5F9',
   },
   header: {
-    fontSize: 32,
-    fontWeight: '900',
-    marginBottom: 20,
+    fontSize: 30,
+    fontWeight: '800',
     color: '#872341',
     textAlign: 'center',
-    textShadowColor: '#f8d3dd',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    marginBottom: 20,
   },
   animatedDot: {
     borderColor: 'green',

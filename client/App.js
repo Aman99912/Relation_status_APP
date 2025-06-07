@@ -8,7 +8,7 @@ import LoginScreen from './screens/loginSceen';
 import SignupScreen from './screens/registerScreen';
 import OtpScreen from './screens/otpScreen';
 import HomeScreen from './screens/HomeScreen';
-import LogoutScreen from './screens/userProfile';
+import LogoutScreen from './screens/logout';
 import NavBar from './components/Navbar';
 import AddUser from './screens/addUser';
 import ForgotPass from './screens/forgotPass';
@@ -16,6 +16,7 @@ import ResetPasswordScreen from './screens/newPass';
 import NotificationCard from './screens/notificationScreen';
 import DiaryScreen from './screens/diaryScreen';
 import CalendarNote from './screens/calender';
+import ProfileScreen from './screens/ProfilePage';
 
 
 const Stack = createStackNavigator();
@@ -26,7 +27,7 @@ function MainAppTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={() => <NavBar />}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Logout" component={LogoutScreen} />
+      <Tab.Screen name="Logout" component={ProfileScreen} />
       <Tab.Screen name="Adduser" component={AddUser} />
       <Tab.Screen name="diary" component={DiaryScreen} />
       <Tab.Screen name="calendarScreen" component={CalendarNote} />

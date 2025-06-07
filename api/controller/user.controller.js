@@ -4,18 +4,18 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
-const otpStore = {}; 
 
-export const finalizeRegister = async (req, res) => {
-  const { name, email, password, mobile, gender, dob, avatar } = req.body; 
-
-  // Basic validation
-  if (!name || !email || !password || !mobile || !gender || !dob) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
+  const otpStore = {}; 
+  
+  export const finalizeRegister = async (req, res) => {
+    const { name, email, password, mobile, gender, dob, avatar } = req.body;
+    
+    if (!name || !email || !password || !mobile || !gender || !dob) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    
   try {
-    // Check if user already exists
+
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -26,16 +26,12 @@ export const finalizeRegister = async (req, res) => {
       return res.status(400).json({ message: "Mobile number already registered" });
     }
 
-    // Generate unique 10-digit numeric code
     const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-
-    // Generate 4-digit numeric temporary passcode
     const SubPass = Math.floor(1000 + Math.random() * 9000);
 
-    // Generate unique username
     const generateUsername = (baseName) => {
       const base = baseName.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const suffix = crypto.randomBytes(2).toString('hex'); // 4 chars
+      const suffix = crypto.randomBytes(2).toString('hex');
       return `${base}${suffix}`;
     };
 
@@ -47,19 +43,35 @@ export const finalizeRegister = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Parse DOB (DD/MM/YYYY)
+    // Parse DOB
     const parseDOB = (dobString) => {
       const [day, month, year] = dobString.split('/');
       return new Date(`${year}-${month}-${day}`);
     };
+
     const parsedDOB = parseDOB(dob);
 
-    // Assign default avatar if not provided
+    // Calculate Age
+    const calculateAge = (birthDate) => {
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
+
+    const age = calculateAge(parsedDOB);
+
+    
     let avatarUrl = avatar;
     if (!avatar) {
-      avatarUrl = gender.toLowerCase() === 'female' 
-        ? 'https://static.vecteezy.com/system/resources/previews/028/597/534/original/young-cartoon-female-avatar-student-character-wearing-eyeglasses-file-no-background-ai-generated-png.png'
-        : 'https://png.pngtree.com/png-clipart/20231015/original/pngtree-man-avatar-clipart-illustration-png-image_13302499.png';
+      if (gender.toLowerCase() === 'female') {
+        avatarUrl = '/images/female.webp'; 
+      } else {
+        avatarUrl = '/images/male.png';  
+      }
     }
 
     // Create user
@@ -70,13 +82,14 @@ export const finalizeRegister = async (req, res) => {
       code,
       SubPass,
       dob: parsedDOB,
+      age,
       gender,
       password: hashedPassword,
       mobile,
-      avatar: avatarUrl, // use default if needed
+      avatar: avatarUrl,
     });
 
-    // Setup nodemailer transporter
+    // Send welcome email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -85,7 +98,6 @@ export const finalizeRegister = async (req, res) => {
       },
     });
 
-    // Email content
     const mailOptions = {
       from: process.env.EMAIL_ID,
       to: email,
@@ -93,10 +105,8 @@ export const finalizeRegister = async (req, res) => {
       text: `Hello ${name},\n\nThank you for signing up!\n\nYour login details:\nUsername: ${username}\nTemporary Passcode: ${SubPass}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
     };
 
-    // Send mail
     await transporter.sendMail(mailOptions);
 
-    // Final success response
     res.status(200).json({
       success: true,
       message: "User created successfully",
@@ -108,8 +118,6 @@ export const finalizeRegister = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
 
 
 
@@ -202,16 +210,16 @@ export const loginUser = async (req, res) => {
     });
 
     res.status(200).json({
-      status: "ok",
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        // Add other fields if needed
-      },
-    });
+  status: "ok",
+  message: "Login successful",
+  user: {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    token, 
+  },
+});
+
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ status: "error", message: "Internal server error" });
@@ -223,20 +231,43 @@ export const loginUser = async (req, res) => {
 // ✏️ Update User
 export const updateUser = async (req, res) => {
   try {
-    const id = req.params.id;
-    const { username, email, mobile } = req.body;
-    
+    const id = req.params.id; // id should be passed in URL params
+    const {
+      username,
+      email,
+      mobile,
+      bio,
+      gender,
+      age,
+      avatar,
+    } = req.body;
+
+    // Optional: you can add validation here for required fields or format
+
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
-      { username, email, mobile },
+      {
+        username,
+        email,
+        mobile,
+        bio,
+        gender,
+        age,
+        avatar,
+      },
       { new: true }
     );
-    
-    res.status(200).json({ message: "User updated", user: updatedUser });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // 🚪 Logout
 export const logoutUser = async (req, res) => {
@@ -300,28 +331,6 @@ export const GetUserFriends = async (req, res) => {
   }
 };
 
-// Get a user by their unique code
-// export const getUserByCode = async (req, res) => {
-//   const { code } = req.query;
-
-//   try {
-//     const user = await UserModel.findOne( {code} )
-
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: 'User not found' });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       id: user._id,
-//       fullname: user.name,
-//       avatarUrl: user.avatar || null,
-//     });
-//   } catch (err) {
-//     console.error('Error during fetching user by code:', err);
-//     return res.status(500).json({ success: false, message: 'Server error' });
-//   }
-// };
 
 
 
@@ -330,7 +339,7 @@ export const getUserByCode = async (req, res) => {
 
   try {
     const user = await UserModel.findOne({ code })
-      .select('name avatar friends friendRequests')
+      .select('name avatar  friendRequests')
       .lean();
 
     if (!user) {
@@ -342,7 +351,7 @@ export const getUserByCode = async (req, res) => {
       id: user._id,
       fullname: user.name,
       avatarUrl: user.avatar || null,
-      friends: user.friends.map(id => id.toString()),
+      // friends: user.friends.map(id => id.toString()),
       friendRequests: user.friendRequests.map(req => req.from.toString()),
     });
   } catch (err) {
@@ -373,6 +382,9 @@ export const GetUserByEmail = async (req, res) => {
       avatar: user.avatar,
       gender: user.gender,
       email: user.email,
+      username: user.username,
+      age: user.age,
+      mobileNo: user.mobile,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

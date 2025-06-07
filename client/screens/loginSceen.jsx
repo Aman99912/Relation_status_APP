@@ -56,17 +56,14 @@ const handleforgot = async ()=>{
 
     console.log('Response:--------', res.data);
 
-    // if (res.status===200) {
-    //   const userEmail = res.data?.user?.email;
-    // console.log(userEmail);
+    
     
       
-    //   await AsyncStorage.setItem('userEmail',userEmail);
-      // navigation.navigate('OtpScreen', { email :userEmail });
-    //  navigation.navigate('MainApp', { screen: 'Home' });
+   
 if (res.status === 200) {
   const userEmail = res.data?.user?.email;
-  const userId = res.data?.user?.id; // assuming your backend sends user._id
+  const userId = res.data?.user?.id; 
+  const userToken = res.data?.user?.token;
 
   if (!userEmail || !userId) {
     Alert.alert('Error', 'Incomplete user data received');
@@ -74,7 +71,8 @@ if (res.status === 200) {
   }
 
   await AsyncStorage.setItem('userEmail', userEmail);
-  await AsyncStorage.setItem('userId', userId); // ✅ Save userId
+  await AsyncStorage.setItem('Token', userToken);
+  await AsyncStorage.setItem('userId', userId); 
 
   navigation.navigate('MainApp', { screen: 'Home' });
 }

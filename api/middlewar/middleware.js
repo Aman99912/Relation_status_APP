@@ -5,6 +5,8 @@ dotenv.config();
 
 export const verifyToken = (req, res, next) => {
   const token = req.header("Authorization");
+  console.log(token);
+  
 
   if (!token) {
     return res.status(401).json({ message: "No token, authorization denied" });
@@ -12,7 +14,7 @@ export const verifyToken = (req, res, next) => {
 
   try {
     
-    const decoded = jwt.verify(token, process.env.JWT_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
