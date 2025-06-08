@@ -1,5 +1,5 @@
 
-import express from 'express';
+import express, { Router } from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -7,6 +7,9 @@ import { Server } from 'socket.io';
 import http from 'http';
 
 import userRoutes from './routes/user.route.js';
+import router from './routes/chatRoute.js';
+
+
 
 dotenv.config();
 
@@ -55,6 +58,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // ✅ Routes
 app.use('/api/user', userRoutes);
+app.use('/api/chat', router);
 
 // ✅ Health check
 app.get('/', (req, res) => {

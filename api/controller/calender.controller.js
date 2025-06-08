@@ -6,6 +6,8 @@ export const createOrUpdateNote = async (req, res) => {
   try {
     const { date, note } = req.body;
     const userId = req.user.id; 
+    console.log(date , note , userId);
+    
 
     const existing = await CalendarNoteModel.findOne({ userId, date });
     if (existing) {
@@ -18,7 +20,7 @@ export const createOrUpdateNote = async (req, res) => {
       return res.status(201).json({ message: 'Note added' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Error saving note', error });
+    res.status(500).json({ message: 'Error saving note ', error });
   }
 };
 

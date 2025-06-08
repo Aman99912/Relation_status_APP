@@ -3,12 +3,12 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   Animated, Easing, Alert
 } from 'react-native';
-import { COLORS } from '../Color';
+import { COLORS } from '../Color.js';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import FloatingInput from './floatintext.jsx';
-import { APIPATH } from '../utils/apiPath';
+import { APIPATH } from '../utils/apiPath.jsx';
 
 export default function ForgotPass() {
   const navigation = useNavigation();

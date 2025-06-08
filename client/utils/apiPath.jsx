@@ -29,6 +29,10 @@ GETDIARY:"api/user/userid-diary",
 
 CALENDERSEND :"api/user/calendar"
 
+
+//chats
+
+
 };
 
 

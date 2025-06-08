@@ -19,7 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation } from '@react-navigation/native';
-import CalendarNote from './calender';
+import CalendarNote from '../components/calender';
 
 const COLORS = {
   backgroundLight: '#FFF5F9',

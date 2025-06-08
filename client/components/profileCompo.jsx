@@ -16,7 +16,11 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
 import Icon from 'react-native-vector-icons/Feather';
-import Logout from './logout';
+import * as ImagePicker from 'expo-image-picker';
+
+
+import BackButton from './backbtn';
+import { Ionicons } from '@expo/vector-icons';
 
 const ProfileCompo = () => {
   const navigation = useNavigation();
@@ -27,7 +31,7 @@ const ProfileCompo = () => {
 
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
-  const [gender, setGender] = useState('');
+  
   const [age, setAge] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
@@ -36,6 +40,8 @@ const ProfileCompo = () => {
   useEffect(() => {
     fetchUserData();
   }, []);
+
+
 
   const fetchUserData = async () => {
     const storedEmail = await AsyncStorage.getItem('userEmail');
@@ -47,7 +53,7 @@ const ProfileCompo = () => {
       setUser(data);
       setUsername(data.username || '');
       setBio(data.bio || '');
-      setGender(data.gender || '');
+      
       setAge(data.age ? String(data.age) : '');
       setEmail(data.email || '');
       setMobile(data.mobileNo || '');
@@ -58,9 +64,33 @@ const ProfileCompo = () => {
       setLoading(false);
     }
   };
+  const pickAvatar = async () => {
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+  if (permissionResult.granted === false) {
+    Alert.alert("Permission denied", "Camera roll access is required to select an avatar.");
+    return;
+  }
+
+  const pickerResult = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.5,
+    allowsEditing: true,
+    aspect: [1, 1],
+    base64: true,
+  });
+
+  if (!pickerResult.cancelled) {
+    const base64Img = `data:image/jpeg;base64,${pickerResult.assets[0].base64}`;
+    setAvatar(base64Img); 
+  }
+};
+
 
   const handleSave = async () => {
-    if (!user?._id) return Alert.alert('Error', 'User ID missing');
+    
+    
+    if (!user?.id) return Alert.alert('Error', 'User ID missing');
 
     try {
       const payload = {
@@ -68,12 +98,25 @@ const ProfileCompo = () => {
         email,
         mobile,
         bio,
-        gender,
+      
         age: Number(age),
         avatar,
       };
 
-      await axios.put(`${APIPATH.BASE_URL}/api/user/update/${user._id}`, payload);
+       
+       
+  const token = await AsyncStorage.getItem('Token'); 
+
+await axios.put(
+  `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
+  payload,
+  {
+    headers: {
+      Authorization: ` ${token}`, 
+    },
+  }
+);
+
       Alert.alert('Success', 'Profile updated');
       setEditMode(false);
       setActiveField('');
@@ -85,7 +128,7 @@ const ProfileCompo = () => {
 
   const handleOtpUpdate = (type) => {
     const existing = type === 'email' ? email : mobile;
-    navigation.navigate('OtpStep1', {
+    navigation.navigate('OtpScreen', {
       currentValue: existing,
       field: type,
     });
@@ -95,20 +138,28 @@ const ProfileCompo = () => {
     return <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />;
 
   return (
+    <>
+    
     <ScrollView
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
+       <TouchableOpacity style={{ position: 'absolute', top: 50, left: 20 }} onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+            </TouchableOpacity>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>User Profile</Text>
       </View>
 
       <View style={styles.profileContainer}>
-        <Image
-          source={avatar ? { uri: avatar } : require('../assets/avatar.png')}
-          style={styles.profileImage}
-        />
+       <TouchableOpacity onPress={editMode ? pickAvatar : null}>
+  <Image
+    source={avatar ? { uri: avatar } : require('../assets/avatar.png')}
+    style={styles.profileImage}
+  />
+</TouchableOpacity>
+
         <View style={styles.profileDetails}>
           <Text style={styles.profileName}>{user?.fullname || 'Unknown'}</Text>
 
@@ -158,11 +209,10 @@ const ProfileCompo = () => {
 
         <Field
           label="Gender"
-          value={gender}
-          editable={editMode && activeField === 'gender'}
-          onChange={setGender}
-          onEditIconPress={() => setActiveField('gender')}
-          showEditIcon={editMode}
+          editable={false}
+          showEditIcon={false}
+          
+        
         />
 
         <Field
@@ -194,8 +244,15 @@ const ProfileCompo = () => {
         )}
       </View>
 
-      <Logout />
+   
     </ScrollView>
+    <Text>
+    </Text>
+    <Text>
+    </Text>
+    <Text>
+   </Text>
+    </>
   );
 };
 
@@ -210,6 +267,7 @@ const Field = ({
   multiline = false,
 }) => (
   <View style={styles.infoRow}>
+
     <View style={styles.labelRow}>
       <Text style={styles.infoLabel}>{label}</Text>
       {showEditIcon && onEditIconPress && (
@@ -252,6 +310,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     paddingVertical: 40,
     paddingHorizontal: 24,
+    overflow:'scroll',
   },
   header: {
     alignItems: 'center',

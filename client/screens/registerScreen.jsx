@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
-import FloatingInput from './floatintext';
+import FloatingInput from '../components/floatintext';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';

@@ -6,17 +6,22 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import StartupScreen from './screens/logoScreen';
 import LoginScreen from './screens/loginSceen';
 import SignupScreen from './screens/registerScreen';
-import OtpScreen from './screens/otpScreen';
 import HomeScreen from './screens/HomeScreen';
-import LogoutScreen from './screens/logout';
+
 import NavBar from './components/Navbar';
-import AddUser from './screens/addUser';
-import ForgotPass from './screens/forgotPass';
-import ResetPasswordScreen from './screens/newPass';
-import NotificationCard from './screens/notificationScreen';
+
+
 import DiaryScreen from './screens/diaryScreen';
-import CalendarNote from './screens/calender';
+
 import ProfileScreen from './screens/ProfilePage';
+import ChatScreen from './screens/chatScreen';
+import AddUser from './components/addUser';
+import NotificationScreen from './components/notificationScreen';
+import CalendarNote from './components/calender';
+import ForgotPass from './components/forgotPass';
+import ResetPasswordScreen from './components/newPass';
+import OtpScreen from './components/otpScreen';
+import ProfileCompo from './components/profileCompo';
 
 
 const Stack = createStackNavigator();
@@ -29,9 +34,11 @@ function MainAppTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Logout" component={ProfileScreen} />
       <Tab.Screen name="Adduser" component={AddUser} />
+      <Tab.Screen name="chats" component={ChatScreen} />
       <Tab.Screen name="diary" component={DiaryScreen} />
+      <Tab.Screen name="chatPF" component={ProfileCompo} />
       <Tab.Screen name="calendarScreen" component={CalendarNote} />
-      <Tab.Screen name="notification" component={NotificationCard} />
+      <Tab.Screen name="notification" component={NotificationScreen} />
     </Tab.Navigator>
   );
 }

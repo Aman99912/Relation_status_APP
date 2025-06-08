@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
@@ -44,8 +43,6 @@ export default function AddUser() {
   const [myUserId, setMyUserId] = useState('');
   const [sentRequests, setSentRequests] = useState([]);
   const [sendingRequestId, setSendingRequestId] = useState(null);
-
-  // Track keyboard visibility
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -54,6 +51,8 @@ export default function AddUser() {
         const email = await AsyncStorage.getItem('userEmail');
         const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
         setMyUserId(res.data.id);
+       
+        
         setSentRequests(res.data.sentRequests || []);
       } catch (err) {
         console.log('Error fetching self data:', err);
@@ -61,10 +60,8 @@ export default function AddUser() {
     };
     fetchMyData();
 
-    // Keyboard listeners
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
@@ -93,7 +90,7 @@ export default function AddUser() {
       setLoading(false);
     }
   };
-  
+
   const fetchUserData = async (code) => {
     if (code.length !== 10 || !myUserId) {
       setUserData(null);
@@ -105,14 +102,20 @@ export default function AddUser() {
     try {
       const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`);
       const user = res.data;
-      // const isFriend = user.friends.includes(myUserId);
-      const isRequestPending = user.friendRequests.includes(myUserId);
+     
+     
+      const isRequestPending = user.friendRequests?.includes(myUserId);
+      const isFriend = user.friends?.includes(myUserId);
+      console.log(isRequestPending);
+      console.log(user.friends);
+      
+
       if (user.id === myUserId) {
         setUserData(null);
         return;
       }
-      // setUserData({ ...user, isFriend, isRequestPending });
-      setUserData({ ...user,  isRequestPending });
+
+      setUserData({ ...user, isRequestPending, isFriend });
     } catch {
       setUserData(null);
     } finally {
@@ -153,6 +156,7 @@ export default function AddUser() {
 
     const fullCode = updated.join('');
     if (!updated.includes('') && fullCode.length === 10) {
+      Keyboard.dismiss(); // dismiss keyboard when 10-digit filled
       debouncedFetchUserData(fullCode);
     }
   };
@@ -168,7 +172,6 @@ export default function AddUser() {
               : require('../assets/male.png')
           }
           style={styles.avatar}
-          onError={() => console.log("Failed to load image:", user.avatarUrl)}
         />
         <Text style={styles.name}>{user.fullname}</Text>
         <TouchableOpacity
@@ -224,7 +227,6 @@ export default function AddUser() {
 
         <Text style={styles.orText}>OR</Text>
 
-        {/* Input is always visible, keyboard pushing view up */}
         <FloatingInput
           style={[styles.inputBox, { width: 240, textAlign: 'center', letterSpacing: 8 }]}
           label="Enter 10-digit code"
@@ -235,6 +237,7 @@ export default function AddUser() {
             const digits = text.replace(/[^0-9]/g, '').slice(0, 10).split('');
             setInputCodeArray(Array(10).fill('').map((_, i) => digits[i] || ''));
             if (digits.length === 10) {
+              Keyboard.dismiss();
               debouncedFetchUserData(digits.join(''));
             } else {
               setUserData(null);

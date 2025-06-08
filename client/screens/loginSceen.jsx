@@ -7,7 +7,7 @@ import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
-import FloatingInput from './floatintext';
+import FloatingInput from '../components/floatintext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 
@@ -38,13 +38,14 @@ const handleforgot = async ()=>{
     Alert.alert('Error', 'Please fill in both fields');
     return;
   }
+  const newEmail = email.toLowerCase();
 
   try {
     setLoading(true);  
    
     
     const body = {
-      email,
+      email:newEmail,
       password
     }
 
@@ -75,6 +76,10 @@ if (res.status === 200) {
   await AsyncStorage.setItem('userId', userId); 
 
   navigation.navigate('MainApp', { screen: 'Home' });
+//   navigation.navigate('OtpScreen', {
+//   email :userEmail
+// });
+
 }
 
 
@@ -93,15 +98,15 @@ if (res.status === 200) {
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={{ position: 'absolute', top: 50, left: 20 }} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
       </TouchableOpacity>
 
       <Text style={styles.heading}>Hey,{"\n"}Welcome Back</Text>
 
       <View style={styles.inputBox}>
-        <FloatingInput label="Email, Mobile, or Username" value={email} setValue={setEmail} />
-        <FloatingInput label="Password" value={password} setValue={setPassword} secure />
+        <FloatingInput label="Email" value={email} setValue={setEmail} />
+        <FloatingInput label="Password"  value={password} setValue={setPassword} secure  />
       </View>
 
       <TouchableOpacity  onPress={handleforgot} style={styles.forgot}>
@@ -125,7 +130,7 @@ if (res.status === 200) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 24, justifyContent: 'center' },
-  backBtn: { position: 'absolute', top: 50, left: 20 },
+ 
   heading: { fontSize: 28, fontWeight: '700', color: COLORS.text, marginBottom: 40 },
   inputBox: { marginBottom: 20 },
   forgot: { alignSelf: 'flex-end', marginBottom: 20 },

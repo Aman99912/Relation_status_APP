@@ -13,7 +13,7 @@ import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
 import FloatingInput from './floatintext';
 import { COLORS } from '../Color';
-import BackButton from '../components/backbtn';
+import BackButton from './backbtn';
 
 const ResetPasswordScreen = ({ navigation, route }) => {
   const { email } = route.params;

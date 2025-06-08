@@ -6,7 +6,7 @@ import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
 import { COLORS } from '../Color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import CustomAlert from '../components/alert';
+
 
 
 

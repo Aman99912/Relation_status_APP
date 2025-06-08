@@ -15,14 +15,13 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
-import Icon from 'react-native-vector-icons/Feather';
-import Logout from './logout';
+import Logout from '../components/logout';
+import { Ionicons } from '@expo/vector-icons';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
 
   const [username, setUsername] = useState('');
   const [avatar, setAvatar] = useState('');
@@ -40,15 +39,14 @@ const ProfileScreen = () => {
       const data = res.data;
       setUser(data);
       setUsername(data.username || '');
-    
+
       setAvatar(data.avatar || '');
     } catch (err) {
       Alert.alert('Error', 'Failed to fetch user data');
     } finally {
       setLoading(false);
     }
-  };
-
+  };  
 
   return (
     <ScrollView
@@ -56,45 +54,33 @@ const ProfileScreen = () => {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
+        <TouchableOpacity style={{ position: 'absolute', top: 50, left: 20 }} onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+            </TouchableOpacity>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>User Profile</Text>
       </View>
 
       <View style={styles.profileContainer}>
-        <Image
-          source={avatar ? { uri: avatar } : require('../assets/avatar.png')}
-          style={styles.profileImage}
-        />
+        <Image source={avatar ? { uri: avatar } : require('../assets/avatar.png')} style={styles.profileImage} />
         <View style={styles.profileDetails}>
           <Text style={styles.profileName}>{user?.fullname || 'Unknown'}</Text>
 
           <TouchableOpacity
             style={styles.editToggleButton}
             onPress={() => {
-             navigation.navigate("/logout")
+             navigation.navigate('MainApp', { screen: 'chatPF' })
             }}
-            
-            >
-              <Text style={{fontSize:15}}>
-  View 
-              </Text>
-          
+          >
+            <Text style={{ fontSize: 15 }}>View</Text>
           </TouchableOpacity>
         </View>
       </View>
-
-      
-
-    
-
-      
 
       <Logout />
     </ScrollView>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -154,8 +140,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
- 
- 
 });
 
 export default ProfileScreen;

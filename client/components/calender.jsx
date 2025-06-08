@@ -106,6 +106,12 @@ export default function CalendarNote() {
     }
     setLoading(true);
     try {
+      console.log(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}`);
+      console.log("userId", userId);
+      console.log("date ",selectedDate);
+      console.log("note ", noteText);
+      
+      
       await axios.post(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}`, {
         userId,
         date: selectedDate,
@@ -116,6 +122,7 @@ export default function CalendarNote() {
       updateMarkedDates(newNotes);
       setModalVisible(false);
     } catch (e) {
+      
       Alert.alert('Error', 'Failed to save note');
     } finally {
       setLoading(false);

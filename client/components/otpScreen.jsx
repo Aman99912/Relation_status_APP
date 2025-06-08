@@ -15,7 +15,7 @@ import { APIPATH } from '../utils/apiPath';
 import FloatingInput from './floatintext';
 import { COLORS } from '../Color';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import BackButton from '../components/backbtn';
+import BackButton from './backbtn';
 
 export default function OtpScreen({ route }) {
   const navigation = useNavigation();
@@ -27,7 +27,7 @@ export default function OtpScreen({ route }) {
 
   useEffect(() => {
     if (!hasSentOnce && email) {
-      sendOtp(); // Initial OTP send
+      sendOtp(); 
     }
   }, [email]);
 

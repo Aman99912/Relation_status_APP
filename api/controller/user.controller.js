@@ -3,12 +3,14 @@ import { UserModel } from "../Model/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import { log } from 'console';
 
 
   const otpStore = {}; 
   
-  export const finalizeRegister = async (req, res) => {
+  export const finalizeRegister = async (req, res) => { 
     const { name, email, password, mobile, gender, dob, avatar } = req.body;
+
     
     if (!name || !email || !password || !mobile || !gender || !dob) {
       return res.status(400).json({ message: "All fields are required" });
@@ -63,7 +65,7 @@ import nodemailer from "nodemailer";
     };
 
     const age = calculateAge(parsedDOB);
-
+   const NewEmail = email.toLowerCase()
     
     let avatarUrl = avatar;
     if (!avatar) {
@@ -78,7 +80,7 @@ import nodemailer from "nodemailer";
     await UserModel.create({
       name,
       username,
-      email,
+      email:NewEmail,
       code,
       SubPass,
       dob: parsedDOB,
@@ -192,6 +194,7 @@ export const loginUser = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ status: "error", message: "All fields are required" });
   }
+
 
   try {
     const user = await UserModel.findOne({email});
@@ -332,33 +335,34 @@ export const GetUserFriends = async (req, res) => {
 };
 
 
-
-
 export const getUserByCode = async (req, res) => {
   const { code } = req.query;
 
   try {
     const user = await UserModel.findOne({ code })
-      .select('name avatar  friendRequests')
+      .select('name avatar friends friendRequests')
+      .populate('friendRequests.from', '_id')
       .lean();
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-
+  
+  
     return res.status(200).json({
       success: true,
       id: user._id,
       fullname: user.name,
       avatarUrl: user.avatar || null,
-      // friends: user.friends.map(id => id.toString()),
-      friendRequests: user.friendRequests.map(req => req.from.toString()),
+      friends: user.friends?.map(friendId => friendId.toString()) || [],
+      friendRequests: user.friendRequests?.map(req => req.from?._id.toString()) || [],
     });
   } catch (err) {
     console.error('Error during fetching user by code:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
 
 
 export const GetUserByEmail = async (req, res) => {

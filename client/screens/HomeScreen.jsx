@@ -1,4 +1,5 @@
 
+
 import {
   View,
   Text,
@@ -11,7 +12,7 @@ import {
   ToastAndroid,
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import FloatingInput from './floatintext';
+import FloatingInput from '../components/floatintext';
 import { COLORS } from '../Color';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -52,7 +53,6 @@ export default function HomeScreen() {
           setUserData(res.data);
           setIsVerified(false);
           setFriendsList([]);
-          console.log("fd",res.data)
         } else {
           Alert.alert('Error', 'Failed to fetch user data');
         }
@@ -90,8 +90,6 @@ export default function HomeScreen() {
         setPasswordModalVisible(false);
         setInputPassword('');
         setIsVerified(true);
-        console.log("fdatat", friendsRes.data.friends || []);
-        
         scrollRef.current?.scrollTo({ y: 0, animated: true });
       } else {
         Alert.alert('Error', 'Incorrect secret code');
@@ -134,7 +132,7 @@ export default function HomeScreen() {
           username={userData.fullname}
           email={userData.email}
           gender={userData.gender}
-          avatar={userData.avatar }
+          avatar={userData.avatar}
           status={
             !isVerified
               ? 'Status: hide'
@@ -180,8 +178,6 @@ export default function HomeScreen() {
                       const newList = [...friendsList];
                       newList.splice(index, 1);
                       setFriendsList(newList);
-
-                      // 🔁 Refresh user data and show toast
                       fetchUserDataRef.current && fetchUserDataRef.current();
                       ToastAndroid.show('Friend removed successfully', ToastAndroid.SHORT);
                     },
@@ -189,6 +185,16 @@ export default function HomeScreen() {
                 ],
                 { cancelable: true }
               );
+            }}
+            onChatPress={() => {
+              navigation.navigate('MainApp', {
+                screen: 'chat',
+                params: {
+                  friendId: friend._id,
+                  friendName: friend.name,
+                  friendAvatar: friend.avatar,
+                },
+              });
             }}
           />
         ))}
@@ -212,6 +218,7 @@ export default function HomeScreen() {
               value={inputPassword}
               setValue={setInputPassword}
               secureTextEntry
+            
             />
 
             <TouchableOpacity
@@ -242,6 +249,7 @@ export default function HomeScreen() {
   );
 }
 
+// ✅ Updated UserCard with Chat Icon
 const UserCard = ({
   username,
   email,
@@ -253,15 +261,14 @@ const UserCard = ({
   style,
   showCross,
   onRemove,
+  onChatPress,
 }) => {
   const [imageError, setImageError] = useState(false);
 
   const getDefaultAvatar = () => {
-    if (gender === 'female') {
-      return require('../assets/female.webp');
-    } else {
-      return require('../assets/male.png');
-    }
+    return gender === 'female'
+      ? require('../assets/female.webp')
+      : require('../assets/male.png');
   };
 
   const avatarSource = !avatar || imageError ? getDefaultAvatar() : { uri: avatar };
@@ -273,12 +280,21 @@ const UserCard = ({
       style={[styles.userBox, style]}
     >
       {showCross && (
-        <TouchableOpacity
-          onPress={onRemove}
-          style={{ position: 'absolute', top: 5, right: 10, zIndex: 1 }}
-        >
-          <Text style={{ fontSize: 18, color: 'red' }}>✖</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            onPress={onRemove}
+            style={{ position: 'absolute', top: 5, right: 10, zIndex: 2 }}
+          >
+            <Text style={{ fontSize: 18, color: 'red' }}>✖</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onChatPress}
+            style={{ position: 'absolute', top: 5, left: 10, zIndex: 2, padding: 4 }}
+          >
+            <FontAwesome name="comments" size={20} color="black" />
+          </TouchableOpacity>
+        </>
       )}
 
       <View style={styles.avatarContainer}>

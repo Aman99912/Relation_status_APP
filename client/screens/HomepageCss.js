@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 30,
     paddingHorizontal: 25,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
     elevation: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
   },
   mainUserCardBelow: {
     // When friends exist, main user card below friends list with marginTop smaller
-    marginTop: 50,
+    marginTop: 35,
   },
   avatarContainer: {
     backgroundColor: '#f0f0f0',
