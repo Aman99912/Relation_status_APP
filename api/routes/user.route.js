@@ -54,7 +54,7 @@ router.post('/add-diary', addDiary)
 router.get('/userId-diary', getAllEntries)
 
 //calender route
-router.post('/calendar', createOrUpdateNote);
-router.get('/calendar', getAllNotes);
-router.delete('/calendar/:date', deleteNoteByDate);
+router.post('/calendar',verifyToken , createOrUpdateNote);
+router.get('/calendar',verifyToken , getAllNotes);
+router.delete('/calendar/:date' , deleteNoteByDate);
 export default router;

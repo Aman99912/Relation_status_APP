@@ -30,6 +30,8 @@ const Tab = createBottomTabNavigator();
 // Tab navigator with Navbar
 function MainAppTabs() {
   return (
+    <>
+    
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={() => <NavBar />}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Logout" component={ProfileScreen} />
@@ -40,6 +42,7 @@ function MainAppTabs() {
       <Tab.Screen name="calendarScreen" component={CalendarNote} />
       <Tab.Screen name="notification" component={NotificationScreen} />
     </Tab.Navigator>
+    </>
   );
 }
 

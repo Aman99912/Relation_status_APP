@@ -17,9 +17,6 @@ import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
 import Icon from 'react-native-vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
-
-
-import BackButton from './backbtn';
 import { Ionicons } from '@expo/vector-icons';
 
 const ProfileCompo = () => {
@@ -28,21 +25,19 @@ const ProfileCompo = () => {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [activeField, setActiveField] = useState('');
-
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
-  
   const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [avatar, setAvatar] = useState('');
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     fetchUserData();
-  }, []);
-
-
-
+  }, []); 
+ 
   const fetchUserData = async () => {
     const storedEmail = await AsyncStorage.getItem('userEmail');
     if (!storedEmail) return Alert.alert('Error', 'User email not found');
@@ -53,7 +48,7 @@ const ProfileCompo = () => {
       setUser(data);
       setUsername(data.username || '');
       setBio(data.bio || '');
-      
+      setGender(data.gender || '');
       setAge(data.age ? String(data.age) : '');
       setEmail(data.email || '');
       setMobile(data.mobileNo || '');
@@ -64,32 +59,30 @@ const ProfileCompo = () => {
       setLoading(false);
     }
   };
+
   const pickAvatar = async () => {
-  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-  if (permissionResult.granted === false) {
-    Alert.alert("Permission denied", "Camera roll access is required to select an avatar.");
-    return;
-  }
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission denied", "Camera roll access is required to select an avatar.");
+      return;
+    }
 
-  const pickerResult = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.5,
-    allowsEditing: true,
-    aspect: [1, 1],
-    base64: true,
-  });
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.5,
+      allowsEditing: true,
+      aspect: [1, 1],
+      base64: true,
+    });
 
-  if (!pickerResult.cancelled) {
-    const base64Img = `data:image/jpeg;base64,${pickerResult.assets[0].base64}`;
-    setAvatar(base64Img); 
-  }
-};
-
+    if (!pickerResult.cancelled) {
+      const base64Img = `data:image/jpeg;base64,${pickerResult.assets[0].base64}`;
+      setAvatar(base64Img);
+    }
+  };
 
   const handleSave = async () => {
-    
-    
     if (!user?.id) return Alert.alert('Error', 'User ID missing');
 
     try {
@@ -98,78 +91,74 @@ const ProfileCompo = () => {
         email,
         mobile,
         bio,
-      
         age: Number(age),
         avatar,
       };
 
-       
-       
-  const token = await AsyncStorage.getItem('Token'); 
+      const token = await AsyncStorage.getItem('Token');
+      await axios.put(`${APIPATH.BASE_URL}/api/user/update/${user.id}`, payload, {
+        headers: { Authorization: ` ${token}` },
+      });
 
-await axios.put(
-  `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
-  payload,
-  {
-    headers: {
-      Authorization: ` ${token}`, 
-    },
-  }
-);
-
-      Alert.alert('Success', 'Profile updated');
+      Alert.alert('Success', 'Profile updated successfully!');
       setEditMode(false);
       setActiveField('');
       fetchUserData();
     } catch (err) {
-      Alert.alert('Error', 'Failed to update profile');
+      console.log(err?.response?.data?.message);
+      Alert.alert('Error', err?.response?.data?.message);
     }
   };
 
-  const handleOtpUpdate = (type) => {
-    const existing = type === 'email' ? email : mobile;
-    navigation.navigate('OtpScreen', {
-      currentValue: existing,
-      field: type,
-    });
+  const handleOtpUpdate = async (field) => {
+    const contact = field === 'email' ? email : mobile;
+
+    if (!contact) {
+      Alert.alert('Error', `${field === 'email' ? 'Email' : 'Mobile number'} is missing`);
+      return;
+    }
+
+    try {
+      setResending(true);
+      const endpoint = field === 'email' ? APIPATH.SEND_API : 'send-otp-mobile';
+      const payload = field === 'email' ? { email: contact } : { mobile: contact };
+
+      const res = await axios.post(`${APIPATH.BASE_URL}/${endpoint}`, payload);
+      Alert.alert('OTP Sent', `A verification code has been sent to your ${field === 'email' ? 'email' : 'mobile number'}. Please verify to proceed.`);
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      Alert.alert('Error', 'Failed to send OTP. Please try again later.');
+    } finally {
+      setResending(false);
+    }
   };
 
   if (loading)
     return <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />;
 
   return (
-    <>
-    
-    <ScrollView
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-       <TouchableOpacity style={{ position: 'absolute', top: 50, left: 20 }} onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-            </TouchableOpacity>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <TouchableOpacity style={{ position: 'absolute', top: 50, left: 20 }} onPress={() => navigation.navigate('MainApp', { screen: 'Logout' })}>
+        <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+      </TouchableOpacity>
+
       <View style={styles.header}>
         <Text style={styles.headerTitle}>User Profile</Text>
       </View>
 
       <View style={styles.profileContainer}>
-       <TouchableOpacity onPress={editMode ? pickAvatar : null}>
-  <Image
-    source={avatar ? { uri: avatar } : require('../assets/avatar.png')}
-    style={styles.profileImage}
-  />
-</TouchableOpacity>
+        <TouchableOpacity onPress={editMode ? pickAvatar : null}>
+          <Image source={avatar ? { uri: avatar } : require('../assets/avatar.png')} style={styles.profileImage} />
+        </TouchableOpacity>
 
         <View style={styles.profileDetails}>
           <Text style={styles.profileName}>{user?.fullname || 'Unknown'}</Text>
-
           <TouchableOpacity
             style={[styles.editToggleButton, editMode && styles.editToggleButtonActive]}
             onPress={() => {
               setEditMode(!editMode);
               setActiveField('');
             }}
-            activeOpacity={0.8}
           >
             <Text style={[styles.editToggleText, editMode && styles.editToggleTextActive]}>
               {editMode ? 'Cancel Edit' : 'Edit Profile'}
@@ -181,40 +170,10 @@ await axios.put(
       <View style={styles.infoContainer}>
         <Text style={styles.infoTitle}>User Info</Text>
 
-        <Field
-          label="Username"
-          value={username}
-          editable={editMode && activeField === 'username'}
-          onChange={setUsername}
-          onEditIconPress={() => setActiveField('username')}
-          showEditIcon={editMode}
-        />
-
-        <Field
-          label="Bio"
-          value={bio}
-          editable={editMode && activeField === 'bio'}
-          onChange={setBio}
-          onEditIconPress={() => setActiveField('bio')}
-          showEditIcon={editMode}
-          multiline
-        />
-
-        <Field
-          label="Age"
-          value={age}
-          editable={false}
-          showEditIcon={false}
-        />
-
-        <Field
-          label="Gender"
-          editable={false}
-          showEditIcon={false}
-          
-        
-        />
-
+        <Field label="Username" value={username} editable={editMode && activeField === 'username'} onChange={setUsername} onEditIconPress={() => setActiveField('username')} showEditIcon={editMode} />
+        <Field label="Bio" value={bio} editable={editMode && activeField === 'bio'} onChange={setBio} onEditIconPress={() => setActiveField('bio')} showEditIcon={editMode} multiline />
+        <Field label="Age" value={age} editable={false} showEditIcon={false} />
+        <Field label="Gender"  value={gender} editable={false} showEditIcon={false} />
         <Field
           label="Email"
           value={email}
@@ -225,7 +184,6 @@ await axios.put(
             </TouchableOpacity>
           }
         />
-
         <Field
           label="Mobile"
           value={mobile}
@@ -238,21 +196,12 @@ await axios.put(
         />
 
         {editMode && (
-          <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.8}>
+          <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
             <Text style={styles.saveText}>Save Changes</Text>
           </TouchableOpacity>
         )}
       </View>
-
-   
     </ScrollView>
-    <Text>
-    </Text>
-    <Text>
-    </Text>
-    <Text>
-   </Text>
-    </>
   );
 };
 
@@ -267,7 +216,6 @@ const Field = ({
   multiline = false,
 }) => (
   <View style={styles.infoRow}>
-
     <View style={styles.labelRow}>
       <Text style={styles.infoLabel}>{label}</Text>
       {showEditIcon && onEditIconPress && (
@@ -310,7 +258,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     paddingVertical: 40,
     paddingHorizontal: 24,
-    overflow:'scroll',
   },
   header: {
     alignItems: 'center',
@@ -320,7 +267,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: COLORS.primary,
-    letterSpacing: 0.7,
   },
   profileContainer: {
     flexDirection: 'row',
@@ -329,10 +275,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     marginBottom: 28,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
   profileImage: {
@@ -358,10 +300,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 36,
     borderRadius: 25,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
   },
   editToggleButtonActive: {
     backgroundColor: COLORS.primary,
@@ -379,10 +317,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingVertical: 28,
     paddingHorizontal: 22,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
   infoTitle: {
@@ -391,7 +325,6 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     color: COLORS.primary,
     textAlign: 'center',
-    letterSpacing: 0.4,
   },
   infoRow: {
     marginBottom: 20,
@@ -432,10 +365,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 30,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
     elevation: 8,
   },
   saveText: {
@@ -443,7 +372,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '700',
     fontSize: 18,
-    letterSpacing: 0.5,
   },
   editIconTouchable: {
     padding: 6,

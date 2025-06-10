@@ -27,6 +27,8 @@ export default function CalendarNote() {
   const [popupText, setPopupText] = useState('');
   const lastTap = useRef(null);
 
+
+  
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -42,18 +44,28 @@ export default function CalendarNote() {
       }
     };
     fetchUserId();
-  }, []);
+  }, []); 
 
   const fetchNotes = async (id) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}?userId=${id}`);
+      const Token =  await AsyncStorage.getItem('Token');
+      console.log(Token)
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}?userId=${id}`, 
+ {   headers: { Authorization: ` ${Token}` },
+  }
+);
+
       const notesFromServer = {};
-      res.data.forEach(note => {
-        notesFromServer[note.date] = note.note;
-      });
-      setNotes(notesFromServer);
-      updateMarkedDates(notesFromServer);
+      if (Array.isArray(res.data)) {
+        res.data.forEach(note => {
+          notesFromServer[note.date] = note.note;
+        });
+        setNotes(notesFromServer);
+        updateMarkedDates(notesFromServer);
+      } else {
+        Alert.alert('Error', 'Unexpected response format');
+      }
     } catch (e) {
       Alert.alert('Error', 'Failed to fetch notes');
     } finally {
@@ -106,24 +118,20 @@ export default function CalendarNote() {
     }
     setLoading(true);
     try {
-      console.log(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}`);
-      console.log("userId", userId);
-      console.log("date ",selectedDate);
-      console.log("note ", noteText);
-      
-      
+      const Token =  await AsyncStorage.getItem('Token');
       await axios.post(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}`, {
         userId,
         date: selectedDate,
-        note: noteText,
-      });
+        note: noteText},
+        {   headers: { Authorization: ` ${Token}` },
+  }
+      );
       const newNotes = { ...notes, [selectedDate]: noteText };
       setNotes(newNotes);
       updateMarkedDates(newNotes);
       setModalVisible(false);
     } catch (e) {
-      
-      Alert.alert('Error', 'Failed to save note');
+      Alert.alert('Error', e?.response?.data?.message || 'Failed to save note');
     } finally {
       setLoading(false);
     }
@@ -136,16 +144,24 @@ export default function CalendarNote() {
     }
     setLoading(true);
     try {
-      await axios.delete(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/${selectedDate}`, {
-        data: { userId },
-      });
+       const Token =  await AsyncStorage.getItem('Token');
+       const id = await AsyncStorage.getItem('userId');
+      
+      //  console.log(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/${selectedDate}`);
+     
+      await axios.delete(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/${selectedDate}`, 
+       {id} ,
+        {   headers: { Authorization: `${Token}` 
+      },
+  }
+      );
       const newNotes = { ...notes };
       delete newNotes[selectedDate];
       setNotes(newNotes);
       updateMarkedDates(newNotes);
       setModalVisible(false);
     } catch (e) {
-      Alert.alert('Error', 'Failed to delete note');
+       Alert.alert('Error', e?.response?.data?.message || 'Failed to delete note');
     } finally {
       setLoading(false);
     }
@@ -211,6 +227,7 @@ export default function CalendarNote() {
           </View>
         </View>
       </Modal>
+
       {loading && <ActivityIndicator style={{ marginTop: 10 }} size="large" color={COLORS.primary} />}
     </View>
   );

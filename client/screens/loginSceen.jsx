@@ -106,7 +106,7 @@ if (res.status === 200) {
 
       <View style={styles.inputBox}>
         <FloatingInput label="Email" value={email} setValue={setEmail} />
-        <FloatingInput label="Password"  value={password} setValue={setPassword} secure  />
+        <FloatingInput label="Password"  value={password} setValue={setPassword}  secure={true}  />
       </View>
 
       <TouchableOpacity  onPress={handleforgot} style={styles.forgot}>

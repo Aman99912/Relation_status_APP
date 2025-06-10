@@ -217,7 +217,8 @@ export default function HomeScreen() {
               label="Secret Code"
               value={inputPassword}
               setValue={setInputPassword}
-              secureTextEntry
+              secure='true'
+               numeric={true}
             
             />
 

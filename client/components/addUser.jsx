@@ -106,8 +106,8 @@ export default function AddUser() {
      
       const isRequestPending = user.friendRequests?.includes(myUserId);
       const isFriend = user.friends?.includes(myUserId);
-      console.log(isRequestPending);
-      console.log(user.friends);
+      // console.log(isRequestPending);
+      // console.log(user.friends);
       
 
       if (user.id === myUserId) {
@@ -156,7 +156,7 @@ export default function AddUser() {
 
     const fullCode = updated.join('');
     if (!updated.includes('') && fullCode.length === 10) {
-      Keyboard.dismiss(); // dismiss keyboard when 10-digit filled
+      Keyboard.dismiss(); 
       debouncedFetchUserData(fullCode);
     }
   };
@@ -228,7 +228,7 @@ export default function AddUser() {
         <Text style={styles.orText}>OR</Text>
 
         <FloatingInput
-          style={[styles.inputBox, { width: 240, textAlign: 'center', letterSpacing: 8 }]}
+          style={[styles.inputBox, { width: 240, textAlign: 'center', letterSpacing: 2 }]}
           label="Enter 10-digit code"
           maxLength={10}
           keyboardType="numeric"

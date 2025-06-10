@@ -76,7 +76,17 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+   <View  style={styles.settingList}>
+    
+    <Text> Your Dashboard</Text>
+   
+    <Text style={{}}>Privacy Settings</Text>
 
+   
+    <Text>Privacy Settings</Text>
+   
+    <Text>Help</Text>
+   </View>
       <Logout />
     </ScrollView>
   );
@@ -140,6 +150,20 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
+  settingList:{
+     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 28,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
+
+  }
 });
 
 export default ProfileScreen;

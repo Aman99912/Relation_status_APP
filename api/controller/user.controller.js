@@ -8,44 +8,159 @@ import { log } from 'console';
 
   const otpStore = {}; 
   
-  export const finalizeRegister = async (req, res) => { 
-    const { name, email, password, mobile, gender, dob, avatar } = req.body;
+//   export const finalizeRegister = async (req, res) => { 
+//     const { name, email, password, mobile, gender, dob, avatar } = req.body;
 
     
-    if (!name || !email || !password || !mobile || !gender || !dob) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+//     if (!name || !email || !password || !mobile || !gender || !dob) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
     
+//   try {
+
+//     const existingUser = await UserModel.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     const existingMobile = await UserModel.findOne({ mobile });
+//     if (existingMobile) {
+//       return res.status(400).json({ message: "Mobile number already registered" });
+//     }
+
+//     const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+//     const SubPass = Math.floor(1000 + Math.random() * 9000);
+
+//     const generateUsername = (baseName) => {
+//       const base = baseName.toLowerCase().replace(/[^a-z0-9]/g, '');
+//       const suffix = crypto.randomBytes(2).toString('hex');
+//       return `${base}${suffix}`;
+//     };
+
+//     let username = generateUsername(name || email.split('@')[0]);
+//     while (await UserModel.findOne({ username })) {
+//       username = generateUsername(name || email.split('@')[0]);
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Parse DOB
+//     const parseDOB = (dobString) => {
+//       const [day, month, year] = dobString.split('/');
+//       return new Date(`${year}-${month}-${day}`);
+//     };
+
+//     const parsedDOB = parseDOB(dob);
+
+//     // Calculate Age
+//     const calculateAge = (birthDate) => {
+//       const today = new Date();
+//       let age = today.getFullYear() - birthDate.getFullYear();
+//       const m = today.getMonth() - birthDate.getMonth();
+//       if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+//         age--;
+//       }
+//       return age;
+//     };
+
+//     const age = calculateAge(parsedDOB);
+//    const NewEmail = email.toLowerCase()
+    
+//     let avatarUrl = avatar;
+//     if (!avatar) {
+//       if (gender.toLowerCase() === 'female') {
+//         avatarUrl = '/images/female.webp'; 
+//       } else {
+//         avatarUrl = '/images/male.png';  
+//       }
+//     }
+
+//     // Create user
+//     await UserModel.create({
+//       name,
+//       username,
+//       email:NewEmail,
+//       code,
+//       SubPass,
+//       dob: parsedDOB,
+//       age,
+//       gender,
+//       password: hashedPassword,
+//       mobile,
+//       avatar: avatarUrl,
+//     });
+
+//     // Send welcome email
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: process.env.EMAIL_ID,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     const mailOptions = {
+//       from: process.env.EMAIL_ID,
+//       to: email,
+//       subject: "Welcome to Our Service!",
+//       text: `Hello ${name},\n\nThank you for signing up!\n\nYour login details:\nUsername: ${username}\nTemporary Passcode: ${SubPass}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
+//     };
+
+//     await transporter.sendMail(mailOptions);
+
+//     res.status(200).json({
+//       success: true,
+//       message: "User created successfully",
+//       username,
+//     });
+
+//   } catch (error) {
+//     console.error("Error in finalizeRegister:", error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+
+export const finalizeRegister = async (req, res) => {
+  const { name, email, password, mobile, gender, dob, avatar } = req.body;
+
+  if (!name || !email || !password || !mobile || !gender || !dob) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
   try {
+    const lowerEmail = email.toLowerCase();
 
-    const existingUser = await UserModel.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+    // Check for existing email
+    const existingEmail = await UserModel.findOne({ email: lowerEmail });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email is already registered" });
     }
 
+    // Check for existing mobile
     const existingMobile = await UserModel.findOne({ mobile });
     if (existingMobile) {
-      return res.status(400).json({ message: "Mobile number already registered" });
+      return res.status(400).json({ message: "Mobile number is already registered" });
     }
 
-    const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    const SubPass = Math.floor(1000 + Math.random() * 9000);
-
+    // Generate unique username
     const generateUsername = (baseName) => {
       const base = baseName.toLowerCase().replace(/[^a-z0-9]/g, '');
       const suffix = crypto.randomBytes(2).toString('hex');
       return `${base}${suffix}`;
     };
 
-    let username = generateUsername(name || email.split('@')[0]);
+    let username = generateUsername(name || lowerEmail.split('@')[0]);
     while (await UserModel.findOne({ username })) {
-      username = generateUsername(name || email.split('@')[0]);
+      username = generateUsername(name || lowerEmail.split('@')[0]);
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+    const SubPass = Math.floor(1000 + Math.random() * 9000);
 
-    // Parse DOB
+    // Parse DOB and calculate age
     const parseDOB = (dobString) => {
       const [day, month, year] = dobString.split('/');
       return new Date(`${year}-${month}-${day}`);
@@ -53,7 +168,6 @@ import { log } from 'console';
 
     const parsedDOB = parseDOB(dob);
 
-    // Calculate Age
     const calculateAge = (birthDate) => {
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear();
@@ -65,22 +179,19 @@ import { log } from 'console';
     };
 
     const age = calculateAge(parsedDOB);
-   const NewEmail = email.toLowerCase()
-    
+
     let avatarUrl = avatar;
     if (!avatar) {
-      if (gender.toLowerCase() === 'female') {
-        avatarUrl = '/images/female.webp'; 
-      } else {
-        avatarUrl = '/images/male.png';  
-      }
+      avatarUrl = gender.toLowerCase() === 'female'
+        ? '/images/female.webp'
+        : '/images/male.png';
     }
 
     // Create user
     await UserModel.create({
       name,
       username,
-      email:NewEmail,
+      email: lowerEmail,
       code,
       SubPass,
       dob: parsedDOB,
@@ -120,7 +231,6 @@ import { log } from 'console';
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 
 
@@ -232,9 +342,50 @@ export const loginUser = async (req, res) => {
 
 
 // ✏️ Update User
+// export const updateUser = async (req, res) => {
+//   try {
+//     const id = req.params.id; // id should be passed in URL params
+//     const {
+//       username,
+//       email,
+//       mobile,
+//       bio,
+//       gender,
+//       age,
+//       avatar,
+//     } = req.body;
+
+//     // Optional: you can add validation here for required fields or format
+
+//     const updatedUser = await UserModel.findByIdAndUpdate(
+//       id,
+//       {
+//         username,
+//         email,
+//         mobile,
+//         bio,
+//         gender,
+//         age,
+//         avatar,
+//       },
+//       { new: true }
+//     );
+
+//     if (!updatedUser) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     res.status(200).json({ message: "User updated successfully", user: updatedUser });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
 export const updateUser = async (req, res) => {
   try {
-    const id = req.params.id; // id should be passed in URL params
+    const id = req.params.id; // ID of the user to update
+
     const {
       username,
       email,
@@ -245,19 +396,18 @@ export const updateUser = async (req, res) => {
       avatar,
     } = req.body;
 
-    // Optional: you can add validation here for required fields or format
+   
+    if (username) {
+      const existingUser = await UserModel.findOne({ username, _id: { $ne: id } });
+      if (existingUser) {
+        return res.status(400).json({ message: "Username is already taken" });
+      }
+    }
 
+    // Step 2: Update the user
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
-      {
-        username,
-        email,
-        mobile,
-        bio,
-        gender,
-        age,
-        avatar,
-      },
+      { username, email, mobile, bio, gender, age, avatar },
       { new: true }
     );
 
@@ -270,7 +420,6 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // 🚪 Logout
 export const logoutUser = async (req, res) => {
@@ -387,6 +536,7 @@ export const GetUserByEmail = async (req, res) => {
       gender: user.gender,
       email: user.email,
       username: user.username,
+      bio: user.bio,
       age: user.age,
       mobileNo: user.mobile,
     });

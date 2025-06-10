@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -7,16 +6,21 @@ import {
   Animated,
   Platform,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function FloatingInput({
   label,
   value,
   setValue,
+  secure = false,
+  numeric = false, // New prop for numeric input
 }) {
   const [focused, setFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
-  const inputRef = useRef(null); // Ref to access TextInput
+  const inputRef = useRef(null);
 
   useEffect(() => {
     Animated.timing(labelAnim, {
@@ -25,6 +29,21 @@ export default function FloatingInput({
       useNativeDriver: false,
     }).start();
   }, [focused, value]);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // Allow only numeric input if `numeric` prop is true
+  const handleTextChange = (text) => {
+    if (numeric) {
+      // Remove non-numeric characters using regex
+      const numericText = text.replace(/[^0-9]/g, '');
+      setValue(numericText);
+    } else {
+      setValue(text);
+    }
+  };
 
   const labelStyle = {
     position: 'absolute',
@@ -50,14 +69,28 @@ export default function FloatingInput({
       </Pressable>
       <TextInput
         ref={inputRef}
-        style={styles.input}
+        style={[styles.input, { paddingRight: secure ? 40 : 10 }]}
         value={value}
-        onChangeText={setValue}
+        onChangeText={handleTextChange} // Updated handler
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder=""
         placeholderTextColor="#aaa"
+        secureTextEntry={secure && !showPassword}
+        keyboardType={numeric ? "numeric" : "default"} // Show numeric keyboard if numeric=true
       />
+      {secure && (
+        <TouchableOpacity
+          onPress={togglePasswordVisibility}
+          style={styles.eyeButton}
+        >
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={26}
+            color="#aaa"
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -77,7 +110,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '95%',
     alignSelf: 'center',
-
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -94,5 +126,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 6,
     color: '#333',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: '50%',
+    transform: [{ translateY: 1 }],
   },
 });

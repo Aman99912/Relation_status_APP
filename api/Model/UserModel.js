@@ -9,12 +9,14 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    username: { type: String, unique: true },
-    mobile: { type: String, unique: true, required: true },
+    username: { type: String, unique: true  , trim: true},
+    mobile: { type: String, unique: true, required: true , trim: true},
     email: {
       type: String,
       required: true,
       unique: true,
+       trim: true,
+       
       match: [/\S+@\S+\.\S+/, 'Invalid email format'],
     },
     dob: { type: Date, required: true },

@@ -27,7 +27,7 @@ GETDIARY:"api/user/userid-diary",
 
 // Calendar Api
 
-CALENDERSEND :"api/user/calendar"
+CALENDERSEND :"api/user/calendar",
 
 
 //chats
