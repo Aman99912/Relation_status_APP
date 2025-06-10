@@ -8,118 +8,6 @@ import { log } from 'console';
 
   const otpStore = {}; 
   
-//   export const finalizeRegister = async (req, res) => { 
-//     const { name, email, password, mobile, gender, dob, avatar } = req.body;
-
-    
-//     if (!name || !email || !password || !mobile || !gender || !dob) {
-//       return res.status(400).json({ message: "All fields are required" });
-//     }
-    
-//   try {
-
-//     const existingUser = await UserModel.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     const existingMobile = await UserModel.findOne({ mobile });
-//     if (existingMobile) {
-//       return res.status(400).json({ message: "Mobile number already registered" });
-//     }
-
-//     const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-//     const SubPass = Math.floor(1000 + Math.random() * 9000);
-
-//     const generateUsername = (baseName) => {
-//       const base = baseName.toLowerCase().replace(/[^a-z0-9]/g, '');
-//       const suffix = crypto.randomBytes(2).toString('hex');
-//       return `${base}${suffix}`;
-//     };
-
-//     let username = generateUsername(name || email.split('@')[0]);
-//     while (await UserModel.findOne({ username })) {
-//       username = generateUsername(name || email.split('@')[0]);
-//     }
-
-//     // Hash password
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Parse DOB
-//     const parseDOB = (dobString) => {
-//       const [day, month, year] = dobString.split('/');
-//       return new Date(`${year}-${month}-${day}`);
-//     };
-
-//     const parsedDOB = parseDOB(dob);
-
-//     // Calculate Age
-//     const calculateAge = (birthDate) => {
-//       const today = new Date();
-//       let age = today.getFullYear() - birthDate.getFullYear();
-//       const m = today.getMonth() - birthDate.getMonth();
-//       if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-//         age--;
-//       }
-//       return age;
-//     };
-
-//     const age = calculateAge(parsedDOB);
-//    const NewEmail = email.toLowerCase()
-    
-//     let avatarUrl = avatar;
-//     if (!avatar) {
-//       if (gender.toLowerCase() === 'female') {
-//         avatarUrl = '/images/female.webp'; 
-//       } else {
-//         avatarUrl = '/images/male.png';  
-//       }
-//     }
-
-//     // Create user
-//     await UserModel.create({
-//       name,
-//       username,
-//       email:NewEmail,
-//       code,
-//       SubPass,
-//       dob: parsedDOB,
-//       age,
-//       gender,
-//       password: hashedPassword,
-//       mobile,
-//       avatar: avatarUrl,
-//     });
-
-//     // Send welcome email
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: process.env.EMAIL_ID,
-//         pass: process.env.EMAIL_PASS,
-//       },
-//     });
-
-//     const mailOptions = {
-//       from: process.env.EMAIL_ID,
-//       to: email,
-//       subject: "Welcome to Our Service!",
-//       text: `Hello ${name},\n\nThank you for signing up!\n\nYour login details:\nUsername: ${username}\nTemporary Passcode: ${SubPass}\n\nPlease keep your credentials safe.\n\nBest regards,\nThe Team`,
-//     };
-
-//     await transporter.sendMail(mailOptions);
-
-//     res.status(200).json({
-//       success: true,
-//       message: "User created successfully",
-//       username,
-//     });
-
-//   } catch (error) {
-//     console.error("Error in finalizeRegister:", error);
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
 
 
 export const finalizeRegister = async (req, res) => {
@@ -182,9 +70,7 @@ export const finalizeRegister = async (req, res) => {
 
     let avatarUrl = avatar;
     if (!avatar) {
-      avatarUrl = gender.toLowerCase() === 'female'
-        ? '/images/female.webp'
-        : '/images/male.png';
+      avatarUrl = "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
     }
 
     // Create user
@@ -382,21 +268,51 @@ export const loginUser = async (req, res) => {
 // };
 
 
-export const updateUser = async (req, res) => {
-  try {
-    const id = req.params.id; // ID of the user to update
+// export const updateUser = async (req, res) => {
+//   try {
+//     const id = req.params.id; // ID of the user to update
 
-    const {
-      username,
-      email,
-      mobile,
-      bio,
-      gender,
-      age,
-      avatar,
-    } = req.body;
+//     const {
+//       username,
+//       email,
+//       mobile,
+//       bio,
+//       gender,
+//       age,
+//       avatar,
+//     } = req.body;
 
    
+//     if (username) {
+//       const existingUser = await UserModel.findOne({ username, _id: { $ne: id } });
+//       if (existingUser) {
+//         return res.status(400).json({ message: "Username is already taken" });
+//       }
+//     }
+
+//     // Step 2: Update the user
+//     const updatedUser = await UserModel.findByIdAndUpdate(
+//       id,
+//       { username, email, mobile, bio, gender, age, avatar },
+//       { new: true }
+//     );
+
+//     if (!updatedUser) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     res.status(200).json({ message: "User updated successfully", user: updatedUser });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+export const updateUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { username, email, mobile, bio, gender, age, avatar } = req.body;
+
+    // Validate username uniqueness if provided
     if (username) {
       const existingUser = await UserModel.findOne({ username, _id: { $ne: id } });
       if (existingUser) {
@@ -404,10 +320,24 @@ export const updateUser = async (req, res) => {
       }
     }
 
-    // Step 2: Update the user
+    // Prepare update object
+    const updateFields = {};
+    if (username) updateFields.username = username;
+    if (email) updateFields.email = email;
+    if (mobile) updateFields.mobile = mobile;
+    if (bio) updateFields.bio = bio;
+    if (gender) updateFields.gender = gender;
+    if (age) updateFields.age = age;
+    
+    // Only update avatar if it's provided and not empty
+    if (avatar && avatar.trim() !== '') {
+      updateFields.avatar = avatar;
+    }
+
+    // Update the user
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
-      { username, email, mobile, bio, gender, age, avatar },
+      updateFields,
       { new: true }
     );
 
@@ -415,7 +345,10 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "User updated successfully", user: updatedUser });
+    res.status(200).json({ 
+      message: "User updated successfully", 
+      user: updatedUser 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

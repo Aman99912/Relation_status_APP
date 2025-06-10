@@ -60,55 +60,69 @@ const ProfileCompo = () => {
     }
   };
 
+ 
   const pickAvatar = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission denied", "Camera roll access is required to select an avatar.");
-      return;
-    }
+  if (permissionResult.granted === false) {
+    Alert.alert("Permission denied", "Camera roll access is required to select an avatar.");
+    return;
+  }
 
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.5,
-      allowsEditing: true,
-      aspect: [1, 1],
-      base64: true,
-    });
+  const pickerResult = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.3, 
+    allowsEditing: true,
+    aspect: [1, 1],
+    base64: true,
+  });
 
-    if (!pickerResult.cancelled) {
-      const base64Img = `data:image/jpeg;base64,${pickerResult.assets[0].base64}`;
-      setAvatar(base64Img);
-    }
-  };
+  if (!pickerResult.cancelled && pickerResult.assets && pickerResult.assets[0].base64) {
+    const base64Img = `data:image/jpeg;base64,${pickerResult.assets[0].base64}`;
+    setAvatar(base64Img);
+  } else {
+    console.log('Image selection cancelled or failed');
+  }
+};
 
   const handleSave = async () => {
-    if (!user?.id) return Alert.alert('Error', 'User ID missing');
+  if (!user?.id) return Alert.alert('Error', 'User ID missing');
 
-    try {
-      const payload = {
-        username,
-        email,
-        mobile,
-        bio,
-        age: Number(age),
-        avatar,
-      };
+  console.log('Avatar before save:', avatar); 
 
-      const token = await AsyncStorage.getItem('Token');
-      await axios.put(`${APIPATH.BASE_URL}/api/user/update/${user.id}`, payload, {
-        headers: { Authorization: ` ${token}` },
-      });
+  try {
+    const payload = {
+      username,
+      email,
+      mobile,
+      bio,
+      age: Number(age),
+      avatar,
+    };
 
-      Alert.alert('Success', 'Profile updated successfully!');
-      setEditMode(false);
-      setActiveField('');
-      fetchUserData();
-    } catch (err) {
-      console.log(err?.response?.data?.message);
-      Alert.alert('Error', err?.response?.data?.message);
-    }
-  };
+    const token = await AsyncStorage.getItem('Token');
+    const response = await axios.put(
+      `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
+      payload,
+      {
+        headers: { 
+          Authorization: ` ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('Update response:', response.data); // Check response
+    Alert.alert('Success', 'Profile updated successfully!');
+    setEditMode(false);
+    setActiveField('');
+    fetchUserData();
+  } catch (err) {
+    console.log('Update error:', err?.response?.data); // More detailed error
+    Alert.alert('Error', err?.response?.data?.message || 'Failed to update profile');
+  }
+};
+
 
   const handleOtpUpdate = async (field) => {
     const contact = field === 'email' ? email : mobile;

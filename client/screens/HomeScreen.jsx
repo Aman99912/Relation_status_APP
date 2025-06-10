@@ -20,6 +20,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './HomepageCss';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -37,7 +40,8 @@ export default function HomeScreen() {
   const scrollRef = useRef();
   const fetchUserDataRef = useRef(null); 
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
@@ -65,7 +69,9 @@ export default function HomeScreen() {
 
     fetchUserDataRef.current = fetchUserData;
     fetchUserData();
-  }, []);
+  }, [])
+);
+
 
   const verifyPasswordAndFetchFriends = async () => {
     if (!inputPassword.trim()) {
@@ -218,7 +224,7 @@ export default function HomeScreen() {
               value={inputPassword}
               setValue={setInputPassword}
               secure='true'
-               numeric={true}
+              numeric="true"
             
             />
 

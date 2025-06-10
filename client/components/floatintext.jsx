@@ -77,7 +77,7 @@ export default function FloatingInput({
         placeholder=""
         placeholderTextColor="#aaa"
         secureTextEntry={secure && !showPassword}
-        keyboardType={numeric ? "numeric" : "default"} // Show numeric keyboard if numeric=true
+        keyboardType={numeric ? "numeric" : "default"} 
       />
       {secure && (
         <TouchableOpacity
