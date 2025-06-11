@@ -94,7 +94,7 @@ export default function ForgotPass() {
       <View style={styles.inputBox}>
         <FloatingInput label={"Email "} value={email} setValue={setEmail} />
         {showOtp && (
-          <FloatingInput label="Enter OTP" value={otp} setValue={setOtp} />
+          <FloatingInput label="Enter OTP" value={otp} setValue={setOtp} numeric='true'/>
         )}
       </View>
 

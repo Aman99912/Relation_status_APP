@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,12 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
 import Logout from '../components/logout';
 import { Ionicons } from '@expo/vector-icons';
+
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -26,9 +27,12 @@ const ProfileScreen = () => {
   const [username, setUsername] = useState('');
   const [avatar, setAvatar] = useState('');
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     fetchUserData();
-  }, []);
+  }, [])
+);
+
 
   const fetchUserData = async () => {
     const storedEmail = await AsyncStorage.getItem('userEmail');
@@ -54,9 +58,7 @@ const ProfileScreen = () => {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-        <TouchableOpacity style={{ position: 'absolute', top: 50, left: 20 }} onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-            </TouchableOpacity>
+       
       <View style={styles.header}>
         <Text style={styles.headerTitle}>User Profile</Text>
       </View>

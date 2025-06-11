@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,13 +7,11 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
 import FloatingInput from './floatintext';
 import { COLORS } from '../Color';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BackButton from './backbtn';
 
 export default function OtpScreen({ route }) {
@@ -22,40 +19,49 @@ export default function OtpScreen({ route }) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-  const [hasSentOnce, setHasSentOnce] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(300); // OTP valid for 5 min
+  const [resendBlockTimer, setResendBlockTimer] = useState(0);
+  const [resendCount, setResendCount] = useState(0);
   const email = route.params?.email;
 
   useEffect(() => {
-    if (!hasSentOnce && email) {
-      sendOtp(); 
-    }
-  }, [email]);
+    sendOtp();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (otpTimer > 0) setOtpTimer(prev => prev - 1);
+      if (resendBlockTimer > 0) setResendBlockTimer(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpTimer, resendBlockTimer]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   const sendOtp = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Email not found');
+    if (resendCount >= 4) {
+      setResendBlockTimer(60); // block for 1 min
       return;
     }
-
     try {
       setResending(true);
-      const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_API}`, { email });
-      console.log('OTP sent:', res.data.message);
-      setHasSentOnce(true);
+      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_API}`, { email });
+      setOtpTimer(300); // reset OTP timer
+      setResendCount(prev => prev + 1);
       Alert.alert('OTP Sent', 'A new OTP has been sent to your email');
     } catch (error) {
-      console.error('Error sending OTP:', error);
-      Alert.alert('Error', 'Failed to send OTP. Please try again.');
+      Alert.alert('Error', error?.response?.data?.message || 'Failed to send OTP');
     } finally {
       setResending(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      Alert.alert('Error', 'Please enter OTP');
-      return;
-    }
+    if (!otp) return Alert.alert('Error', 'Please enter OTP');
 
     setLoading(true);
     try {
@@ -63,13 +69,11 @@ export default function OtpScreen({ route }) {
         email,
         otp,
       });
-
-      if (res.status === 200) {
-        navigation.navigate('MainApp', { screen: 'Home' });
-      }
-    } catch (err) {
-      console.log('OTP verification error:', err);
-      Alert.alert('Error', err.response?.data?.message || 'Invalid OTP');
+      Alert.alert('Success', 'OTP Verified');
+      navigation.goBack();
+      route.params?.onVerified && route.params.onVerified();
+    } catch (error) {
+      Alert.alert('Error', error?.response?.data?.message || 'OTP verification failed');
     } finally {
       setLoading(false);
     }
@@ -77,26 +81,36 @@ export default function OtpScreen({ route }) {
 
   return (
     <View style={styles.container}>
-      <BackButton  navigation={navigation}/>
-
+      <BackButton navigation={navigation} />
       <Text style={styles.title}>Enter OTP</Text>
       <Text style={styles.subTitle}>Sent to: {email}</Text>
 
-      <View style={styles.inputBox}>
-        <FloatingInput label="Enter OTP" value={otp} setValue={setOtp} keyboardType="numeric" />
-      </View>
+      <FloatingInput
+        label={`Enter OTP (expires in ${formatTime(otpTimer)})`}
+        value={otp}
+        setValue={setOtp}
+        keyboardType="numeric"
+      />
 
-      <TouchableOpacity onPress={handleVerifyOtp} style={styles.button} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Verify OTP</Text>
-        )}
+      <TouchableOpacity
+        onPress={handleVerifyOtp}
+        style={[styles.button, (otpTimer === 0 || loading) && styles.disabled]}
+        disabled={otpTimer === 0 || loading}
+      >
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Verify OTP</Text>}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={sendOtp} style={styles.resendBtn} disabled={resending}>
+      <TouchableOpacity
+        onPress={sendOtp}
+        style={[styles.resendBtn, (resendBlockTimer > 0 || resending) && styles.disabled]}
+        disabled={resendBlockTimer > 0 || resending}
+      >
         <Text style={styles.resendText}>
-          {resending ? 'Resending OTP...' : 'Resend OTP'}
+          {resendBlockTimer > 0
+            ? `Resend in ${formatTime(resendBlockTimer)}`
+            : resending
+            ? 'Resending...'
+            : 'Resend OTP'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -106,7 +120,7 @@ export default function OtpScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     padding: 20,
   },
@@ -122,21 +136,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#666',
   },
-  inputBox: {
-    marginBottom: 20,
-  },
-  
   button: {
     backgroundColor: COLORS.primary,
     paddingVertical: 14,
-    paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 20,
   },
   buttonText: {
-    color: 'white',
-    textAlign: 'center',
+    color: '#fff',
     fontSize: 16,
   },
   resendBtn: {
@@ -145,5 +153,8 @@ const styles = StyleSheet.create({
   resendText: {
     color: '#007bff',
     fontSize: 14,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });

@@ -194,7 +194,7 @@ export default function AddUser() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1, backgroundColor: '#FFF5F9' }}
+      style={{ flex: 1, backgroundColor: COLORS.background }}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       <ScrollView
@@ -232,6 +232,7 @@ export default function AddUser() {
           label="Enter 10-digit code"
           maxLength={10}
           keyboardType="numeric"
+          numeric='true'
           value={inputCodeArray.join('')}
           setValue={(text) => {
             const digits = text.replace(/[^0-9]/g, '').slice(0, 10).split('');
@@ -261,7 +262,8 @@ export default function AddUser() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 25, paddingTop: 60, backgroundColor: '#FFF5F9' },
   generateButton: {
-    backgroundColor: COLORS.primary || '#4a90e2',
+    // backgroundColor: COLORS.primary || '#4a90e2',
+    backgroundColor:"#ff6347",
     paddingVertical: 14,
     borderRadius: 30,
     alignItems: 'center',

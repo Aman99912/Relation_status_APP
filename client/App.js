@@ -22,6 +22,7 @@ import ForgotPass from './components/forgotPass';
 import ResetPasswordScreen from './components/newPass';
 import OtpScreen from './components/otpScreen';
 import ProfileCompo from './components/profileCompo';
+import UpdateEmailScreen from './components/newEmail';
 
 
 const Stack = createStackNavigator();
@@ -41,12 +42,13 @@ function MainAppTabs() {
       <Tab.Screen name="chatPF" component={ProfileCompo} />
       <Tab.Screen name="calendarScreen" component={CalendarNote} />
       <Tab.Screen name="notification" component={NotificationScreen} />
+      <Tab.Screen name="updateEmail" component={UpdateEmailScreen} />
     </Tab.Navigator>
     </>
   );
 }
 
-// Main App component with Stack Navigator for the flow
+
 export default function App() {
   return (
     <NavigationContainer>
@@ -58,7 +60,7 @@ export default function App() {
         <Stack.Screen name="newPass" component={ResetPasswordScreen} />
         <Stack.Screen name="forgot-password" component={ForgotPass} />
         
-        {/* {/* The MainApp screen contains the Tab navigator */}
+       
         <Stack.Screen name="MainApp" component={MainAppTabs} />
       </Stack.Navigator>
     </NavigationContainer>

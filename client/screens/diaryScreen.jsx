@@ -406,7 +406,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 90,
     right: 25,
-    backgroundColor: COLORS.primary,
+    // backgroundColor: COLORS.primary,
+    backgroundColor:"#ff6347",
     borderRadius: 50,
     paddingVertical: 18,
     paddingHorizontal: 30,
@@ -419,6 +420,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: 'white',
     fontWeight: 'bold',
+    
     fontSize: 18,
     letterSpacing: 0.5,
   },

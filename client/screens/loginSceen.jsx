@@ -31,69 +31,66 @@ const handleforgot = async ()=>{
   navigation.navigate('forgot-password')
 }
 
-  const handleLogin = async () => {
-    console.log("login button clicked");
-    
+const handleLogin = async () => {
+ 
+
   if (!email || !password) {
     Alert.alert('Error', 'Please fill in both fields');
     return;
   }
+
   const newEmail = email.toLowerCase();
 
   try {
-    setLoading(true);  
-   
-    
-    const body = {
-      email:newEmail,
-      password
-    }
+    setLoading(true);
 
-    const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.LOGIN_API}`,body,
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    const body = {
+      email: newEmail,
+      password
+    };
+
+    const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.LOGIN_API}`, body, {
+      headers: { 'Content-Type': 'application/json' }
+    });
 
     console.log('Response:--------', res.data);
 
-    
-    
+    if (res.status === 200) {
+      const userEmail = res.data?.user?.email;
+      const userId = res.data?.user?.id;
+      const userToken = res.data?.user?.token;
+
+      if (!userEmail || !userId || !userToken) {
+        Alert.alert('Error', 'Incomplete user data received');
+        return;
+      }
+
       
-   
-if (res.status === 200) {
-  const userEmail = res.data?.user?.email;
-  const userId = res.data?.user?.id; 
-  const userToken = res.data?.user?.token;
-
-  if (!userEmail || !userId) {
-    Alert.alert('Error', 'Incomplete user data received');
-    return;
-  }
-
-  await AsyncStorage.setItem('userEmail', userEmail);
-  await AsyncStorage.setItem('Token', userToken);
-  await AsyncStorage.setItem('userId', userId); 
-
-  navigation.navigate('MainApp', { screen: 'Home' });
-//   navigation.navigate('OtpScreen', {
-//   email :userEmail
-// });
-
-}
-
-
-     else {
+      // navigation.navigate('OtpScreen', {
+      //   email: userEmail,
+      //   token: userToken,
+      //   id: userId,
+      //   onVerified: async () => {
+        
+        await AsyncStorage.setItem('userEmail', userEmail);
+        await AsyncStorage.setItem('Token', userToken);
+        await AsyncStorage.setItem('userId', userId.toString());
+      navigation.navigate('MainApp', { screen: 'Home' });
+        //     navigation.navigate('MainApp', { screen: 'Home' });
+          // }
+        // });
+    } else {
       Alert.alert('Login Failed', res.data?.message || 'Invalid credentials');
     }
   } catch (err) {
-    console.log(err);
+    
     const errorMessage = err?.response?.data?.message || 'Something went wrong';
     Alert.alert('Error', errorMessage);
   } finally {
-    setLoading(false);  
+    setLoading(false);
   }
 };
+
 
 
   return (

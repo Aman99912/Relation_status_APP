@@ -46,6 +46,7 @@ useFocusEffect(
       try {
         setLoading(true);
         const email = await AsyncStorage.getItem('userEmail');
+        
 
         if (!email) {
           Alert.alert('Error', 'User not found in storage');
@@ -125,9 +126,20 @@ useFocusEffect(
       ref={scrollRef}
       keyboardShouldPersistTaps="handled"
     >
-      <TouchableOpacity style={styles.navItem} onPress={NotificationHandle}>
-        <FontAwesome name="bell" size={22} color="Black" />
-      </TouchableOpacity>
+    
+
+
+<TouchableOpacity style={styles.navItem} onPress={NotificationHandle}>
+  <View style={styles.iconContainer}>
+    <FontAwesome name="bell" size={26} color="black" />
+    {userData?.notifNo > 0 && (
+      <View style={styles.notificationNumber}>
+        <Text style={styles.notificationText}>{userData.notifNo}</Text>
+      </View>
+    )}
+  </View>
+</TouchableOpacity>
+
 
       {friendsLoading && (
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -205,7 +217,7 @@ useFocusEffect(
           />
         ))}
 
-      {/* Password Modal */}
+     
       <Modal
         visible={passwordModalVisible}
         transparent
@@ -256,7 +268,7 @@ useFocusEffect(
   );
 }
 
-// ✅ Updated UserCard with Chat Icon
+
 const UserCard = ({
   username,
   email,

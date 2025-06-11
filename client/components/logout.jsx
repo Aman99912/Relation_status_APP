@@ -19,12 +19,12 @@ export default function Logout() {
         await AsyncStorage.clear()
         // await AsyncStorage.clear();
 const checkEmail = await AsyncStorage.getItem('userEmail');
-console.log('Post-clear email:', checkEmail); // should log null
+console.log('Post-clear email:', checkEmail); 
 
         Alert.alert('Success', 'You have been logged out successfully!', [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Login'), // Navigate to Login screen
+            onPress: () => navigation.navigate('Login'), 
           },
         ]);
       }
@@ -54,8 +54,9 @@ console.log('Post-clear email:', checkEmail); // should log null
 const styles = StyleSheet.create({
   LogoutContainer: {
     position:'absolute',
-    right:20,
+    right:'40%',
     bottom:70,
+    
     alignItems: 'center',
     backgroundColor: 'transparent',
    
@@ -69,8 +70,9 @@ const styles = StyleSheet.create({
   logoutButton: {
     backgroundColor: '#ff6347',
     paddingVertical: 13,
-    paddingHorizontal: 25,
+    paddingHorizontal: 34,
     borderRadius: 30,
+    width:"120%",
     alignItems: 'center',
   },
   logoutText: {

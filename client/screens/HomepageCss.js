@@ -5,17 +5,46 @@ export const styles = StyleSheet.create({
   container: {
     paddingVertical: 40,
     alignItems: 'center',
-    backgroundColor: '#F5F7FA',
+    // backgroundColor: '#F5F7FA',
+    backgroundColor: COLORS.background,
     paddingHorizontal: 20,
     minHeight: '100%',
   },
-  navItem:{
-   position:'absolute',
-   top: 45,
-   right: 30,
-   zIndex: 999,
+navItem: {
+  position: 'absolute',
+  top: 45,
+  right: 30,
+  zIndex: 999,
+},
 
-  },
+iconContainer: {
+  position: 'relative',
+  width: 30,
+  height: 30,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+notificationNumber: {
+  position: 'absolute',
+  top: -6,
+  right: -6,
+  backgroundColor: 'red',
+  borderRadius: 12,
+  minWidth: 20,
+  height: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 4,
+},
+
+notificationText: {
+  color: 'white',
+  fontSize: 10,
+  fontWeight: 'bold',
+},
+
+
   
   userBox: {
     backgroundColor: '#fff',

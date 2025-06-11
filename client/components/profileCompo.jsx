@@ -19,6 +19,9 @@ import Icon from 'react-native-vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+
 const ProfileCompo = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
@@ -32,14 +35,19 @@ const ProfileCompo = () => {
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [avatar, setAvatar] = useState('');
-  const [resending, setResending] = useState(false);
 
-  useEffect(() => {
+  
+  
+useFocusEffect(
+  useCallback(() => {
+ 
     fetchUserData();
-  }, []); 
+   []; }))
  
   const fetchUserData = async () => {
     const storedEmail = await AsyncStorage.getItem('userEmail');
+    console.log(storedEmail);
+    
     if (!storedEmail) return Alert.alert('Error', 'User email not found');
 
     try {
@@ -112,39 +120,31 @@ const ProfileCompo = () => {
       }
     );
 
-    console.log('Update response:', response.data); // Check response
+    console.log('Update response:', response.data); 
     Alert.alert('Success', 'Profile updated successfully!');
     setEditMode(false);
-    setActiveField('');
+    setActiveField(''); 
     fetchUserData();
   } catch (err) {
-    console.log('Update error:', err?.response?.data); // More detailed error
+    console.log('Update error:', err?.response?.data); 
     Alert.alert('Error', err?.response?.data?.message || 'Failed to update profile');
   }
 };
 
 
   const handleOtpUpdate = async (field) => {
-    const contact = field === 'email' ? email : mobile;
+    const email = await AsyncStorage.getItem('userEmail')
+     navigation.navigate('OtpScreen', {
+        email,
+      
+        onVerified: async () => {
+        
 
-    if (!contact) {
-      Alert.alert('Error', `${field === 'email' ? 'Email' : 'Mobile number'} is missing`);
-      return;
-    }
-
-    try {
-      setResending(true);
-      const endpoint = field === 'email' ? APIPATH.SEND_API : 'send-otp-mobile';
-      const payload = field === 'email' ? { email: contact } : { mobile: contact };
-
-      const res = await axios.post(`${APIPATH.BASE_URL}/${endpoint}`, payload);
-      Alert.alert('OTP Sent', `A verification code has been sent to your ${field === 'email' ? 'email' : 'mobile number'}. Please verify to proceed.`);
-    } catch (error) {
-      console.error('Error sending OTP:', error);
-      Alert.alert('Error', 'Failed to send OTP. Please try again later.');
-    } finally {
-      setResending(false);
-    }
+          navigation.navigate('MainApp', { screen: 'updateEmail'  });
+         
+        }
+      });
+    
   };
 
   if (loading)
@@ -208,6 +208,9 @@ const ProfileCompo = () => {
             </TouchableOpacity>
           }
         />
+       
+
+        
 
         {editMode && (
           <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
@@ -290,6 +293,48 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 28,
     elevation: 6,
+  },
+   Otpcontainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subTitle: {
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666',
+  },
+  inputBox: {
+    marginBottom: 20,
+  },
+  
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  resendBtn: {
+    alignItems: 'center',
+  },
+  resendText: {
+    color: '#007bff',
+    fontSize: 14,
   },
   profileImage: {
     width: 110,
