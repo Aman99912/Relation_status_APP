@@ -42,7 +42,7 @@ const UserSchema = new mongoose.Schema(
         from: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'UserInfo',   
-        },
+        }, 
         createdAt: { type: Date, default: Date.now },
       },
     ],

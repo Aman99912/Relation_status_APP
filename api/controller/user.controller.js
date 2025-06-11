@@ -3,7 +3,7 @@ import { UserModel } from "../Model/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
-import { log } from 'console';
+
 
 
   const otpStore = {}; 
@@ -121,69 +121,112 @@ export const finalizeRegister = async (req, res) => {
 
 
 
+
+
+
+
+
 export const sendOtp = async (req, res) => {
   const { email } = req.body;
-  
-  if (!email) {
-    return res.status(400).json({ message: "Email is required" });
+
+  if (!email) return res.status(400).json({ message: "Email is required" });
+
+  const now = Date.now();
+  const userOtpData = otpStore[email] || {};
+
+  if (userOtpData.resendBlockedUntil && now < userOtpData.resendBlockedUntil) {
+    const wait = Math.ceil((userOtpData.resendBlockedUntil - now) / 1000);
+    return res.status(429).json({ message: `Resend blocked. Try again in ${wait}s.` });
   }
-  
+
+  // Count resend logic
+  const resendCount = (userOtpData.resendCount || 0) + 1;
+  let resendBlockedUntil = null;
+
+  if (resendCount >= 7) {
+    resendBlockedUntil = now + 5 * 60 * 1000; // 5 min block
+  } else if (resendCount === 4) {
+    resendBlockedUntil = now + 60 * 1000; // 1 min block
+  }
+
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-  
-  otpStore[email] = { otp, expiresAt };
-  
+  const expiresAt = now + 5 * 60 * 1000;
+
+  otpStore[email] = {
+    ...userOtpData,
+    otp,
+    expiresAt,
+    wrongAttempts: 0,
+    blockUntil: null,
+    resendCount,
+    resendBlockedUntil,
+  };
+
   try {
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      service: 'gmail',
       auth: {
         user: process.env.EMAIL_ID,
         pass: process.env.EMAIL_PASS,
       },
     });
-    
+
     await transporter.sendMail({
       from: process.env.EMAIL_ID,
       to: email,
-      subject: "Your OTP Code",
-      text: `Your OTP is: ${otp}`,
+      subject: 'Your OTP Code',
+      text: `Your OTP is: ${otp}. It is valid for 5 minutes.`,
     });
 
     res.status(200).json({ message: "OTP sent successfully" });
   } catch (error) {
-    console.error("Error sending OTP:", error.message);
     res.status(500).json({ message: "OTP sending failed", error: error.message });
   }
 };
 
-
-// ✅ Verify OTP
 export const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
-  
+
   if (!email || !otp) {
     return res.status(400).json({ message: "Email and OTP are required." });
   }
-  
-  const storedOtp = otpStore[email];
-  
-  if (!storedOtp) {
+
+  const userOtpData = otpStore[email];
+  const now = Date.now();
+
+  if (!userOtpData) {
     return res.status(400).json({ message: "No OTP found for this email." });
   }
 
-  if (storedOtp.otp !== otp) {
+  if (userOtpData.blockUntil && now < userOtpData.blockUntil) {
+    const wait = Math.ceil((userOtpData.blockUntil - now) / 1000);
+    return res.status(429).json({ message: `Too many wrong attempts. Try again in ${wait}s.` });
+  }
+
+  if (now > userOtpData.expiresAt) {
+    delete otpStore[email];
+    return res.status(400).json({ message: "OTP expired. Please request a new one." });
+  }
+
+  if (userOtpData.otp !== otp) {
+    userOtpData.wrongAttempts = (userOtpData.wrongAttempts || 0) + 1;
+
+    if (userOtpData.wrongAttempts === 5) {
+      userOtpData.blockUntil = now + 30 * 1000;
+    } else if (userOtpData.wrongAttempts >= 9) {
+      userOtpData.blockUntil = now + 2 * 60 * 1000;
+    }
+
     return res.status(400).json({ message: "Invalid OTP." });
   }
 
-  if (Date.now() > storedOtp.expiresAt) {
-    delete otpStore[email];
-    return res.status(400).json({ message: "OTP expired." });
-  }
-  
+  delete otpStore[email];
   res.status(200).json({ message: "OTP verified successfully." });
 };
 
-// 🔐 Login (email, mobile or username + password)
+
+
+
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -227,134 +270,76 @@ export const loginUser = async (req, res) => {
 
 
 
-// ✏️ Update User
-// export const updateUser = async (req, res) => {
-//   try {
-//     const id = req.params.id; // id should be passed in URL params
-//     const {
-//       username,
-//       email,
-//       mobile,
-//       bio,
-//       gender,
-//       age,
-//       avatar,
-//     } = req.body;
-
-//     // Optional: you can add validation here for required fields or format
-
-//     const updatedUser = await UserModel.findByIdAndUpdate(
-//       id,
-//       {
-//         username,
-//         email,
-//         mobile,
-//         bio,
-//         gender,
-//         age,
-//         avatar,
-//       },
-//       { new: true }
-//     );
-
-//     if (!updatedUser) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     res.status(200).json({ message: "User updated successfully", user: updatedUser });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-// export const updateUser = async (req, res) => {
-//   try {
-//     const id = req.params.id; // ID of the user to update
-
-//     const {
-//       username,
-//       email,
-//       mobile,
-//       bio,
-//       gender,
-//       age,
-//       avatar,
-//     } = req.body;
-
-   
-//     if (username) {
-//       const existingUser = await UserModel.findOne({ username, _id: { $ne: id } });
-//       if (existingUser) {
-//         return res.status(400).json({ message: "Username is already taken" });
-//       }
-//     }
-
-//     // Step 2: Update the user
-//     const updatedUser = await UserModel.findByIdAndUpdate(
-//       id,
-//       { username, email, mobile, bio, gender, age, avatar },
-//       { new: true }
-//     );
-
-//     if (!updatedUser) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     res.status(200).json({ message: "User updated successfully", user: updatedUser });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 export const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
-    const { username, email, mobile, bio, gender, age, avatar } = req.body;
+    let { username, email, mobile, bio, gender, age, avatar } = req.body;
 
-    // Validate username uniqueness if provided
+    const updateFields = {};
+
+   
     if (username) {
       const existingUser = await UserModel.findOne({ username, _id: { $ne: id } });
       if (existingUser) {
         return res.status(400).json({ message: "Username is already taken" });
       }
+      updateFields.username = username;
     }
 
-    // Prepare update object
-    const updateFields = {};
-    if (username) updateFields.username = username;
-    if (email) updateFields.email = email;
-    if (mobile) updateFields.mobile = mobile;
+    
+   if (email) {
+  email = email.trim().toLowerCase();
+
+  const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: "Invalid email format" });
+  }
+
+  const existingEmailUser = await UserModel.findOne({ email, _id: { $ne: id } });
+  if (existingEmailUser) {
+    return res.status(400).json({ message: "Email is already in use" });
+  }
+
+  updateFields.email = email;
+}
+
+    if (mobile) {
+      const existingMobileUser = await UserModel.findOne({ mobile, _id: { $ne: id } });
+      if (existingMobileUser) {
+        return res.status(400).json({ message: "Mobile number is already in use" });
+      }
+      updateFields.mobile = mobile;
+    }
+
+    
     if (bio) updateFields.bio = bio;
     if (gender) updateFields.gender = gender;
     if (age) updateFields.age = age;
-    
-    // Only update avatar if it's provided and not empty
     if (avatar && avatar.trim() !== '') {
       updateFields.avatar = avatar;
     }
 
-    // Update the user
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      id,
-      updateFields,
-      { new: true }
-    );
+    const updatedUser = await UserModel.findByIdAndUpdate(id, updateFields, { new: true });
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ 
-      message: "User updated successfully", 
-      user: updatedUser 
+    return res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      user: updatedUser,
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Update error:", error);
+    return res.status(500).json({ message: error.message || "Server error" });
   }
 };
 
-// 🚪 Logout
+
+
 export const logoutUser = async (req, res) => {
   try {
     res.clearCookie('token');
@@ -389,7 +374,6 @@ export const PassVerify = async (req, res) => {
 };
 
 
-// Get all friends of a user by email
 export const GetUserFriends = async (req, res) => {
   const { email } = req.query;
 
@@ -447,19 +431,23 @@ export const getUserByCode = async (req, res) => {
 
 
 
-export const GetUserByEmail = async (req, res) => {
+export const GetUserById = async (req, res) => {
   try {
-    const email = req.query.email?.toLowerCase(); 
-    if (!email) {
-      return res.status(400).json({ success: false, message: "Email required" });
+    // const email = req.query.email?.toLowerCase(); 
+    const id = req.query.id; 
+    console.log(id);
+    
+
+    if (!id) {
+      return res.status(400).json({ success: false, message: "User Id required" });
     }
 
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findById(id);
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-
+    
     res.json({
       success: true,
       id: user._id,
@@ -472,6 +460,7 @@ export const GetUserByEmail = async (req, res) => {
       bio: user.bio,
       age: user.age,
       mobileNo: user.mobile,
+      notifNo: user.friendRequests.length
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

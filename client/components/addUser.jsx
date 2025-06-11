@@ -48,8 +48,10 @@ export default function AddUser() {
   useEffect(() => {
     const fetchMyData = async () => {
       try {
-        const email = await AsyncStorage.getItem('userEmail');
-        const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+        const id = await AsyncStorage.getItem('userId');
+      
+       
+        const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
         setMyUserId(res.data.id);
        
         
@@ -76,8 +78,8 @@ export default function AddUser() {
   const handleGenerateCode = async () => {
     setLoading(true);
     try {
-      const email = await AsyncStorage.getItem('userEmail');
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+      const id = await AsyncStorage.getItem('userId');
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
       setGeneratedCode(res.data.code);
       setIsCodeGenerated(true);
       setTimeout(() => {
@@ -128,8 +130,8 @@ export default function AddUser() {
   const handleAddRequest = async (receiverId) => {
     setSendingRequestId(receiverId);
     try {
-      const email = await AsyncStorage.getItem('userEmail');
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?email=${email}`);
+      const id = await AsyncStorage.getItem('userId');
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
       const senderId = res.data.id;
       await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, { senderId, receiverId });
       setSentRequests([...sentRequests, receiverId]);

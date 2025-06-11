@@ -1,6 +1,6 @@
 import { CalendarNoteModel } from '../Model/UserModel.js';
 
-// Add or update a note
+
 export const createOrUpdateNote = async (req, res) => {
   try {
     const { date, note } = req.body;
@@ -26,7 +26,7 @@ export const createOrUpdateNote = async (req, res) => {
   }
 };
 
-// Get all notes for user
+
 export const getAllNotes = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -40,7 +40,7 @@ export const getAllNotes = async (req, res) => {
   }
 };
 
-// Delete note by date
+
 export const deleteNoteByDate = async (req, res) => {
   try {
     const userId = req.user?.id;

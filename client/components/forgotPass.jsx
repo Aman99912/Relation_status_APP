@@ -65,7 +65,7 @@ export default function ForgotPass() {
     try {
       setLoading(true);
       const res = await axios.post(
-        `${APIPATH.BASE_URL}/${APIPATH.VERIFY_OTP_PASS}`, // Changed to specific verify OTP endpoint
+        `${APIPATH.BASE_URL}/${APIPATH.VERIFY_OTP_PASS}`, 
         { email, otp },
         { headers: { 'Content-Type': 'application/json' } }
       );

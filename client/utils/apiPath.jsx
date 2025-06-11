@@ -5,7 +5,7 @@ export const APIPATH = {
   LOGIN_API : "api/user/login",
   VERIFY_PASS : "api/user/verify-pass",
   FRIENDDATA : "api/user/friend",
-  GETDATA : "api/user/email",
+  GETDATA : "api/user/id",
   GETFRIENDNOTIF : "api/user/friendnotif",
   SEND_REQ : "api/user/send-req",
   SEND_RESPON : "api/user/respond",

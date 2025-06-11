@@ -5,7 +5,7 @@ dotenv.config();
 
 export const verifyToken = (req, res, next) => {
   const token = req.header("Authorization");
- console.log(token);
+//  console.log(token);
  
 
   if (!token) {

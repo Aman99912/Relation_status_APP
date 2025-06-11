@@ -35,11 +35,11 @@ useFocusEffect(
 
 
   const fetchUserData = async () => {
-    const storedEmail = await AsyncStorage.getItem('userEmail');
-    if (!storedEmail) return Alert.alert('Error', 'User email not found');
+    const id = await AsyncStorage.getItem('userId');
+    if (!id) return Alert.alert('Error', 'User Id not found');
 
     try {
-      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/email?email=${storedEmail}`);
+      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`);
       const data = res.data;
       setUser(data);
       setUsername(data.username || '');

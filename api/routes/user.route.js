@@ -6,10 +6,11 @@ import {
   finalizeRegister,
   logoutUser,
   verifyOtp,
-  GetUserByEmail,
+  // GetUserByEmail,
   PassVerify,
   getUserByCode,
   GetUserFriends,
+  GetUserById,
 } from "../controller/user.controller.js";
 import {
   resetPassword,
@@ -37,9 +38,10 @@ router.post("/reset-password",resetPassword);
 
 // ✅ Routes that need authentication
 router.get('/friend', GetUserFriends);
-router.get('/email', GetUserByEmail);
+// router.get('/email', GetUserByEmail);
+router.get('/id', GetUserById);
 router.get('/code', getUserByCode);
-router.put("/update/:id", verifyToken, updateUser); // middleware applied to this route only
+router.put("/update/:id", verifyToken, updateUser);
 
 
 // add frnd

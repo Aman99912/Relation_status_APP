@@ -44,13 +44,13 @@ export default function OtpScreen({ route }) {
 
   const sendOtp = async () => {
     if (resendCount >= 4) {
-      setResendBlockTimer(60); // block for 1 min
+      setResendBlockTimer(60); 
       return;
     }
     try {
       setResending(true);
       await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_API}`, { email });
-      setOtpTimer(300); // reset OTP timer
+      setOtpTimer(300); 
       setResendCount(prev => prev + 1);
       Alert.alert('OTP Sent', 'A new OTP has been sent to your email');
     } catch (error) {
