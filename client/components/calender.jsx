@@ -48,10 +48,11 @@ export default function CalendarNote() {
 
   const fetchNotes = async (id) => {
     setLoading(true);
-    try {
+    try {  
       const Token =  await AsyncStorage.getItem('Token');
-      console.log(Token)
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}?userId=${id}`, 
+     
+      
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.CALENDERGET}?id=${id}`, 
  {   headers: { Authorization: ` ${Token}` },
   }
 );
@@ -119,7 +120,10 @@ export default function CalendarNote() {
     setLoading(true);
     try {
       const Token =  await AsyncStorage.getItem('Token');
-      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}`, {
+      console.log("post",`${APIPATH.BASE_URL}/${APIPATH.CALENDERCREATE}`);
+      
+      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.CALENDERCREATE}`, {
+
         userId,
         date: selectedDate,
         note: noteText},
@@ -147,12 +151,14 @@ export default function CalendarNote() {
        const Token =  await AsyncStorage.getItem('Token');
        const id = await AsyncStorage.getItem('userId');
       
-      //  console.log(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/${selectedDate}`);
+       console.log(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/${selectedDate}`);
      
-      await axios.delete(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/${selectedDate}`, 
-       {id} ,
-        {   headers: { Authorization: `${Token}` 
-      },
+      await axios.delete(`${APIPATH.BASE_URL}/${APIPATH.CALENDERDELETE}/${selectedDate}`, 
+       id ,
+        {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
   }
       );
       const newNotes = { ...notes };

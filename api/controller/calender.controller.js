@@ -29,10 +29,12 @@ export const createOrUpdateNote = async (req, res) => {
 
 export const getAllNotes = async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ message: 'Unauthorized: User ID missing' });
+    const id = req.params?.id;
+    console.log("useridClnder",id);
+    
+    if (!id) return res.status(401).json({ message: 'Unauthorized: User ID missing' });
 
-    const notes = await CalendarNoteModel.find({ userId });
+    const notes = await CalendarNoteModel.findById(id);
     res.status(200).json(notes);
   } catch (error) {
     console.error(error);

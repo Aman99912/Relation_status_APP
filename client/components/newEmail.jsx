@@ -39,9 +39,9 @@ const UpdateEmailScreen = () => {
           setLoading(true);
 
           const id = await AsyncStorage.getItem('userId');
-          const token = await AsyncStorage.getItem('Token');
+          const Token = await AsyncStorage.getItem('Token');
 
-          if (!id || !token) {
+          if (!id || !Token) {
             Alert.alert('Error', 'User authentication data missing');
             return;
           }
@@ -52,7 +52,7 @@ const UpdateEmailScreen = () => {
             { email: newEmailId },
             {
               headers: {
-                Authorization: `${token}`,
+                Authorization: `${Token}`,
                 'Content-Type': 'application/json',
               },
             }

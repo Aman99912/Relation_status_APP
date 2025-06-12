@@ -33,9 +33,12 @@ const NotificationScreen = () => {
         setRequests([]);
         return;
       }
-
+    const Token = await AsyncStorage.getItem('Token')
       const response = await axios.get(
-        `${APIPATH.BASE_URL}/${APIPATH.GETFRIENDNOTIF}?email=${email}`
+        `${APIPATH.BASE_URL}/${APIPATH.GETFRIENDNOTIF}?email=${email}`, { 
+          headers: { Authorization: ` ${Token}` 
+        },
+  }
       );
       const pendingRequests = response.data.pendingRequests || [];
       setRequests(pendingRequests);
@@ -52,6 +55,7 @@ const NotificationScreen = () => {
     setActionLoadingId(requestId);
     try {
       const userId = await AsyncStorage.getItem('userId');
+      const Token = await AsyncStorage.getItem('Token');
       if (!userId) {
         Alert.alert('Error', 'User ID not found, please login again');
         setActionLoadingId(null);
@@ -62,7 +66,12 @@ const NotificationScreen = () => {
         userId,
         senderId,
         action,
-      });
+      }, 
+      { 
+          headers: { Authorization: ` ${Token}` 
+        },
+  }
+    );
 
       if (res.data.success) {
         setRequests((prev) => prev.filter((req) => req._id !== requestId));

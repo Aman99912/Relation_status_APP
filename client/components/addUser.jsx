@@ -49,9 +49,14 @@ export default function AddUser() {
     const fetchMyData = async () => {
       try {
         const id = await AsyncStorage.getItem('userId');
+        const Token = await AsyncStorage.getItem('Token');
       
        
-        const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
+        const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`,  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
         setMyUserId(res.data.id);
        
         
@@ -79,7 +84,12 @@ export default function AddUser() {
     setLoading(true);
     try {
       const id = await AsyncStorage.getItem('userId');
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
+      const Token = await AsyncStorage.getItem('Token');
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`,  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
       setGeneratedCode(res.data.code);
       setIsCodeGenerated(true);
       setTimeout(() => {
@@ -102,7 +112,12 @@ export default function AddUser() {
     setLoading(true);
     setHasSearched(true);
     try {
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`);
+      const Token = await AsyncStorage.getItem('Token')
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETCODE}?code=${code}`,  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
       const user = res.data;
      
      
@@ -131,9 +146,19 @@ export default function AddUser() {
     setSendingRequestId(receiverId);
     try {
       const id = await AsyncStorage.getItem('userId');
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
+      const Token = await AsyncStorage.getItem('Token');
+      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`,  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
       const senderId = res.data.id;
-      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, { senderId, receiverId });
+      
+      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_REQ}`, { senderId, receiverId },  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
       setSentRequests([...sentRequests, receiverId]);
       await fetchUserData(inputCodeArray.join(''));
     } catch (err) {

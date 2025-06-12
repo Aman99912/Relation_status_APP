@@ -36,65 +36,75 @@ export default function HomeScreen() {
   const [passwordVerifying, setPasswordVerifying] = useState(false);
   const [friendsList, setFriendsList] = useState([]);
   const [friendsLoading, setFriendsLoading] = useState(false);
-
+  
   const scrollRef = useRef();
   const fetchUserDataRef = useRef(null); 
-
-useFocusEffect(
-  useCallback(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        const email = await AsyncStorage.getItem('userEmail');
-        const id = await AsyncStorage.getItem('userId');
-        
-
-        if (!email) {
-          Alert.alert('Error', 'User not found in storage');
-          return;
+  
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUserData = async () => {
+        try {
+          setLoading(true);
+          const email = await AsyncStorage.getItem('userEmail');
+          const id = await AsyncStorage.getItem('userId');
+          
+          
+          if (!email) {
+            Alert.alert('Error', 'User not found in storage');
+            return;
+          }
+          // console.log(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
+          const Token = await AsyncStorage.getItem('Token')
+          
+          const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`,  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
+          if (res.status === 200) {
+            setUserData(res.data);
+            setIsVerified(false);
+            setFriendsList([]);
+          } else {
+            Alert.alert('Error', 'Failed to fetch user data');
+          }
+        } catch (err) {
+          Alert.alert('Error', 'Failed to load user data');
+        } finally {
+          setLoading(false);
         }
-    // console.log(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
-    
-        const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDATA}?id=${id}`);
-        if (res.status === 200) {
-          setUserData(res.data);
-          setIsVerified(false);
-          setFriendsList([]);
-        } else {
-          Alert.alert('Error', 'Failed to fetch user data');
-        }
-      } catch (err) {
-        Alert.alert('Error', 'Failed to load user data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserDataRef.current = fetchUserData;
-    fetchUserData();
-  }, [])
-);
-
-
+      };
+      
+      fetchUserDataRef.current = fetchUserData;
+      fetchUserData();
+    }, [])
+  );
+  
+  
   const verifyPasswordAndFetchFriends = async () => {
     if (!inputPassword.trim()) {
       Alert.alert('Validation', 'Please enter the secret code');
       return;
     }
-
+    
     try {
       setPasswordVerifying(true);
-
+      const Token = await AsyncStorage.getItem('Token')
       const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.VERIFY_PASS}`, {
         UserPass: inputPassword,
         email: userData.email,
+      },
+      {  
+        headers: {
+          Authorization: `${Token}` 
+        },
       });
-
+      
       if (res.status === 200) {
         const friendsRes = await axios.get(
           `${APIPATH.BASE_URL}/${APIPATH.FRIENDDATA}?email=${userData.email}`
         );
-
+        
         setFriendsList(friendsRes.data.friends || []);
         setPasswordModalVisible(false);
         setInputPassword('');
@@ -109,11 +119,11 @@ useFocusEffect(
       setPasswordVerifying(false);
     }
   };
-
+  
   const onUserCardPress = () => {
     setPasswordModalVisible(true);
   };
-
+  
   if (loading) {
     return (
       <View style={styles.container}>
@@ -121,15 +131,16 @@ useFocusEffect(
       </View>
     );
   }
-
+  
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
-      ref={scrollRef}
-      keyboardShouldPersistTaps="handled"
+    contentContainerStyle={styles.container}
+    ref={scrollRef}
+    keyboardShouldPersistTaps="handled"
     >
     
 
+     
 
 <TouchableOpacity style={styles.navItem} onPress={NotificationHandle}>
   <View style={styles.iconContainer}>

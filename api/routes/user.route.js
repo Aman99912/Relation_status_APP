@@ -37,26 +37,26 @@ router.post("/verify-password-otp", verifyForgotOtp);
 router.post("/reset-password",resetPassword);
 
 // ✅ Routes that need authentication
-router.get('/friend', GetUserFriends);
+router.get('/friend',verifyToken, GetUserFriends);
 // router.get('/email', GetUserByEmail);
-router.get('/id', GetUserById);
-router.get('/code', getUserByCode);
+router.get('/id',verifyToken, GetUserById);
+router.get('/code',verifyToken, getUserByCode);
 router.put("/update/:id", verifyToken, updateUser);
 
 
 // add frnd
-router.get('/friendnotif', GetFriendNotif);
-router.post('/send-req', sendFriendRequest);
-router.get('/requests/:userId', getFriendRequests);
-router.post('/respond', respondToRequest);
+router.get('/friendnotif',verifyToken, GetFriendNotif);
+router.post('/send-req',verifyToken, sendFriendRequest);
+router.get('/requests/:userId',verifyToken, getFriendRequests);
+router.post('/respond',verifyToken, respondToRequest);
 
 //diary routes
 
-router.post('/add-diary', addDiary)
-router.get('/userId-diary', getAllEntries)
+router.post('/add-diary',verifyToken, addDiary)
+router.get('/userId-diary',verifyToken, getAllEntries)
 
 //calender route
-router.post('/calendar',verifyToken , createOrUpdateNote);
-router.get('/calendar',verifyToken , getAllNotes);
-router.delete('/calendar/:date' , deleteNoteByDate);
+router.post('/create',verifyToken , createOrUpdateNote);
+router.get('/get/id',verifyToken , getAllNotes);
+router.delete('/delete',verifyToken , deleteNoteByDate);
 export default router;

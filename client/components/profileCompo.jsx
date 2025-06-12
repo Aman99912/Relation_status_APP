@@ -47,11 +47,16 @@ useFocusEffect(
   const fetchUserData = async () => {
 
     const id = await AsyncStorage.getItem('userId');
+    const Token = await AsyncStorage.getItem('Token');
   
     if (!id) return Alert.alert('Error', 'User id not found');
 
     try {
-      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`);
+      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`,  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
       const data = res.data;
       setUser(data);
       setUsername(data.username || '');

@@ -51,7 +51,12 @@ export default function DiaryScreen() {
     const user_Id = await AsyncStorage.getItem('userId');
     try {
       setLoading(true);
-      const { data } = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDIARY}/?userID=${user_Id}`);
+      const Token = await AsyncStorage.getItem('Token')
+      const { data } = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDIARY}/?userID=${user_Id}`,  {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
       if (data.success) {
         setEntries(data.entries);
       } else {
@@ -118,13 +123,18 @@ export default function DiaryScreen() {
     }
     try {
       setAddingEntry(true);
-
+   const Token = await AsyncStorage.getItem('Token')
       const { data } = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.ADDDIARY}`, {
         userId: user_Id,
         title: newTitle,
         description: newDescription,
         images: newImages,
-      });
+      },
+      {  
+           headers: {
+             Authorization: `${Token}` 
+                   },
+  });
 
       if (data.success) {
         setNewTitle('');
