@@ -9,7 +9,7 @@ export default function NavBar() {
 
   const HomeHandle = () =>navigation.navigate('MainApp', { screen: 'Home' });
   const PlusHandle = () => navigation.navigate('MainApp', { screen: 'Adduser' });
-  const chatsHandle = () => navigation.navigate('MainApp', { screen: 'chats' });
+ 
   const bookHandle = () => navigation.navigate('MainApp', { screen: 'diary' });
   const ProfileHandle = () => navigation.navigate('MainApp', { screen: 'Logout' });
 
@@ -26,9 +26,7 @@ export default function NavBar() {
         <FontAwesome name="book" size={22} color="white" />
       </TouchableOpacity>
 
-      <TouchableOpacity style={navStyle.navItem} onPress={chatsHandle}>
-        <FontAwesome name="comments" size={22} color="white" />
-      </TouchableOpacity>
+     
 
       <TouchableOpacity style={navStyle.navItem} onPress={ProfileHandle}>
         <FontAwesome name="user" size={22} color="white" />

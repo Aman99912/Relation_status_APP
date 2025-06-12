@@ -28,7 +28,7 @@ import UpdateEmailScreen from './components/newEmail';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Tab navigator with Navbar
+
 function MainAppTabs() {
   return (
     <>
@@ -37,7 +37,6 @@ function MainAppTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Logout" component={ProfileScreen} />
       <Tab.Screen name="Adduser" component={AddUser} />
-      <Tab.Screen name="chats" component={ChatScreen} />
       <Tab.Screen name="diary" component={DiaryScreen} />
       <Tab.Screen name="chatPF" component={ProfileCompo} />
       <Tab.Screen name="calendarScreen" component={CalendarNote} />
@@ -61,6 +60,7 @@ export default function App() {
         <Stack.Screen name="forgot-password" component={ForgotPass} />
         
        
+        <Stack.Screen name="chats" component={ChatScreen}  />
         <Stack.Screen name="MainApp" component={MainAppTabs} />
       </Stack.Navigator>
     </NavigationContainer>

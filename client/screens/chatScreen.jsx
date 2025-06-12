@@ -1,407 +1,229 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
   FlatList,
   TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Image,
-  StyleSheet,
-  ActivityIndicator,
+  Keyboard,
+  ScrollView,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import ImagePicker from 'react-native-image-picker';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { APIPATH } from '../utils/apiPath';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { COLORS } from '../Color'; 
 
-const audioRecorderPlayer = new AudioRecorderPlayer();
-const MESSAGE_STATUSES = {
-  SENT: 'sent',
-  DELIVERED: 'delivered',
-  READ: 'read',
-};
-
-export default function ChatScreen({ route, navigation }) {
-const {
-  friendId: chatWithUserId = '',
-  friendName: chatWithUserName = 'User',
-  friendAvatar: chatWithUserAvatar = '',
-} = route.params || {};
+const ChatScreen = () => {
+  const route = useRoute();
+  const { friendName, friendAvatar } = route.params;
+  const Name = friendName.toUpperCase();
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [playingId, setPlayingId] = useState(null);
-  const [recordTime, setRecordTime] = useState('00:00');
-  const [userId, setUserId] = useState(null);
-  const [token, setToken] = useState(null);
+  const scrollViewRef = useRef(null);
 
-  const flatListRef = useRef(null);
-  const typingTimeout = useRef(null);
+  const handleSend = () => {
+    if (inputText.trim() === '') return;
 
-  useEffect(() => {
-    navigation.setOptions({
-      title: chatWithUserName,
-      headerTitleAlign: 'center',
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
-          <Icon name="arrow-left" size={28} color="#222" />
-        </TouchableOpacity>
-      ),
-      headerRight: () =>
-        chatWithUserAvatar ? (
-          <Image source={{ uri: chatWithUserAvatar }} style={styles.avatar} />
-        ) : null,
-    });
-
-    (async () => {
-      const id = await AsyncStorage.getItem('userId');
-      const tk = await AsyncStorage.getItem('Token');
-      setUserId(id);
-      setToken(tk);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (userId && token) fetchMessages();
-    return () => {
-      clearTimeout(typingTimeout.current);
-      audioRecorderPlayer.stopPlayer();
-      audioRecorderPlayer.removePlayBackListener();
-    };
-  }, [userId, token]);
-
-  const fetchMessages = async () => {
-    try {
-      const res = await axios.get(
-        `https://your-api.com/messages?user1=${userId}&user2=${chatWithUserId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setMessages(res.data || []);
-      scrollToBottom();
-    } catch (err) {
-      console.error('Failed to fetch messages:', err);
-    }
-  };
-
-  const scrollToBottom = () => {
-    flatListRef.current?.scrollToEnd({ animated: true });
-  };
-
-  const onChangeText = (text) => {
-    setInputText(text);
-    setIsTyping(true);
-    clearTimeout(typingTimeout.current);
-    typingTimeout.current = setTimeout(() => setIsTyping(false), 1500);
-  };
-
-  const sendMessage = async () => {
-    if (!inputText.trim()) return;
-    setSending(true);
-    const newMsg = {
-      _id: Date.now().toString(),
-      text: inputText.trim(),
-      senderId: userId,
-      receiverId: chatWithUserId,
-      createdAt: new Date().toISOString(),
-      status: MESSAGE_STATUSES.SENT,
-      type: 'text',
+    const newMessage = {
+      id: Date.now().toString(),
+      text: inputText,
+      sender: 'me',
     };
 
-    setMessages((prev) => [...prev, newMsg]);
+    setMessages(prev => [...prev, newMessage]);
     setInputText('');
-    scrollToBottom();
 
-    try {
-      await axios.post(`${APIPATH.BASE_URL}/api/chat/`, newMsg, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === newMsg._id ? { ...msg, status: MESSAGE_STATUSES.DELIVERED } : msg
-        )
-      );
-    } catch (err) {
-      console.error('Send failed:', err);
-    } finally {
-      setSending(false);
-    }
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   };
 
-  const pickImage = () => {
-    ImagePicker.launchImageLibrary(
-      { mediaType: 'photo', quality: 0.7 },
-      async (response) => {
-        if (response.didCancel || response.errorMessage) return;
-        const uri = response.assets?.[0]?.uri;
-        if (uri) sendMediaMessage(uri, 'image');
+  const handleCamera = () => {
+    launchCamera({ mediaType: 'photo' }, res => {
+      if (!res.didCancel && !res.errorCode) {
+        const newMessage = {
+          id: Date.now().toString(),
+          image: res.assets[0].uri,
+          sender: 'me',
+        };
+        setMessages(prev => [...prev, newMessage]);
+        scrollViewRef.current?.scrollToEnd({ animated: true });
       }
-    );
-  };
-
-  const sendMediaMessage = async (uri, type) => {
-    setSending(true);
-    const newMsg = {
-      _id: Date.now().toString(),
-      senderId: userId,
-      receiverId: chatWithUserId,
-      createdAt: new Date().toISOString(),
-      type,
-      status: MESSAGE_STATUSES.SENT,
-      [`${type}Url`]: uri,
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
-    scrollToBottom();
-
-    try {
-      await axios.post(`${APIPATH.BASE_URL}/api/chats/send`, newMsg, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === newMsg._id ? { ...msg, status: MESSAGE_STATUSES.DELIVERED } : msg
-        )
-      );
-    } catch (err) {
-      console.error(`Send ${type} failed:`, err);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const startRecording = async () => {
-    setRecording(true);
-    await audioRecorderPlayer.startRecorder();
-    audioRecorderPlayer.addRecordBackListener((e) => {
-      setRecordTime(audioRecorderPlayer.mmssss(Math.floor(e.current_position)));
-      return;
     });
   };
 
-  const stopRecording = async () => {
-    const uri = await audioRecorderPlayer.stopRecorder();
-    setRecording(false);
-    audioRecorderPlayer.removeRecordBackListener();
-    sendMediaMessage(uri, 'audio');
+  const handleGallery = () => {
+    launchImageLibrary({ mediaType: 'photo' }, res => {
+      if (!res.didCancel && !res.errorCode) {
+        const newMessage = {
+          id: Date.now().toString(),
+          image: res.assets[0].uri,
+          sender: 'me',
+        };
+        setMessages(prev => [...prev, newMessage]);
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }
+    });
   };
 
-  const playAudio = async (uri, id) => {
-    if (playingId === id) {
-      await audioRecorderPlayer.stopPlayer();
-      setPlayingId(null);
-    } else {
-      setPlayingId(id);
-      await audioRecorderPlayer.startPlayer(uri);
-      audioRecorderPlayer.addPlayBackListener((e) => {
-        if (e.current_position >= e.duration) {
-          setPlayingId(null);
-          audioRecorderPlayer.stopPlayer();
-        }
-      });
-    }
-  };
-
-  const renderItem = ({ item }) => {
-    const isMe = item.senderId === userId;
-    return (
-      <View
-        style={[
-          styles.messageContainer,
-          isMe ? styles.myMessage : styles.theirMessage,
-        ]}
-      >
-        {item.type === 'text' && (
-          <Text style={[styles.messageText, isMe && { color: '#fff' }]}>
-            {item.text}
-          </Text>
-        )}
-        {item.type === 'image' && (
-          <Image source={{ uri: item.imageUrl }} style={styles.imageMessage} />
-        )}
-        {item.type === 'audio' && (
-          <TouchableOpacity
-            style={[styles.audioMessage, isMe ? styles.audioRight : styles.audioLeft]}
-            onPress={() => playAudio(item.audioUrl, item._id)}
-          >
-            <Icon
-              name={playingId === item._id ? 'pause-circle' : 'play-circle'}
-              size={32}
-              color={isMe ? '#fff' : '#333'}
-            />
-            <Text style={[styles.audioDuration, isMe && { color: '#fff' }]}>
-              {recordTime}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
+  const renderMessage = ({ item }) => (
+    <View
+      style={[
+        styles.messageContainer,
+        item.sender === 'me' ? styles.myMessage : styles.theirMessage,
+      ]}
+    >
+      {item.image ? (
+        <Image source={{ uri: item.image }} style={styles.chatImage} />
+      ) : (
+        <Text style={styles.messageText}>{item.text}</Text>
+      )}
+    </View>
+  );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7f9fc' }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.flatListContainer}
-          onLayout={scrollToBottom}
-        />
+    
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.select({ ios: 'padding', android: undefined })}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <View style={styles.header}>
+        <Image source={{ uri: friendAvatar }} style={styles.avatar} />
+        <Text style={styles.name}>{Name}</Text>
 
-        {isTyping && (
-          <Text style={styles.typingText}>{chatWithUserName} is typing...</Text>
-        )}
-
-        <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
-            <Icon name="image-outline" size={28} color="#4a90e2" />
+        <View style={styles.headerIcons}>
+          <TouchableOpacity>
+            <Icon name="phone" size={24} color="white" />
           </TouchableOpacity>
-          <TextInput
-            value={inputText}
-            onChangeText={onChangeText}
-            placeholder="Type message"
-            multiline
-            style={styles.textInput}
-            onSubmitEditing={sendMessage}
-          />
-          <TouchableOpacity
-            onPress={recording ? stopRecording : startRecording}
-            style={[styles.iconButton, recording && { backgroundColor: '#f44336' }]}
-          >
-            <Icon
-              name={recording ? 'microphone-off' : 'microphone'}
-              size={28}
-              color={recording ? '#fff' : '#4a90e2'}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={sendMessage}
-            disabled={sending || !inputText.trim()}
-            style={[styles.sendButton, (sending || !inputText.trim()) && { opacity: 0.5 }]}
-          >
-            {sending ? <ActivityIndicator color="#fff" /> : <Icon name="send" size={28} color="#fff" />}
+          <TouchableOpacity style={{ marginLeft: 16 }}>
+            <Icon name="video" size={24} color="white" />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </View>
+
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.chatArea}
+        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+      >
+        <FlatList
+          data={messages}
+          keyExtractor={item => item.id}
+          renderItem={renderMessage}
+          contentContainerStyle={{ paddingBottom: 60 }}
+        />
+      </ScrollView>
+
+      <View style={styles.inputContainer}>
+        <TouchableOpacity onPress={handleCamera}>
+          <Icon name="camera" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleGallery}>
+          <Icon name="image" size={24} color={COLORS.primary} style={styles.icon} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Icon name="sticker-emoji" size={24} color={COLORS.primary} style={styles.icon} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Icon name="microphone" size={24} color={COLORS.primary} style={styles.icon} />
+        </TouchableOpacity>
+
+        <TextInput
+          style={styles.textInput}
+          placeholder="Type a message"
+          value={inputText}
+          onChangeText={setInputText}
+        />
+        <TouchableOpacity onPress={handleSend}>
+          <Icon name="send" size={24} color={COLORS.primary} style={styles.icon} />
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
-}
+};
 
-
+export default ChatScreen;
 
 const styles = StyleSheet.create({
-  flatListContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.primary,
     padding: 12,
-    paddingBottom: 10,
+    marginTop:1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  name: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chatArea: {
+    padding: 12,
+    flexGrow: 1,
   },
   messageContainer: {
     maxWidth: '75%',
-    marginVertical: 6,
-    borderRadius: 16,
-    padding: 12,
-    position: 'relative',
+    marginVertical: 5,
+    padding: 10,
+    borderRadius: 10,
   },
   myMessage: {
-    backgroundColor: '#4a90e2',
+    backgroundColor: COLORS.primary,
     alignSelf: 'flex-end',
-    borderBottomRightRadius: 0,
   },
   theirMessage: {
-    backgroundColor: '#e4e6eb',
+    backgroundColor: '#e0e0e0',
     alignSelf: 'flex-start',
-    borderBottomLeftRadius: 0,
   },
   messageText: {
-    fontSize: 16,
-    color: '#222',
+    color: '#000',
   },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 10,
+  chatImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
   },
   inputContainer: {
     flexDirection: 'row',
-    padding: 10,
-    paddingHorizontal: 14,
-    alignItems: 'flex-end',
+    padding: 8,
+    alignItems: 'center',
     backgroundColor: '#fff',
+    borderTopColor: '#ddd',
     borderTopWidth: 1,
-    borderColor: '#ddd',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
+  icon: {
+    marginHorizontal: 6,
   },
   textInput: {
     flex: 1,
-    maxHeight: 100,
-    minHeight: 40,
+    paddingHorizontal: 30,
+    backgroundColor: '#f0f0f0',
     borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: '#f1f3f6',
-    fontSize: 16,
-    color: '#222',
-  },
-  iconButton: {
-    padding: 8,
-    marginHorizontal: 6,
-    backgroundColor: '#e1e6ef',
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendButton: {
-    backgroundColor: '#4a90e2',
-    borderRadius: 30,
-    padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 6,
-  },
-  typingText: {
-    fontStyle: 'italic',
-    color: '#888',
-    marginLeft: 16,
-    marginBottom: 6,
-  },
-  imageMessage: {
-    width: 200,
-    height: 150,
-    borderRadius: 14,
-  },
-  audioMessage: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 14,
-  },
-  audioLeft: {
-    backgroundColor: '#e4e6eb',
-  },
-  audioRight: {
-    backgroundColor: '#4a90e2',
-  },
-  audioDuration: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#333',
-  },
-  statusIcon: {
-    position: 'absolute',
-    bottom: 4,
-    right: 6,
+    marginHorizontal: 8,
   },
 });

@@ -102,7 +102,13 @@ export default function HomeScreen() {
       
       if (res.status === 200) {
         const friendsRes = await axios.get(
-          `${APIPATH.BASE_URL}/${APIPATH.FRIENDDATA}?email=${userData.email}`
+          `${APIPATH.BASE_URL}/${APIPATH.FRIENDDATA}?email=${userData.email}`,
+          {  
+        headers: {
+          Authorization: `${Token}` 
+        },
+      }
+          
         );
         
         setFriendsList(friendsRes.data.friends || []);
@@ -217,16 +223,15 @@ export default function HomeScreen() {
                 { cancelable: true }
               );
             }}
-            onChatPress={() => {
-              navigation.navigate('MainApp', {
-                screen: 'chat',
-                params: {
-                  friendId: friend._id,
-                  friendName: friend.name,
-                  friendAvatar: friend.avatar,
-                },
-              });
-            }}
+           onChatPress={() => {
+  navigation.navigate('chats', {
+    friendId: friend._id,
+    friendName: friend.name,
+    friendAvatar: friend.avatar,
+    friendEmail: friend.email,
+  });
+}}
+
           />
         ))}
 
