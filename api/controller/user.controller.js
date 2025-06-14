@@ -271,6 +271,7 @@ export const loginUser = async (req, res) => {
 
 
 
+
 export const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
@@ -278,7 +279,7 @@ export const updateUser = async (req, res) => {
 
     const updateFields = {};
 
-   
+    // Username check
     if (username) {
       const existingUser = await UserModel.findOne({ username, _id: { $ne: id } });
       if (existingUser) {
@@ -287,23 +288,23 @@ export const updateUser = async (req, res) => {
       updateFields.username = username;
     }
 
-    
-   if (email) {
-  email = email.trim().toLowerCase();
+    // Email validation
+    if (email) {
+      email = email.trim().toLowerCase();
+      const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
 
-  const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ message: "Invalid email format" });
-  }
+      const existingEmailUser = await UserModel.findOne({ email, _id: { $ne: id } });
+      if (existingEmailUser) {
+        return res.status(400).json({ message: "Email is already in use" });
+      }
 
-  const existingEmailUser = await UserModel.findOne({ email, _id: { $ne: id } });
-  if (existingEmailUser) {
-    return res.status(400).json({ message: "Email is already in use" });
-  }
+      updateFields.email = email;
+    }
 
-  updateFields.email = email;
-}
-
+    // Mobile number check
     if (mobile) {
       const existingMobileUser = await UserModel.findOne({ mobile, _id: { $ne: id } });
       if (existingMobileUser) {
@@ -312,13 +313,23 @@ export const updateUser = async (req, res) => {
       updateFields.mobile = mobile;
     }
 
-    
+    // Avatar size check
+    if (avatar && avatar.trim() !== '') {
+      const base64Str = avatar.split(',')[1] || avatar; // Remove data:image/...;base64,
+      const sizeInBytes = (base64Str.length * 3) / 4;
+
+      const MAX_IMAGE_SIZE = 1024 * 1024; // 1MB
+
+      if (sizeInBytes > MAX_IMAGE_SIZE) {
+        return res.status(400).json({ message: "Image size exceeds 1MB limit" });
+      }
+
+      updateFields.avatar = avatar;
+    }
+
     if (bio) updateFields.bio = bio;
     if (gender) updateFields.gender = gender;
     if (age) updateFields.age = age;
-    if (avatar && avatar.trim() !== '') {
-      updateFields.avatar = avatar;
-    }
 
     const updatedUser = await UserModel.findByIdAndUpdate(id, updateFields, { new: true });
 
@@ -337,7 +348,6 @@ export const updateUser = async (req, res) => {
     return res.status(500).json({ message: error.message || "Server error" });
   }
 };
-
 
 
 export const logoutUser = async (req, res) => {
@@ -435,7 +445,7 @@ export const GetUserById = async (req, res) => {
   try {
     // const email = req.query.email?.toLowerCase(); 
     const id = req.query.id; 
-    console.log(id);
+    // console.log(id);
     
 
     if (!id) {

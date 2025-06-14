@@ -329,7 +329,7 @@ const UserCard = ({
             onPress={onChatPress}
             style={{ position: 'absolute', top: 5, left: 10, zIndex: 2, padding: 4 }}
           >
-            <FontAwesome name="comments" size={20} color="black" />
+            <FontAwesome name="comments" size={26} color="black" />
           </TouchableOpacity>
         </>
       )}

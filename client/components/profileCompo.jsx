@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,15 +13,13 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
 import Icon from 'react-native-vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 
 const ProfileCompo = () => {
   const navigation = useNavigation();
@@ -36,27 +35,22 @@ const ProfileCompo = () => {
   const [mobile, setMobile] = useState('');
   const [avatar, setAvatar] = useState('');
 
-  
-  
-useFocusEffect(
-  useCallback(() => {
-    fetchUserData();
-  }, [])
-);
- 
-  const fetchUserData = async () => {
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
+  const fetchUserData = async () => {
     const id = await AsyncStorage.getItem('userId');
     const Token = await AsyncStorage.getItem('Token');
-  
+
     if (!id) return Alert.alert('Error', 'User id not found');
 
     try {
-      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`,  {  
-           headers: {
-             Authorization: `${Token}` 
-                   },
-  });
+      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`, {
+        headers: { Authorization: `${Token}` },
+      });
       const data = res.data;
       setUser(data);
       setUsername(data.username || '');
@@ -73,35 +67,41 @@ useFocusEffect(
     }
   };
 
- 
-  const pickAvatar = async () => {
+
+const pickAvatar = async () => {
   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-  if (permissionResult.granted === false) {
-    Alert.alert("Permission denied", "Camera roll access is required to select an avatar.");
+  if (!permissionResult.granted) {
+    Alert.alert("Permission Denied", "Camera roll access is required to select an avatar.");
     return;
   }
 
   const pickerResult = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.3, 
+    quality: 0.3,
     allowsEditing: true,
     aspect: [1, 1],
     base64: true,
   });
 
-  if (!pickerResult.cancelled && pickerResult.assets && pickerResult.assets[0].base64) {
-    const base64Img = `data:image/jpeg;base64,${pickerResult.assets[0].base64}`;
-    setAvatar(base64Img);
+  if (!pickerResult.canceled && pickerResult.assets && pickerResult.assets[0].base64) {
+    const base64Img = pickerResult.assets[0].base64;
+    const imageSizeInMB = (base64Img.length * 3) / (4 * 1024 * 1024); 
+
+    if (imageSizeInMB > 1) {
+      Alert.alert("Image Too Large", "Please select an image smaller than 1MB.");
+      return;
+    }
+
+    const formattedImage = `data:image/jpeg;base64,${base64Img}`;
+    setAvatar(formattedImage);
   } else {
     console.log('Image selection cancelled or failed');
   }
 };
 
-  const handleSave = async () => {
+const handleSave = async () => {
   if (!user?.id) return Alert.alert('Error', 'User ID missing');
-
-  console.log('Avatar before save:', avatar); 
 
   try {
     const payload = {
@@ -114,42 +114,73 @@ useFocusEffect(
     };
 
     const token = await AsyncStorage.getItem('Token');
-    const response = await axios.put(
+    await axios.put(
       `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
       payload,
       {
-        headers: { 
+        headers: {
           Authorization: ` ${token}`,
           'Content-Type': 'application/json',
         },
       }
     );
 
-    console.log('Update response:', response.data); 
     Alert.alert('Success', 'Profile updated successfully!');
     setEditMode(false);
-    setActiveField(''); 
+    setActiveField('');
     fetchUserData();
   } catch (err) {
-    console.log('Update error:', err?.response?.data); 
-    Alert.alert('Error', err?.response?.data?.message || 'Failed to update profile');
+    const serverMsg = err?.response?.data?.message;
+  Alert.alert(serverMsg);
+  
+   
   }
 };
 
 
-  const handleOtpUpdate = async (field) => {
-    const email = await AsyncStorage.getItem('userEmail')
-     navigation.navigate('OtpScreen', {
-        email,
-      
-        onVerified: async () => {
-        
 
-          navigation.navigate('MainApp', { screen: 'updateEmail'  });
-         
-        }
-      });
-    
+  // const handleSave = async () => {
+  //   if (!user?.id) return Alert.alert('Error', 'User ID missing');
+
+  //   try {
+  //     const payload = {
+  //       username,
+  //       email,
+  //       mobile,
+  //       bio,
+  //       age: Number(age),
+  //       avatar,
+  //     };
+
+  //     const token = await AsyncStorage.getItem('Token');
+  //     await axios.put(
+  //       `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
+  //       payload,
+  //       {
+  //         headers: {
+  //           Authorization: ` ${token}`,
+  //           'Content-Type': 'application/json',
+  //         },
+  //       }
+  //     );
+
+  //     Alert.alert('Success', 'Profile updated successfully!');
+  //     setEditMode(false);
+  //     setActiveField('');
+  //     fetchUserData();
+  //   } catch (err) {
+  //     Alert.alert('Error', err?.response?.data?.message || 'Image Too Large', 'Please upload an image smaller than 1MB.');
+  //   }
+  // };
+
+  const handleOtpUpdate = async (field) => {
+    const email = await AsyncStorage.getItem('userEmail');
+    navigation.navigate('OtpScreen', {
+      email,
+      onVerified: async () => {
+        navigation.navigate('MainApp', { screen: 'updateEmail' });
+      },
+    });
   };
 
   if (loading)
@@ -166,18 +197,19 @@ useFocusEffect(
       </View>
 
       <View style={styles.profileContainer}>
-        <TouchableOpacity onPress={editMode ? pickAvatar : null}>
+        <TouchableOpacity onPress={editMode ? pickAvatar : null} activeOpacity={0.8}>
           <Image source={avatar ? { uri: avatar } : require('../assets/avatar.png')} style={styles.profileImage} />
         </TouchableOpacity>
 
         <View style={styles.profileDetails}>
-          <Text style={styles.profileName}>{user?.fullname || 'Unknown'}</Text>
+          <Text style={styles.profileName}>@{user?.fullname || 'Unknown'}</Text>
           <TouchableOpacity
             style={[styles.editToggleButton, editMode && styles.editToggleButtonActive]}
             onPress={() => {
               setEditMode(!editMode);
               setActiveField('');
             }}
+            activeOpacity={0.8}
           >
             <Text style={[styles.editToggleText, editMode && styles.editToggleTextActive]}>
               {editMode ? 'Cancel Edit' : 'Edit Profile'}
@@ -189,36 +221,50 @@ useFocusEffect(
       <View style={styles.infoContainer}>
         <Text style={styles.infoTitle}>User Info</Text>
 
-        <Field label="Username" value={username} editable={editMode && activeField === 'username'} onChange={setUsername} onEditIconPress={() => setActiveField('username')} showEditIcon={editMode} />
-        <Field label="Bio" value={bio} editable={editMode && activeField === 'bio'} onChange={setBio} onEditIconPress={() => setActiveField('bio')} showEditIcon={editMode} multiline />
-        <Field label="Age" value={age} editable={false} showEditIcon={false} />
-        <Field label="Gender"  value={gender} editable={false} showEditIcon={false} />
-        <Field
-          label="Email"
-          value={email}
-          editable={false}
-          trailing={
-            <TouchableOpacity onPress={() => handleOtpUpdate('email')}>
-              <Text style={styles.editOtp}>Update</Text>
-            </TouchableOpacity>
-          }
-        />
-        <Field
-          label="Mobile"
-          value={mobile}
-          editable={false}
-          trailing={
-            <TouchableOpacity onPress={() => handleOtpUpdate('mobile')}>
-              <Text style={styles.editOtp}>Update</Text>
-            </TouchableOpacity>
-          }
-        />
-       
-
-        
+        {[
+          { label: 'Username', value: username, onChange: setUsername, editable: true, key: 'username' },
+          { label: 'Bio', value: bio, onChange: setBio, editable: true, multiline: true, key: 'bio' },
+          { label: 'Age', value: age, editable: false, key: 'age' },
+          { label: 'Gender', value: gender, editable: false, key: 'gender' },
+          {
+            label: 'Email',
+            value: email,
+            editable: false,
+            trailing: (
+              <TouchableOpacity onPress={() => handleOtpUpdate('email')}>
+                <Text style={styles.editOtp}>Update</Text>
+              </TouchableOpacity>
+            ),
+            key: 'email',
+          },
+          {
+            label: 'Mobile',
+            value: mobile,
+            editable: false,
+            trailing: (
+              <TouchableOpacity onPress={() => handleOtpUpdate('mobile')}>
+                <Text style={styles.editOtp}>Update</Text>
+              </TouchableOpacity>
+            ),
+            key: 'mobile',
+          },
+        ].map((field) => (
+          <View key={field.key} style={styles.cardBox}>
+            <Field
+              label={field.label}
+              value={field.value}
+              editable={editMode && activeField === field.key && field.editable}
+              onChange={field.onChange}
+              onEditIconPress={() => setActiveField(field.key)}
+              showEditIcon={editMode && field.editable}
+              trailing={field.trailing}
+              multiline={field.multiline}
+            />
+          </View>
+        ))}
 
         {editMode && (
-          <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+          <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.8}>
             <Text style={styles.saveText}>Save Changes</Text>
           </TouchableOpacity>
         )}
@@ -241,11 +287,7 @@ const Field = ({
     <View style={styles.labelRow}>
       <Text style={styles.infoLabel}>{label}</Text>
       {showEditIcon && onEditIconPress && (
-        <TouchableOpacity
-          onPress={onEditIconPress}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={styles.editIconTouchable}
-        >
+        <TouchableOpacity onPress={onEditIconPress} style={styles.editIconTouchable}>
           <Icon name="edit" size={18} color={COLORS.primary} />
         </TouchableOpacity>
       )}
@@ -254,11 +296,7 @@ const Field = ({
       <TextInput
         value={value}
         onChangeText={onChange}
-        style={[
-          styles.input,
-          multiline && { height: 80, textAlignVertical: 'top' },
-          { borderBottomColor: COLORS.primary },
-        ]}
+        style={[styles.input, multiline && { height: 80, textAlignVertical: 'top' }]}
         placeholder={`Enter ${label}`}
         placeholderTextColor="#999"
         autoFocus
@@ -298,48 +336,10 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 28,
     elevation: 6,
-  },
-   Otpcontainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subTitle: {
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#666',
-  },
-  inputBox: {
-    marginBottom: 20,
-  },
-  
-  button: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  resendBtn: {
-    alignItems: 'center',
-  },
-  resendText: {
-    color: '#007bff',
-    fontSize: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   profileImage: {
     width: 110,
@@ -377,11 +377,18 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   infoContainer: {
+    marginTop: 10,
+  },
+  cardBox: {
     backgroundColor: '#fff',
-    borderRadius: 15,
-    paddingVertical: 28,
-    paddingHorizontal: 22,
-    elevation: 6,
+    padding: 16,
+    borderRadius: 14,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
   },
   infoTitle: {
     fontSize: 22,
@@ -391,7 +398,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   infoRow: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   labelRow: {
     flexDirection: 'row',
@@ -418,6 +425,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     paddingVertical: 8,
     color: '#222',
+    borderBottomColor: COLORS.primary,
   },
   editOtp: {
     color: COLORS.primary,
@@ -425,7 +433,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   saveButton: {
-    marginTop: 30,
+    marginTop: 20,
     backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 30,

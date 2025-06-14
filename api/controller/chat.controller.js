@@ -1,41 +1,50 @@
-import { Chat } from "../Model/UserModel.js";
+import { ChatMessageModel } from "../Model/UserModel.js";
 
 
-// Save message
 export const sendMessage = async (req, res) => {
   try {
-    const { senderId, receiverId, message } = req.body;
+    const { senderId, receiverId, text, messageType } = req.body;
+    let imageUrl = '', audioUrl = '';
 
-    const newChat = new Chat({
+    if (req.file) {
+      const filePath = `/uploads/${req.file.filename}`;
+      if (messageType === 'image' || messageType === 'gif' || messageType === 'sticker') {
+        imageUrl = filePath;
+      } else if (messageType === 'audio') {
+        audioUrl = filePath;
+      }
+    }
+
+    const message = new ChatMessageModel({
       senderId,
       receiverId,
-      message,
+      messageType,
+      text,
+      imageUrl,
+      audioUrl,
     });
 
-    const saved = await newChat.save();
-
-    res.status(201).json({ success: true, message: saved });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    await message.save();
+    res.status(201).json(message);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to send message' });
   }
 };
 
-// Get chats between two users
-export const getChats = async (req, res) => {
-  const { user1, user2 } = req.query;
-  try {
-    const chats = await Chat.find({
-      $or: [
-        { senderId: user1, receiverId: user2 },
-        { senderId: user2, receiverId: user1 },
-      ],
-    })
-      .sort({ createdAt: 1 })
-      .populate('senderId', 'name avatar')
-      .populate('receiverId', 'name avatar');
+export const getMessages = async (req, res) => {
+  const { userId, friendId } = req.params;
 
-    res.status(200).json({ success: true, messages: chats });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+  try {
+    const messages = await ChatMessageModel.find({
+      $or: [
+        { senderId: userId, receiverId: friendId },
+        { senderId: friendId, receiverId: userId },
+      ]
+    }).sort({ createdAt: 1 });
+
+    res.status(200).json(messages);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch messages' });
   }
 };

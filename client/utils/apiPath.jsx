@@ -33,6 +33,9 @@ CALENDERDELETE :"api/user/calendar/delete",
 
 
 //chats
+SENDCHAT:'api/chats/send',
+FATCHCHAT:'api/chats',
+GETCHATS:'api/chats/get'
 
 
 };

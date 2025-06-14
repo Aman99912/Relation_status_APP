@@ -8,6 +8,7 @@ import http from 'http';
 
 import userRoutes from './routes/user.route.js';
 import router from './routes/chatRoute.js';
+// import router from './routes/chatRoute.js';
 
 
 
@@ -58,7 +59,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // ✅ Routes
 app.use('/api/user', userRoutes);
-app.use('/api/chat', router);
+app.use('/api/chats', router);
 
 // ✅ Health check
 app.get('/', (req, res) => {

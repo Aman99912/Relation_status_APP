@@ -99,26 +99,35 @@ export const CalendarNoteModel = mongoose.model('CalendarNote', CalendarNoteSche
 // -----------------chat Schema ---------------------
 // ----------------------------------------------------
 
+// ----------------- Enhanced Chat Message Schema ---------------------
+const ChatMessageSchema = new mongoose.Schema(
+  {
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'UserInfo',
+      required: true,
+    },
+    receiverId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'UserInfo',
+      required: true,
+    },
+    messageType: {
+      type: String,
+      enum: ['text', 'image', 'audio'],
+      required: true,
+    },
+    text: {
+      type: String,
+      default: '',
+    },
+    imageUrl: String,
+    audioUrl: String,
+  },
+  {
+    collection: 'chatMessages',
+    timestamps: true,
+  }
+);
 
-const ChatSchema = new mongoose.Schema({
-  senderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  receiverId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  message: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-export const Chat = mongoose.model('Chat', ChatSchema);
+export const ChatMessageModel = mongoose.model('ChatMessage', ChatMessageSchema);

@@ -71,29 +71,38 @@ useFocusEffect(
       <View style={styles.profileContainer}>
         <Image source={avatar ? { uri: avatar } : require('../assets/avatar.png')} style={styles.profileImage} />
         <View style={styles.profileDetails}>
-          <Text style={styles.profileName}>{user?.fullname || 'Unknown'}</Text>
+         
+          <Text style={styles.profileName}> @{user?.fullname || 'Unknown'}</Text>
 
           <TouchableOpacity
-            style={styles.editToggleButton}
+            style={styles.buttonPoint2 }
             onPress={() => {
              navigation.navigate('MainApp', { screen: 'chatPF' })
             }}
           >
-            <Text style={{ fontSize: 15 }}>View</Text>
+            <Text style={styles.textPoint}>View</Text>
           </TouchableOpacity>
         </View>
       </View>
-   <View  style={styles.settingList}>
-    
-    <Text> Your Dashboard</Text>
-   
-    <Text style={{}}>Privacy Settings</Text>
+   <View style={styles.settingList}>
+      <TouchableOpacity style={styles.buttonPoint}>
+        <Text style={styles.textPoint}> Dashboard</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonPoint}>
+        <Text style={styles.textPoint}>Privacy and Security </Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonPoint}>
+        <Text style={styles.textPoint}>Gift Shop</Text>
+      </TouchableOpacity>
 
-   
-    <Text>Privacy Settings</Text>
-   
-    <Text>Help</Text>
-   </View>
+      <TouchableOpacity style={styles.buttonPoint}>
+        <Text style={styles.textPoint}>Map</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.buttonPoint}>
+        <Text style={styles.textPoint}>Help</Text>
+      </TouchableOpacity>
+    </View>
       <Logout />
     </ScrollView>
   );
@@ -130,9 +139,9 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 80,
+    height: 80,
+    borderRadius: 5,
     borderWidth: 2,
     borderColor: COLORS.primary,
   },
@@ -141,7 +150,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   profileName: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '800',
     color: '#222',
     marginBottom: 12,
@@ -157,20 +166,52 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
-  settingList:{
-     flexDirection: 'row',
-    alignItems: 'center',
+ settingList: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
     backgroundColor: '#fff',
     borderRadius: 15,
-    padding: 20,
+    padding: 16,
     marginBottom: 28,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
-
-  }
+  },
+  buttonPoint: {
+    backgroundColor: '#f4f4f4',
+    borderRadius: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1.6,
+  },
+  buttonPoint2: {
+    backgroundColor: '#f4f4f4',
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
+    borderRadius: 32,
+    paddingVertical: 10,
+    width:100,
+    paddingHorizontal: 18,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  textPoint: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '600',
+  },
 });
 
 export default ProfileScreen;

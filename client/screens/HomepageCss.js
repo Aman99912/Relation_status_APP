@@ -69,7 +69,7 @@ notificationText: {
     marginTop: 35,
   },
   avatarContainer: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: COLORS.gray,
     // backgroundColor: #e3d1d8,
     borderRadius: 50,
     padding: 18,
