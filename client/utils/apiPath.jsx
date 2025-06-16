@@ -6,6 +6,7 @@ export const APIPATH = {
   VERIFY_PASS : "api/user/verify-pass",
   FRIENDDATA : "api/user/friend",
   GETDATA : "api/user/id",
+  GETDASHBOARD : "api/user/dashboard/id",
   GETFRIENDNOTIF : "api/user/friendnotif",
   SEND_REQ : "api/user/send-req",
   SEND_RESPON : "api/user/respond",
@@ -28,7 +29,7 @@ GETDIARY:"api/user/userid-diary",
 // Calendar Api
 
 CALENDERCREATE :"api/user/calendar/create",
-CALENDERGET :"api/user/calendar/get",
+CALENDERGET :"api/user/calendar/get/id",
 CALENDERDELETE :"api/user/calendar/delete",
 
 

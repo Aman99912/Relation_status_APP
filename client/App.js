@@ -23,6 +23,7 @@ import ResetPasswordScreen from './components/newPass';
 import OtpScreen from './components/otpScreen';
 import ProfileCompo from './components/profileCompo';
 import UpdateEmailScreen from './components/newEmail';
+import Dashboard from './components/Dashboard';
 
 
 const Stack = createStackNavigator();
@@ -37,6 +38,7 @@ function MainAppTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Logout" component={ProfileScreen} />
       <Tab.Screen name="Adduser" component={AddUser} />
+      <Tab.Screen name="Dashboard" component={Dashboard} />
       <Tab.Screen name="diary" component={DiaryScreen} />
       <Tab.Screen name="chatPF" component={ProfileCompo} />
       <Tab.Screen name="calendarScreen" component={CalendarNote} />

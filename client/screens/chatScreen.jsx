@@ -261,23 +261,25 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   myMessage: {
-    backgroundColor: '#7C83FD',
+    backgroundColor: '#DBE2D9',
     alignSelf: 'flex-end',
   },
   theirMessage: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#f7ecdc',
     alignSelf: 'flex-start',
   },
   messageText: {
-    color: '#fff',
+    color: 'black',
   },
   chatImage: {
     width: 150,
     height: 150,
     borderRadius: 10,
+    zIndex:999,
+    
   },
   audioText: {
-    color: '#fff',
+    color: 'green',
   },
   timestamp: {
     marginTop: 4,

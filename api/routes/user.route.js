@@ -11,6 +11,7 @@ import {
   getUserByCode,
   GetUserFriends,
   GetUserById,
+  GetDashboardData,
 } from "../controller/user.controller.js";
 import {
   resetPassword,
@@ -40,6 +41,7 @@ router.post("/reset-password",resetPassword);
 router.get('/friend',verifyToken, GetUserFriends);
 // router.get('/email', GetUserByEmail);
 router.get('/id',verifyToken, GetUserById);
+router.get('/dashboard/id',verifyToken, GetDashboardData);
 router.get('/code',verifyToken, getUserByCode);
 router.put("/update/:id", verifyToken, updateUser);
 
@@ -56,7 +58,7 @@ router.post('/add-diary',verifyToken, addDiary)
 router.get('/userId-diary',verifyToken, getAllEntries)
 
 //calender route
-router.post('/create',verifyToken , createOrUpdateNote);
-router.get('/get/id',verifyToken , getAllNotes);
-router.delete('/delete',verifyToken , deleteNoteByDate);
+router.post('/calendar/create',verifyToken , createOrUpdateNote);
+router.get('/calendar/get/id',verifyToken , getAllNotes);
+router.delete('/calendar/delete',verifyToken , deleteNoteByDate);
 export default router;

@@ -6,21 +6,22 @@ import mongoose from 'mongoose';
 
 
 
+
+
 const UserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    username: { type: String, unique: true  , trim: true},
-    mobile: { type: String, unique: true, required: true , trim: true},
+    username: { type: String, unique: true, trim: true },
+    mobile: { type: String, unique: true, required: true, trim: true },
     email: {
       type: String,
       required: true,
       unique: true,
-       trim: true,
-       
+      trim: true,
       match: [/\S+@\S+\.\S+/, 'Invalid email format'],
     },
     dob: { type: Date, required: true },
-    gender: { type: String, required: true },  
+    gender: { type: String, required: true },
     password: { type: String, required: true },
     SubPass: { type: String },
     bio: { type: String },
@@ -41,11 +42,20 @@ const UserSchema = new mongoose.Schema(
       {
         from: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'UserInfo',   
-        }, 
+          ref: 'UserInfo',
+        },
         createdAt: { type: Date, default: Date.now },
       },
     ],
+
+    lastLoginAt: {
+      type: Date,
+      default: null
+    },
+    loginStreak: {
+      type: Number,
+      default: 0
+    }
   },
   {
     collection: 'userInfo',
@@ -54,8 +64,6 @@ const UserSchema = new mongoose.Schema(
 );
 
 export const UserModel = mongoose.model('UserInfo', UserSchema);
-
-
 
   // DIARY ENTRY SCHEMA
 

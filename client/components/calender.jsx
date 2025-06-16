@@ -14,6 +14,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
+import CustomAlert from './alert';
 
 export default function CalendarNote() {
   const [userId, setUserId] = useState(null);
@@ -26,9 +27,11 @@ export default function CalendarNote() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupText, setPopupText] = useState('');
   const lastTap = useRef(null);
+  const timeoutRef = useRef(null);
+  const [AlertVisible,setAlertVisible] = useState('false')
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
 
-  
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -44,28 +47,26 @@ export default function CalendarNote() {
       }
     };
     fetchUserId();
-  }, []); 
+  }, []);
 
   const fetchNotes = async (id) => {
     setLoading(true);
-    try {  
-      const Token =  await AsyncStorage.getItem('Token');
-     
-      
-      const res = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.CALENDERGET}?id=${id}`, 
- {   headers: { Authorization: ` ${Token}` },
-  }
-);
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      const res = await axios.get(
+        `${APIPATH.BASE_URL}/${APIPATH.CALENDERGET}?id=${id}`,
+        {
+          headers: { Authorization: `${Token}` },
+        }
+      );
 
       const notesFromServer = {};
       if (Array.isArray(res.data)) {
-        res.data.forEach(note => {
+        res.data.forEach((note) => {
           notesFromServer[note.date] = note.note;
         });
         setNotes(notesFromServer);
         updateMarkedDates(notesFromServer);
-      } else {
-        Alert.alert('Error', 'Unexpected response format');
       }
     } catch (e) {
       Alert.alert('Error', 'Failed to fetch notes');
@@ -76,7 +77,7 @@ export default function CalendarNote() {
 
   const updateMarkedDates = (notesObj) => {
     const marks = {};
-    Object.keys(notesObj).forEach(date => {
+    Object.keys(notesObj).forEach((date) => {
       marks[date] = {
         customStyles: {
           container: styles.animatedDot,
@@ -89,7 +90,7 @@ export default function CalendarNote() {
   const handleDayTap = (day) => {
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
-    if (lastTap.current && (now - lastTap.current) < DOUBLE_PRESS_DELAY) {
+    if (lastTap.current && now - lastTap.current < DOUBLE_PRESS_DELAY) {
       openNoteEditor(day.dateString);
     } else {
       lastTap.current = now;
@@ -97,7 +98,8 @@ export default function CalendarNote() {
         setSelectedDate(day.dateString);
         setPopupText(notes[day.dateString]);
         setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 2500);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setShowPopup(false), 2500);
       }
     }
   };
@@ -119,16 +121,17 @@ export default function CalendarNote() {
     }
     setLoading(true);
     try {
-      const Token =  await AsyncStorage.getItem('Token');
-      console.log("post",`${APIPATH.BASE_URL}/${APIPATH.CALENDERCREATE}`);
-      
-      await axios.post(`${APIPATH.BASE_URL}/${APIPATH.CALENDERCREATE}`, {
-
-        userId,
-        date: selectedDate,
-        note: noteText},
-        {   headers: { Authorization: ` ${Token}` },
-  }
+      const Token = await AsyncStorage.getItem('Token');
+      await axios.post(
+        `${APIPATH.BASE_URL}/${APIPATH.CALENDERCREATE}`,
+        {
+          userId,
+          date: selectedDate,
+          note: noteText,
+        },
+        {
+          headers: { Authorization: `${Token}` },
+        }
       );
       const newNotes = { ...notes, [selectedDate]: noteText };
       setNotes(newNotes);
@@ -141,37 +144,39 @@ export default function CalendarNote() {
     }
   };
 
+ 
+
   const deleteNote = async () => {
-    if (!userId) {
-      Alert.alert('Error', 'User ID is missing');
-      return;
-    }
-    setLoading(true);
-    try {
-       const Token =  await AsyncStorage.getItem('Token');
-       const id = await AsyncStorage.getItem('userId');
-      
-       console.log(`${APIPATH.BASE_URL}/${APIPATH.CALENDERSEND}/${selectedDate}`);
-     
-      await axios.delete(`${APIPATH.BASE_URL}/${APIPATH.CALENDERDELETE}/${selectedDate}`, 
-       id ,
-        {  
-           headers: {
-             Authorization: `${Token}` 
-                   },
+  if (!userId) {
+    Alert.alert('Error', 'User ID is missing');
+    return;
   }
-      );
-      const newNotes = { ...notes };
-      delete newNotes[selectedDate];
-      setNotes(newNotes);
-      updateMarkedDates(newNotes);
-      setModalVisible(false);
-    } catch (e) {
-       Alert.alert('Error', e?.response?.data?.message || 'Failed to delete note');
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const Token = await AsyncStorage.getItem('Token');
+
+     await axios.delete(
+      `${APIPATH.BASE_URL}/${APIPATH.CALENDERDELETE}?date=${selectedDate}`,
+      {
+        headers: {
+          Authorization: `${Token}`,
+        },
+      }
+    );
+   
+    const newNotes = { ...notes };
+    delete newNotes[selectedDate];
+    setNotes(newNotes);
+    updateMarkedDates(newNotes);
+    setModalVisible(false);
+setAlertVisible(true)
+    
+  } catch (e) {
+    Alert.alert('Error', e?.response?.data?.message || 'Failed to delete note');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -190,6 +195,20 @@ export default function CalendarNote() {
           textDayHeaderFontWeight: '600',
         }}
       />
+
+    {AlertVisible &&(
+      <CustomAlert visible={AlertVisible}
+        title="Delete Note"
+        message="Are you sure you want to delete this note?"
+        onClose={() => setAlertVisible(false)}
+        
+        onConfirm={() => {
+          
+          setAlertVisible(false);
+        }}
+        confirmText="Confirm"
+         />
+    )}
 
       {showPopup && (
         <View style={styles.popupNote}>
@@ -210,25 +229,36 @@ export default function CalendarNote() {
               autoFocus
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={[styles.btn, styles.saveBtn]} onPress={saveNote}>
+              <TouchableOpacity style={[styles.btn, styles.saveBtn]} onPress={saveNote} disabled={loading}>
                 <Text style={styles.btnText}>Save</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.btn, styles.cancelBtn]} onPress={() => setModalVisible(false)}>
                 <Text style={styles.btnText}>Cancel</Text>
               </TouchableOpacity>
               {notes[selectedDate] && (
-                <TouchableOpacity
-                  style={[styles.btn, styles.deleteBtn]}
-                  onPress={() =>
-                    Alert.alert('Delete Note', 'Are you sure?', [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Delete', style: 'destructive', onPress: deleteNote },
-                    ])
-                  }
-                >
-                  <Text style={styles.btnText}>Delete</Text>
-                </TouchableOpacity>
-              )}
+  <TouchableOpacity
+    style={[styles.btn, styles.deleteBtn]}
+    onPress={() => setShowDeleteAlert(true)}
+  >
+    <Text style={styles.btnText}>Delete</Text>
+  </TouchableOpacity>
+)}
+{showDeleteAlert && 
+<CustomAlert
+  visible={showDeleteAlert}
+  title="Delete Note"
+  message={`Are you sure you want to delete the note for ${selectedDate}?`}
+  onClose={() => setShowDeleteAlert(false)}
+  onConfirm={() => {
+    deleteNote();
+    setShowDeleteAlert(false);
+  }}
+  confirmText="Delete"
+  cancelText="Cancel"
+/>
+
+
+}
             </View>
           </View>
         </View>

@@ -1,6 +1,5 @@
 import { CalendarNoteModel } from '../Model/UserModel.js';
 
-
 export const createOrUpdateNote = async (req, res) => {
   try {
     const { date, note } = req.body;
@@ -26,15 +25,14 @@ export const createOrUpdateNote = async (req, res) => {
   }
 };
 
-
 export const getAllNotes = async (req, res) => {
   try {
-    const id = req.params?.id;
-    console.log("useridClnder",id);
-    
-    if (!id) return res.status(401).json({ message: 'Unauthorized: User ID missing' });
+    const userId = req.user?.id;
 
-    const notes = await CalendarNoteModel.findById(id);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized: User ID missing' });
+
+    const notes = await CalendarNoteModel.find({ userId });
+
     res.status(200).json(notes);
   } catch (error) {
     console.error(error);
@@ -42,16 +40,16 @@ export const getAllNotes = async (req, res) => {
   }
 };
 
-
 export const deleteNoteByDate = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const date = req.query.date || req.user?.date;
+    const date = req.query.date;
 
     if (!userId) return res.status(401).json({ message: 'Unauthorized: User ID missing' });
     if (!date) return res.status(400).json({ message: 'Date is required' });
 
     await CalendarNoteModel.deleteOne({ userId, date });
+
     res.status(200).json({ message: 'Note deleted' });
   } catch (error) {
     console.error(error);

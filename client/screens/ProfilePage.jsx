@@ -85,7 +85,9 @@ useFocusEffect(
         </View>
       </View>
    <View style={styles.settingList}>
-      <TouchableOpacity style={styles.buttonPoint}>
+      <TouchableOpacity style={styles.buttonPoint}  onPress={() => {
+             navigation.navigate('MainApp', { screen: 'Dashboard' })
+            }}>
         <Text style={styles.textPoint}> Dashboard</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.buttonPoint}>

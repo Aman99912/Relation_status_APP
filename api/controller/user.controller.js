@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { UserModel } from "../Model/UserModel.js";
+import { CalendarNoteModel, ChatMessageModel, DiaryModel, UserModel } from "../Model/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
@@ -234,9 +234,8 @@ export const loginUser = async (req, res) => {
     return res.status(400).json({ status: "error", message: "All fields are required" });
   }
 
-
   try {
-    const user = await UserModel.findOne({email});
+    const user = await UserModel.findOne({ email });
 
     if (!user) {
       return res.status(401).json({ status: "error", message: "Invalid credentials" });
@@ -247,26 +246,60 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ status: "error", message: "Invalid credentials" });
     }
 
+    const now = new Date();
+    let currentStreak = user.loginStreak || 0;
+    const lastLogin = user.lastLoginAt;
+
+    if (lastLogin) {
+      const lastLoginDate = new Date(lastLogin.getFullYear(), lastLogin.getMonth(), lastLogin.getDate());
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+
+      if (lastLoginDate.getTime() === yesterday.getTime()) {
+        currentStreak += 1;
+      } else if (lastLoginDate.getTime() === today.getTime()) {
+        // Same day login, streak continues
+      } else {
+        currentStreak = 1;
+      }
+    } else {
+      currentStreak = 1;
+    }
+
+    user.lastLoginAt = now;
+    user.loginStreak = currentStreak;
+    await user.save();
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
     res.status(200).json({
-  status: "ok",
-  message: "Login successful",
-  user: {
-    id: user._id,
-    username: user.username,
-    email: user.email,
-    token, 
-  },
-});
+      status: "ok",
+      message: "Login successful",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        token,
+        loginStreak: user.loginStreak,
+      },
+    });
 
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 };
+
+
+
+
+
+
+
+
+
 
 
 
@@ -358,6 +391,7 @@ export const logoutUser = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 
 
@@ -474,5 +508,181 @@ export const GetUserById = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+const calculateDailyStreak = (entries) => {
+  if (!entries || entries.length === 0) {
+    return 0;
+  }
+
+  const sortedEntries = [...entries].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  let streak = 0;
+  let lastActivityDate = null;
+
+  for (let i = 0; i < sortedEntries.length; i++) {
+    const currentActivityFullDate = sortedEntries[i].createdAt;
+    const currentActivityDate = new Date(currentActivityFullDate.getFullYear(), currentActivityFullDate.getMonth(), currentActivityFullDate.getDate());
+
+    if (!lastActivityDate) {
+      streak = 1;
+    } else {
+      const timeDiff = currentActivityDate.getTime() - lastActivityDate.getTime();
+      const dayDiff = Math.round(timeDiff / (1000 * 60 * 60 * 24));
+
+      if (dayDiff === 1) {
+        streak++;
+      } else if (dayDiff > 1) {
+        streak = 1;
+      }
+    }
+    lastActivityDate = currentActivityDate;
+  }
+
+  const today = new Date();
+  const lastEntryDateOnly = new Date(lastActivityDate.getFullYear(), lastActivityDate.getMonth(), lastActivityDate.getDate());
+  const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const yesterdayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+
+  if (lastEntryDateOnly.getTime() !== todayDateOnly.getTime() && lastEntryDateOnly.getTime() !== yesterdayDateOnly.getTime()) {
+      return 0;
+  }
+
+  return streak;
+};
+
+
+export const GetDashboardData = async (req, res) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const user = await UserModel.findById(id).populate('friends').populate('friendRequests.from', 'username name avatar');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const [diaryEntries, calendarNotes, chatMessages] = await Promise.all([
+      DiaryModel.find({ userId: id }).sort({ createdAt: 1 }),
+      CalendarNoteModel.find({ userId: id }).sort({ createdAt: 1 }),
+      ChatMessageModel.find({ $or: [{ senderId: id }, { recipientId: id }] })
+        .sort({ createdAt: -1 })
+        .populate('senderId', 'username name')
+        .populate('receiverId', 'username name')
+    ]);
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const lastDiary = diaryEntries.length > 0 ? diaryEntries[diaryEntries.length - 1] : null;
+
+    const todayNote = calendarNotes.find(n => {
+      const noteDate = n.date instanceof Date ? n.date.toISOString().split('T')[0] : n.date;
+      return noteDate === today;
+    });
+
+    const totalMessagesToday = chatMessages.filter(msg => {
+      const messageDate = new Date(msg.createdAt).toISOString().split('T')[0];
+      return messageDate === today;
+    }).length;
+
+    let topContact = 'N/A';
+    let lastMessage = null;
+
+    if (chatMessages.length > 0) {
+      const messageCounts = {};
+      chatMessages.forEach(msg => {
+        let contactId = null;
+        if (msg.senderId && msg.senderId._id.toString() !== user._id.toString()) {
+          contactId = msg.senderId._id.toString();
+        } else if (msg.recipientId && msg.recipientId._id.toString() !== user._id.toString()) {
+          contactId = msg.recipientId._id.toString();
+        }
+
+        if (contactId) {
+          messageCounts[contactId] = (messageCounts[contactId] || 0) + 1;
+        }
+      });
+
+      let maxCount = 0;
+      let topContactId = null;
+      for (const contactId in messageCounts) {
+        if (messageCounts[contactId] > maxCount) {
+          maxCount = messageCounts[contactId];
+          topContactId = contactId;
+        }
+      }
+
+      if (topContactId) {
+        const topUser = chatMessages.find(msg =>
+          (msg.senderId && msg.senderId._id.toString() === topContactId) ||
+          (msg.recipientId && msg.recipientId._id.toString() === topContactId)
+        );
+        topContact = topUser ? (topUser.senderId && topUser.senderId._id.toString() === topContactId ? topUser.senderId.username || topUser.senderId.name : topUser.recipientId.username || topUser.recipientId.name) : 'Unknown User';
+      }
+
+      const mostRecentMessage = chatMessages[0];
+      if (mostRecentMessage) {
+        let messageText = mostRecentMessage.content;
+        let messageTime = new Date(mostRecentMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (mostRecentMessage.senderId && mostRecentMessage.senderId._id.toString() === user._id.toString()) {
+            messageText = `You: ${messageText}`;
+        } else if (mostRecentMessage.senderId) {
+            messageText = `${mostRecentMessage.senderId.username || mostRecentMessage.senderId.name}: ${messageText}`;
+        }
+
+        lastMessage = {
+          text: messageText,
+          time: messageTime
+        };
+      }
+    }
+
+
+    res.json({
+      profile: {
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        gender: user.gender,
+        bio: user.bio,
+        avatar: user.avatar,
+        age: user.age
+      },
+      friends: {
+        total: user.friends.length,
+        streak: 0,
+        pending: user.friendRequests.length
+      },
+      diary: {
+        total: diaryEntries.length,
+        lastEntry: lastDiary ? lastDiary.createdAt.toISOString().split('T')[0] : 'N/A',
+        streak: calculateDailyStreak(diaryEntries)
+      },
+      notes: {
+        total: calendarNotes.length,
+        todayNote: todayNote ? todayNote.note : null,
+        streak: calculateDailyStreak(calendarNotes)
+      },
+      chats: {
+        totalMessagesToday: totalMessagesToday,
+        topContact: topContact,
+        media: {
+          images: chatMessages.filter(m => m.messageType === 'image').length,
+          audio: chatMessages.filter(m => m.messageType === 'audio').length
+        },
+        lastMessage: lastMessage
+      },
+      stats: {
+        loginStreak: user.loginStreak,
+        badges: ['Daily Starter', 'Friend Maker']
+      }
+    });
+  } catch (err) {
+    console.error('Error in GetDashboardData:', err);
+    res.status(500).json({ message: err.message || "Internal server error" });
   }
 };
