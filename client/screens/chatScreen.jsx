@@ -1,3 +1,5 @@
+// ✅ Final ChatScreen.js: Modern UI, All Features (Camera, Gallery, Audio, GIF, Message Types)
+
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -136,9 +138,9 @@ const ChatScreen = () => {
     return (
       <View style={[styles.messageContainer, isMine ? styles.myMessage : styles.theirMessage]}>
         {item.messageType === 'text' && <Text style={styles.messageText}>{item.text}</Text>}
-        {item.messageType === 'image' && <Image source={{ uri: item.imageUrl || item.image }} style={styles.chatImage} />}
+        {item.messageType === 'image' && <Image source={{ uri: item.imageUrl }} style={styles.chatImage} />}
         {item.messageType === 'audio' && (
-          <TouchableOpacity onPress={() => playAudio(item.audioUrl || item.audio)}>
+          <TouchableOpacity onPress={() => playAudio(item.audioUrl)}>
             <Text style={styles.audioText}>🎧 Play Audio</Text>
           </TouchableOpacity>
         )}
@@ -275,8 +277,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 10,
-    zIndex:999,
-    
+    zIndex: 999,
   },
   audioText: {
     color: 'green',

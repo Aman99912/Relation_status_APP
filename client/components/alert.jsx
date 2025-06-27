@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { COLORS } from '../Color'; // Or define your own colors
+import { COLORS } from '../Color';
 
 export default function CustomAlert({
   visible,

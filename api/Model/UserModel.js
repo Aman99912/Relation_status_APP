@@ -108,6 +108,8 @@ export const CalendarNoteModel = mongoose.model('CalendarNote', CalendarNoteSche
 // ----------------------------------------------------
 
 // ----------------- Enhanced Chat Message Schema ---------------------
+
+
 const ChatMessageSchema = new mongoose.Schema(
   {
     senderId: {
@@ -122,15 +124,30 @@ const ChatMessageSchema = new mongoose.Schema(
     },
     messageType: {
       type: String,
-      enum: ['text', 'image', 'audio'],
+      enum: ['text', 'image', 'audio', 'gif', 'sticker'],
       required: true,
     },
     text: {
       type: String,
       default: '',
     },
-    imageUrl: String,
-    audioUrl: String,
+    imageUrl: {
+      type: String,
+      default: '',
+    },
+    audioUrl: {
+      type: String,
+      default: '',
+    },
+    edited: {
+      type: Boolean,
+      default: false,
+    },
+    deletedFor: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'UserInfo',
+      default: [],
+    },
   },
   {
     collection: 'chatMessages',

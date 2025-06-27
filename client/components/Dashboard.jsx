@@ -9,19 +9,19 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 const DEFAULT_AVATAR = 'https://via.placeholder.com/150/CCCCCC/FFFFFF?text=User';
 
 const CircularProgress = ({ value, maxValue, title, color }) => {
-  const percentage = (value / maxValue) * 100;
+  const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0;
   return (
     <View style={styles.circularProgressContainer}>
       <AnimatedCircularProgress
         size={90}
         width={8}
-        fill={isNaN(percentage) ? 0 : percentage}
+        fill={percentage}
         tintColor={color}
         backgroundColor="#e0e0e0"
         lineCap="round"
         rotation={0}
       >
-        {(fill) => (
+        {() => (
           <Text style={styles.circularProgressValue}>{value}</Text>
         )}
       </AnimatedCircularProgress>
@@ -95,28 +95,28 @@ const Dashboard = () => {
     friends = { total: 0, streak: 0, pending: 0 },
     diary = { total: 0, lastEntry: 'N/A', streak: 0 },
     notes = { total: 0, todayNote: null, streak: 0 },
-    chats = { totalMessagesToday: 0, topContact: 'N/A', media: { images: 0, audio: 0 } },
+    chats = { totalMessagesToday: 0, topContact: 'N/A', media: { images: 0, audio: 0 }, lastMessage: null },
     stats = { loginStreak: 0, badges: [] }
   } = data || {};
 
   const pieChartData = [
     {
       name: 'Friends',
-      population: friends.total,
+      population: friends.total || 0,
       color: '#4CAF50',
       legendFontColor: '#7F7F7F',
       legendFontSize: 12,
     },
     {
       name: 'Diary Entries',
-      population: diary.total,
+      population: diary.total || 0,
       color: '#2196F3',
       legendFontColor: '#7F7F7F',
       legendFontSize: 12,
     },
     {
       name: 'Notes',
-      population: notes.total,
+      population: notes.total || 0,
       color: '#FFC107',
       legendFontColor: '#7F7F7F',
       legendFontSize: 12,
@@ -133,9 +133,20 @@ const Dashboard = () => {
     colors: ['#4CAF50', '#2196F3', '#FFC107'],
   };
 
+  // Helper function to safely format message parts
+  const formatMessagePart = (part) => {
+    if (part === undefined || part === null || String(part).toLowerCase() === 'undefined') {
+      return 'N/A';
+    }
+    return String(part);
+  };
+
   return (
     <ScrollView style={styles.container}>
-        <View style={styles.DashboardTitle}> <Text>Dashboard</Text> </View>
+      <View style={styles.dashboardTitleContainer}>
+        <Text style={styles.dashboardTitleText}>Dashboard</Text>
+      </View>
+
       <View style={styles.headerCard}>
         <View style={styles.profileRow}>
           <Image
@@ -181,11 +192,11 @@ const Dashboard = () => {
           </View>
         </View>
         <View style={styles.overviewSubTextContainer}>
-            <Text style={styles.subText}>Last Diary Entry: {diary.lastEntry || 'N/A'}</Text>
-            <Text style={styles.subText}>Today's Note: {notes.todayNote || 'None'}</Text>
+          <Text style={styles.subText}>Last Diary Entry: {diary.lastEntry || 'N/A'}</Text>
+          <Text style={styles.subText}>Today's Note: {notes.todayNote || 'None'}</Text>
         </View>
       </View>
-      
+
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>💬 Chat Activity</Text>
         <View style={styles.chatDetails}>
@@ -199,25 +210,27 @@ const Dashboard = () => {
           </View>
           <View style={styles.chatDetailRow}>
             <Text style={styles.detailLabel}>Media Shared:</Text>
-            <Text style={styles.detailValue}>{chats.media.images} Images, {chats.media.audio} Audio</Text>
+            <Text style={styles.detailValue}>{chats.media?.images || 0} Images, {chats.media?.audio || 0} Audio</Text>
           </View>
-          {chats.lastMessage && (
+          {chats.lastMessage ? (
             <View style={styles.chatDetailRow}>
               <Text style={styles.detailLabel}>Last Message:</Text>
-              <Text style={styles.detailValue}>{chats.lastMessage.text} ({chats.lastMessage.time})</Text>
+              <Text style={styles.detailValue}>
+                {formatMessagePart(chats.lastMessage.text)}
+                {chats.lastMessage.time ? ` (${formatMessagePart(chats.lastMessage.time)})` : ''}
+              </Text>
             </View>
-          )}
-          {!chats.lastMessage && (
-             <Text style={styles.textMuted}>No recent chat messages.</Text>
+          ) : (
+            <Text style={styles.textMuted}>No recent chat messages.</Text>
           )}
         </View>
       </View>
-      
+
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>🏆 Your Achievements</Text>
         <View style={styles.achievementItem}>
           <Text style={styles.detailLabel}>Overall Login Streak:</Text>
-          <Text style={styles.statValue}>{stats.loginStreak} days</Text>
+          <Text style={styles.statValue}>{stats.loginStreak || 0} days</Text>
         </View>
         <Text style={styles.detailLabel}>Badges Earned:</Text>
         <View style={styles.badgeContainer}>
@@ -228,7 +241,31 @@ const Dashboard = () => {
           )) : <Text style={styles.textMuted}>No badges yet. Keep going!</Text>}
         </View>
       </View>
-      
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>🎯 Your Streaks</Text>
+        <View style={styles.circularProgressRow}>
+          <CircularProgress
+            value={friends.streak || 0}
+            maxValue={30}
+            title="Friend Streak"
+            color="#4CAF50"
+          />
+          <CircularProgress
+            value={diary.streak || 0}
+            maxValue={30}
+            title="Diary Streak"
+            color="#2196F3"
+          />
+          <CircularProgress
+            value={notes.streak || 0}
+            maxValue={30}
+            title="Note Streak"
+            color="#FFC107"
+          />
+        </View>
+      </View>
+
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>📊 Data Visuals</Text>
         <Text style={styles.chartTitle}>Overall Activity Distribution</Text>
@@ -257,8 +294,8 @@ const Dashboard = () => {
         <Text style={styles.chartTitle}>Progress Towards Goals</Text>
         <ProgressChart
           data={progressChartData}
-          width={screenWidth - 32}
-          height={200}
+          width={screenWidth - 30}
+          height={180}
           chartConfig={{
             backgroundColor: '#ffffff',
             backgroundGradientFrom: '#ffffff',
@@ -272,6 +309,7 @@ const Dashboard = () => {
             },
           }}
           hideLegend={false}
+          style={styles.progressChartStyle}
         />
       </View>
     </ScrollView>
@@ -315,13 +353,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  DashboardTitle:{
-     display:'flex',
-     justifyContent:'center',
-     alignItems:'center',
-    top:10,
-    zIndex:100,
-
+  dashboardTitleContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  dashboardTitleText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
   },
   headerCard: {
     backgroundColor: '#fff',
@@ -450,11 +491,11 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textAlign: 'center',
   },
-  streakContainer: {
+  circularProgressRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
     flexWrap: 'wrap',
+    marginBottom: 10,
   },
   circularProgressContainer: {
     alignItems: 'center',
@@ -529,7 +570,7 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     paddingVertical: 5,
-  }, 
+  },
   chartTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -537,6 +578,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
     marginTop: 15,
+  },
+  progressChartStyle: {
+    alignSelf: 'flex-end',
   },
 });
 
