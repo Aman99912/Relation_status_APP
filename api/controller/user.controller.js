@@ -163,6 +163,7 @@ export const sendOtp = async (req, res) => {
   };
 
   try {
+    console.log(otp)
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {

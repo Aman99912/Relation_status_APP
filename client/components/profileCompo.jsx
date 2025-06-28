@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,29 +10,27 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { COLORS } from '../Color';
-import { APIPATH } from '../utils/apiPath';
-import Icon from 'react-native-vector-icons/Feather';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-
+import { COLORS } from '../Color'; // Assuming COLORS is defined in Color.js
+import { APIPATH } from '../utils/apiPath'; // Assuming APIPATH is defined
+import Icon from 'react-native-vector-icons/Feather'; // For edit icon
+import * as ImagePicker from 'expo-image-picker'; // For avatar selection
+import { Ionicons } from '@expo/vector-icons'; 
 
 const ProfileCompo = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [activeField, setActiveField] = useState('');
+  const [activeField, setActiveField] = useState(''); // To manage which field is being edited
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
-  const [email, setEmail] = useState('');
-  const [mobile, setMobile] = useState('');
   const [avatar, setAvatar] = useState('');
 
   useFocusEffect(
@@ -45,7 +43,10 @@ const ProfileCompo = () => {
     const id = await AsyncStorage.getItem('userId');
     const Token = await AsyncStorage.getItem('Token');
 
-    if (!id) return Alert.alert('Error', 'User id not found');
+    if (!id) {
+      setLoading(false);
+      return Alert.alert('Error', 'User ID not found. Please log in again.');
+    }
 
     try {
       const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`, {
@@ -57,152 +58,119 @@ const ProfileCompo = () => {
       setBio(data.bio || '');
       setGender(data.gender || '');
       setAge(data.age ? String(data.age) : '');
-      setEmail(data.email || '');
-      setMobile(data.mobileNo || '');
       setAvatar(data.avatar || '');
     } catch (err) {
-      Alert.alert('Error', 'Failed to fetch user data');
+      console.error("Failed to fetch user data:", err);
+      Alert.alert('Error', 'Failed to fetch user data. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
+  const pickAvatar = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-const pickAvatar = async () => {
-  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-  if (!permissionResult.granted) {
-    Alert.alert("Permission Denied", "Camera roll access is required to select an avatar.");
-    return;
-  }
-
-  const pickerResult = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.3,
-    allowsEditing: true,
-    aspect: [1, 1],
-    base64: true,
-  });
-
-  if (!pickerResult.canceled && pickerResult.assets && pickerResult.assets[0].base64) {
-    const base64Img = pickerResult.assets[0].base64;
-    const imageSizeInMB = (base64Img.length * 3) / (4 * 1024 * 1024); 
-
-    if (imageSizeInMB > 1) {
-      Alert.alert("Image Too Large", "Please select an image smaller than 1MB.");
+    if (!permissionResult.granted) {
+      Alert.alert("Permission Denied", "Camera roll access is required to select an avatar.");
       return;
     }
 
-    const formattedImage = `data:image/jpeg;base64,${base64Img}`;
-    setAvatar(formattedImage);
-  } else {
-    console.log('Image selection cancelled or failed');
-  }
-};
-
-const handleSave = async () => {
-  if (!user?.id) return Alert.alert('Error', 'User ID missing');
-
-  try {
-    const payload = {
-      username,
-      email,
-      mobile,
-      bio,
-      age: Number(age),
-      avatar,
-    };
-
-    const token = await AsyncStorage.getItem('Token');
-    await axios.put(
-      `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
-      payload,
-      {
-        headers: {
-          Authorization: ` ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    Alert.alert('Success', 'Profile updated successfully!');
-    setEditMode(false);
-    setActiveField('');
-    fetchUserData();
-  } catch (err) {
-    const serverMsg = err?.response?.data?.message;
-  Alert.alert(serverMsg);
-  
-   
-  }
-};
-
-
-
-  // const handleSave = async () => {
-  //   if (!user?.id) return Alert.alert('Error', 'User ID missing');
-
-  //   try {
-  //     const payload = {
-  //       username,
-  //       email,
-  //       mobile,
-  //       bio,
-  //       age: Number(age),
-  //       avatar,
-  //     };
-
-  //     const token = await AsyncStorage.getItem('Token');
-  //     await axios.put(
-  //       `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
-  //       payload,
-  //       {
-  //         headers: {
-  //           Authorization: ` ${token}`,
-  //           'Content-Type': 'application/json',
-  //         },
-  //       }
-  //     );
-
-  //     Alert.alert('Success', 'Profile updated successfully!');
-  //     setEditMode(false);
-  //     setActiveField('');
-  //     fetchUserData();
-  //   } catch (err) {
-  //     Alert.alert('Error', err?.response?.data?.message || 'Image Too Large', 'Please upload an image smaller than 1MB.');
-  //   }
-  // };
-
-  const handleOtpUpdate = async (field) => {
-    const email = await AsyncStorage.getItem('userEmail');
-    navigation.navigate('OtpScreen', {
-      email,
-      onVerified: async () => {
-        navigation.navigate('MainApp', { screen: 'updateEmail' });
-      },
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.3,
+      allowsEditing: true,
+      aspect: [1, 1],
+      base64: true,
     });
+
+    if (!pickerResult.canceled && pickerResult.assets && pickerResult.assets[0].base64) {
+      const base64Img = pickerResult.assets[0].base64;
+      const imageSizeInMB = (base64Img.length * 3) / (4 * 1024 * 1024);
+
+      if (imageSizeInMB > 1) {
+        Alert.alert("Image Too Large", "Please select an image smaller than 1MB.");
+        return;
+      }
+
+      const formattedImage = `data:image/jpeg;base64,${base64Img}`;
+      setAvatar(formattedImage);
+    } else {
+      console.log('Image selection cancelled or failed');
+    }
   };
 
-  if (loading)
-    return <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />;
+  const handleSave = async () => {
+    if (!user?.id) return Alert.alert('Error', 'User ID missing');
+
+    try {
+      const payload = {
+        username,
+        bio,
+        age: Number(age),
+        avatar,
+      };
+
+      const token = await AsyncStorage.getItem('Token');
+      await axios.put(
+        `${APIPATH.BASE_URL}/api/user/update/${user.id}`,
+        payload,
+        {
+          headers: {
+            Authorization: `${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      Alert.alert('Success', 'Profile updated successfully!');
+      setEditMode(false);
+      setActiveField('');
+      fetchUserData(); // Re-fetch user data to update the UI
+    } catch (err) {
+      const serverMsg = err?.response?.data?.message || 'Failed to update profile. Please try again.';
+      Alert.alert('Error', serverMsg);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <TouchableOpacity style={{ position: 'absolute', top: 50, left: 20 }} onPress={() => navigation.navigate('MainApp', { screen: 'Logout' })}>
-        <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-      </TouchableOpacity>
-
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>User Profile</Text>
-      </View>
-
-      <View style={styles.profileContainer}>
-        <TouchableOpacity onPress={editMode ? pickAvatar : null} activeOpacity={0.8}>
-          <Image source={avatar ? { uri: avatar } : require('../assets/avatar.png')} style={styles.profileImage} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={26} color={COLORS.primary} />
         </TouchableOpacity>
 
-        <View style={styles.profileDetails}>
-          <Text style={styles.profileName}>@{user?.fullname || 'Unknown'}</Text>
+       
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Edit Profile</Text>
+        </View>
+
+        {/* Profile Image and Edit Toggle */}
+        <View style={styles.profileHeader}>
+          <TouchableOpacity onPress={editMode ? pickAvatar : null} activeOpacity={0.8}>
+            <Image
+              source={avatar ? { uri: avatar } : require('../assets/avatar.png')}
+              style={styles.profileImage}
+            />
+            {editMode && (
+              <View style={styles.cameraIcon}>
+                <Ionicons name="camera" size={24} color="#fff" />
+              </View>
+            )}
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.editToggleButton, editMode && styles.editToggleButtonActive]}
             onPress={() => {
@@ -216,79 +184,59 @@ const handleSave = async () => {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoTitle}>User Info</Text>
+        {/* User Info Fields */}
+        <View style={styles.infoContainer}>
+          <Text style={styles.sectionTitle}>Basic Information</Text>
 
-        {[
-          { label: 'Username', value: username, onChange: setUsername, editable: true, key: 'username' },
-          { label: 'Bio', value: bio, onChange: setBio, editable: true, multiline: true, key: 'bio' },
-          { label: 'Age', value: age, editable: false, key: 'age' },
-          { label: 'Gender', value: gender, editable: false, key: 'gender' },
-          {
-            label: 'Email',
-            value: email,
-            editable: false,
-            trailing: (
-              <TouchableOpacity onPress={() => handleOtpUpdate('email')}>
-                <Text style={styles.editOtp}>Update</Text>
-              </TouchableOpacity>
-            ),
-            key: 'email',
-          },
-          {
-            label: 'Mobile',
-            value: mobile,
-            editable: false,
-            trailing: (
-              <TouchableOpacity onPress={() => handleOtpUpdate('mobile')}>
-                <Text style={styles.editOtp}>Update</Text>
-              </TouchableOpacity>
-            ),
-            key: 'mobile',
-          },
-        ].map((field) => (
-          <View key={field.key} style={styles.cardBox}>
-            <Field
-              label={field.label}
-              value={field.value}
-              editable={editMode && activeField === field.key && field.editable}
-              onChange={field.onChange}
-              onEditIconPress={() => setActiveField(field.key)}
-              showEditIcon={editMode && field.editable}
-              trailing={field.trailing}
-              multiline={field.multiline}
-            />
-          </View>
-        ))}
+          {[
+            { label: 'Username', value: username, onChange: setUsername, editable: true, key: 'username' },
+            { label: 'Bio', value: bio, onChange: setBio, editable: true, multiline: true, key: 'bio' },
+            { label: 'Age', value: age, onChange: setAge, editable: true, key: 'age', keyboardType: 'number-pad' },
+            { label: 'Gender', value: gender, onChange: setGender, editable: true, key: 'gender' },
+          ].map((field) => (
+            <View key={field.key} style={styles.cardBox}>
+              <Field
+                label={field.label}
+                value={field.value}
+                editable={editMode && activeField === field.key && field.editable}
+                onChange={field.onChange}
+                onEditIconPress={() => setActiveField(field.key)}
+                showEditIcon={editMode && field.editable}
+                multiline={field.multiline}
+                keyboardType={field.keyboardType}
+              />
+            </View>
+          ))}
 
-        {editMode && (
-          <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.8}>
-            <Text style={styles.saveText}>Save Changes</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </ScrollView>
+          {editMode && (
+            <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.8}>
+              <Text style={styles.saveText}>Save Changes</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
+
 
 const Field = ({
   label,
   value,
   editable,
   onChange,
-  trailing,
   onEditIconPress,
   showEditIcon,
   multiline = false,
+  keyboardType = 'default',
 }) => (
   <View style={styles.infoRow}>
     <View style={styles.labelRow}>
       <Text style={styles.infoLabel}>{label}</Text>
       {showEditIcon && onEditIconPress && (
         <TouchableOpacity onPress={onEditIconPress} style={styles.editIconTouchable}>
-          <Icon name="edit" size={18} color={COLORS.primary} />
+          <Icon name="edit" size={20} color={COLORS.primary} />
         </TouchableOpacity>
       )}
     </View>
@@ -301,69 +249,78 @@ const Field = ({
         placeholderTextColor="#999"
         autoFocus
         multiline={multiline}
-        keyboardType={label === 'Age' || label === 'Mobile' ? 'number-pad' : 'default'}
+        keyboardType={keyboardType}
       />
     ) : (
-      <View style={styles.valueRow}>
-        <Text style={styles.infoValue}>{value || '-'}</Text>
-        {trailing}
-      </View>
+      <Text style={styles.infoValue}>{value || '-'}</Text>
     )}
   </View>
 );
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#666',
+  },
   container: {
     flexGrow: 1,
     backgroundColor: '#f9f9f9',
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingBottom: 90,
+    paddingHorizontal: 20,
+   
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 5,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 22,
+    marginTop: 50,
+    marginBottom: 30,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     color: COLORS.primary,
   },
-  profileContainer: {
-    flexDirection: 'row',
+  profileHeader: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 28,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    marginBottom: 30,
   },
   profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 2,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 4,
     borderColor: COLORS.primary,
+    marginBottom: 20,
   },
-  profileDetails: {
-    flex: 1,
-    marginLeft: 20,
-  },
-  profileName: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#222',
-    marginBottom: 12,
+  cameraIcon: {
+    position: 'absolute',
+    bottom: 20,
+    right: 5,
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    padding: 8,
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   editToggleButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#EEE',
+    backgroundColor: '#E0E0E0',
     paddingVertical: 10,
-    paddingHorizontal: 36,
+    paddingHorizontal: 30,
     borderRadius: 25,
+    marginTop: 10,
   },
   editToggleButtonActive: {
     backgroundColor: COLORS.primary,
@@ -379,23 +336,23 @@ const styles = StyleSheet.create({
   infoContainer: {
     marginTop: 10,
   },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
   cardBox: {
     backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 16,
+    padding: 18,
+    borderRadius: 15,
+    marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  infoTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 22,
-    color: COLORS.primary,
-    textAlign: 'center',
+    shadowRadius: 8,
+    elevation: 5,
   },
   infoRow: {
     marginBottom: 10,
@@ -404,40 +361,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   infoLabel: {
-    fontSize: 16,
-    color: '#555',
+    fontSize: 15,
+    color: '#666',
     fontWeight: '600',
+    textTransform: 'uppercase',
   },
   infoValue: {
     fontSize: 17,
     color: '#222',
-  },
-  valueRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    fontWeight: '500',
   },
   input: {
-    borderBottomWidth: 2,
+    borderBottomWidth: 1.5,
+    borderColor: COLORS.primary,
     fontSize: 17,
-    paddingVertical: 8,
+    paddingVertical: 5,
     color: '#222',
-    borderBottomColor: COLORS.primary,
-  },
-  editOtp: {
-    color: COLORS.primary,
-    fontWeight: '700',
-    fontSize: 15,
   },
   saveButton: {
-    marginTop: 20,
+    marginTop: 30,
     backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 30,
     elevation: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
   },
   saveText: {
     color: '#fff',
@@ -446,7 +399,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   editIconTouchable: {
-    padding: 6,
+    padding: 5,
   },
 });
 

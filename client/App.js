@@ -24,6 +24,8 @@ import OtpScreen from './components/otpScreen';
 import ProfileCompo from './components/profileCompo';
 import UpdateEmailScreen from './components/newEmail';
 import Dashboard from './components/Dashboard';
+import PrivacyPage from './components/PrivacyPage';
+import ChangePasswordScreen from './components/PassChange';
 
 
 const Stack = createStackNavigator();
@@ -44,6 +46,8 @@ function MainAppTabs() {
       <Tab.Screen name="calendarScreen" component={CalendarNote} />
       <Tab.Screen name="notification" component={NotificationScreen} />
       <Tab.Screen name="updateEmail" component={UpdateEmailScreen} />
+      <Tab.Screen name="PrivacyPage" component={PrivacyPage} />
+      <Tab.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
     </Tab.Navigator>
     </>
   );

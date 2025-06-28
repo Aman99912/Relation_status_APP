@@ -185,14 +185,18 @@ export default function Logout() {
 
 const styles = StyleSheet.create({
   LogoutContainer: {
-    position: 'absolute',
-    right: '40%',
-    bottom: 70,
+    position:'relative',
+    right: '-20%',
+    bottom: -10,
+    zIndex:100,
+    width:'60%',
     alignItems: 'center',
     backgroundColor: 'transparent',
+    marginBottom:40,
   },
   logoutButton: {
     backgroundColor: '#ff6347',
+    // backgroundColor: '#FFDAE0',
     paddingVertical: 13,
     paddingHorizontal: 34,
     borderRadius: 30,

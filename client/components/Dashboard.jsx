@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PieChart, ProgressChart } from 'react-native-chart-kit';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from '../Color';
+import { useNavigation } from '@react-navigation/native';
 
 const DEFAULT_AVATAR = 'https://via.placeholder.com/150/CCCCCC/FFFFFF?text=User';
 
@@ -31,6 +34,7 @@ const CircularProgress = ({ value, maxValue, title, color }) => {
 };
 
 const Dashboard = () => {
+  const navigation = useNavigation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -143,6 +147,12 @@ const Dashboard = () => {
 
   return (
     <ScrollView style={styles.container}>
+       <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={26} color={COLORS.primary} />
+          </TouchableOpacity>
       <View style={styles.dashboardTitleContainer}>
         <Text style={styles.dashboardTitleText}>Dashboard</Text>
       </View>

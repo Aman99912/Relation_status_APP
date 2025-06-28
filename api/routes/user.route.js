@@ -14,6 +14,7 @@ import {
   GetDashboardData,
 } from "../controller/user.controller.js";
 import {
+  changePassword,
   resetPassword,
   SendForgotPass,
   verifyForgotOtp,
@@ -44,6 +45,7 @@ router.get('/id',verifyToken, GetUserById);
 router.get('/dashboard/id',verifyToken, GetDashboardData);
 router.get('/code',verifyToken, getUserByCode);
 router.put("/update/:id", verifyToken, updateUser);
+router.post('/change-password',verifyToken,changePassword)
 
 
 // add frnd

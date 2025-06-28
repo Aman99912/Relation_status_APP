@@ -93,3 +93,36 @@ export const resetPassword = async (req, res) => {
 };
 
 
+
+
+
+export const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const userId = req.user.id;
+
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, user.password); 
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: 'Invalid old password.' });
+        }
+
+        if (newPassword.length < 5) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Password changed successfully.' });
+
+    } catch (error) {
+        // console.error('Change Password Error:', error);
+        res.status(500).json({ success: false, message: 'Server error while changing password.' });
+    }
+};
+

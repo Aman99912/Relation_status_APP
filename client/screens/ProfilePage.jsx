@@ -71,13 +71,12 @@ const ProfileScreen = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Minimalist Header */}
+       
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
-          {/* Optional: <TouchableOpacity style={styles.headerIconRight}><Ionicons name="notifications-outline" size={24} color="#555" /></TouchableOpacity> */}
         </View>
 
-        {/* Elegant Profile Card */}
+       
         <View style={styles.profileCard}>
           <Image
             source={user?.avatar ? { uri: user.avatar } : require('../assets/avatar.png')}
@@ -102,13 +101,15 @@ const ProfileScreen = () => {
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => navigation.navigate('MainApp', { screen: 'Dashboard' })}
+           
           >
             <Ionicons name="grid-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Dashboard</Text>
             <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity style={styles.settingItem} 
+           onPress={() => navigation.navigate('MainApp', { screen: 'PrivacyPage' })} >
             <Ionicons name="lock-closed-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Privacy and Security</Text>
             <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
@@ -135,9 +136,9 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.logoutbtn}>
+       
         <Logout  />
-        </View> 
+       
 
       </ScrollView>
     </SafeAreaView>
@@ -151,12 +152,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f0f2f5',
   },
-  logoutbtn:{
 
-    // display:'flex',
-    // marginBottom:20,
-
-  },
   loadingText: {
     marginTop: 15,
     fontSize: 16,
@@ -184,22 +180,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 25,
-    padding: 35,
+    padding: 20,
     marginHorizontal: 20,
-    marginBottom: 30,
-    marginTop: 20,
+    marginBottom: 10,
+    marginTop: 10,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
-    elevation: 15,
+    elevation: 5,
   },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth: 3,
-    borderColor: COLORS.accent || '#8a2be2', // Use a different accent color if defined
+    borderWidth: 5,
+    borderColor: COLORS.background || '#8a2be2', 
     marginBottom: 20,
   },
   profileName: {
