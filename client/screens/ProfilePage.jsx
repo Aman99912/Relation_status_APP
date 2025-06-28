@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -6,9 +7,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  TextInput,
   ActivityIndicator,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -24,195 +25,242 @@ const ProfileScreen = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [username, setUsername] = useState('');
-  const [avatar, setAvatar] = useState('');
-
-useFocusEffect(
-  useCallback(() => {
-    fetchUserData();
-  }, [])
-);
-
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
   const fetchUserData = async () => {
     const id = await AsyncStorage.getItem('userId');
     const Token = await AsyncStorage.getItem('Token');
-    if (!id) return Alert.alert('Error', 'User Id not found');
+    if (!id) {
+      setLoading(false);
+      return Alert.alert('Error', 'User ID not found. Please log in again.');
+    }
 
     try {
-      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`,  {  
-           headers: {
-             Authorization: `${Token}` 
-                   },
-  });
+      const res = await axios.get(`${APIPATH.BASE_URL}/api/user/id?id=${id}`, {
+        headers: {
+          Authorization: `${Token}`
+        },
+      });
       const data = res.data;
       setUser(data);
-      setUsername(data.username || '');
-
-      setAvatar(data.avatar || '');
     } catch (err) {
-      Alert.alert('Error', 'Failed to fetch user data');
+      console.error("Failed to fetch user data:", err);
+      Alert.alert('Error', 'Failed to fetch user data. Please try again later.');
     } finally {
       setLoading(false);
     }
-  };  
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-       
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>User Profile</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f0f2f5' }}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Minimalist Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Profile</Text>
+          {/* Optional: <TouchableOpacity style={styles.headerIconRight}><Ionicons name="notifications-outline" size={24} color="#555" /></TouchableOpacity> */}
+        </View>
 
-      <View style={styles.profileContainer}>
-        <Image source={avatar ? { uri: avatar } : require('../assets/avatar.png')} style={styles.profileImage} />
-        <View style={styles.profileDetails}>
-         
-          <Text style={styles.profileName}> @{user?.fullname || 'Unknown'}</Text>
+        {/* Elegant Profile Card */}
+        <View style={styles.profileCard}>
+          <Image
+            source={user?.avatar ? { uri: user.avatar } : require('../assets/avatar.png')}
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>{user?.fullname || 'Guest User'}</Text>
+          <Text style={styles.profileUsername}>@{user?.username || 'unknown'}</Text>
 
           <TouchableOpacity
-            style={styles.buttonPoint2 }
+            style={styles.viewProfileButton}
             onPress={() => {
-             navigation.navigate('MainApp', { screen: 'chatPF' })
+              navigation.navigate('MainApp', { screen: 'chatPF' })
             }}
           >
-            <Text style={styles.textPoint}>View</Text>
+            <Text style={styles.viewProfileButtonText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
-      </View>
-   <View style={styles.settingList}>
-      <TouchableOpacity style={styles.buttonPoint}  onPress={() => {
-             navigation.navigate('MainApp', { screen: 'Dashboard' })
-            }}>
-        <Text style={styles.textPoint}> Dashboard</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonPoint}>
-        <Text style={styles.textPoint}>Privacy and Security </Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonPoint}>
-        <Text style={styles.textPoint}>Gift Shop</Text>
-      </TouchableOpacity>
 
-      <TouchableOpacity style={styles.buttonPoint}>
-        <Text style={styles.textPoint}>Map</Text>
-      </TouchableOpacity>
+        {/* Settings Sections */}
+        <Text style={styles.settingsSectionTitle}>Account</Text>
+        <View style={styles.settingCard}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('MainApp', { screen: 'Dashboard' })}
+          >
+            <Ionicons name="grid-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.settingItemText}>Dashboard</Text>
+            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.buttonPoint}>
-        <Text style={styles.textPoint}>Help</Text>
-      </TouchableOpacity>
-    </View>
-      <Logout />
-    </ScrollView>
+          <TouchableOpacity style={styles.settingItem}>
+            <Ionicons name="lock-closed-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.settingItemText}>Privacy and Security</Text>
+            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.settingItem, styles.lastSettingItem]}>
+            <Ionicons name="gift-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.settingItemText}>Gift Shop</Text>
+            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.settingsSectionTitle}>General</Text>
+        <View style={styles.settingCard}>
+          <TouchableOpacity style={styles.settingItem}>
+            <Ionicons name="map-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.settingItemText}>Map</Text>
+            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.settingItem, styles.lastSettingItem]}>
+            <Ionicons name="help-circle-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.settingItemText}>Help & Support</Text>
+            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Logout Button */}
+        <Logout style={{ marginHorizontal: 20, marginTop: 10 }} /> {/* Pass style to Logout component */}
+
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f2f5',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#666',
+  },
+  scrollContent: {
     flexGrow: 1,
-    backgroundColor: '#f9f9f9',
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingBottom: 40,
   },
   header: {
+    backgroundColor: '#fff',
+    paddingTop: 60,
+    paddingBottom: 20,
     alignItems: 'center',
-    marginBottom: 22,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ebebeb',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 0.7,
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#333',
   },
-  profileContainer: {
-    flexDirection: 'row',
+
+  profileCard: {
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 28,
+    borderRadius: 25,
+    padding: 35,
+    marginHorizontal: 20,
+    marginBottom: 30,
+    marginTop: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 15,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-  },
-  profileDetails: {
-    flex: 1,
-    marginLeft: 20,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: COLORS.accent || '#8a2be2', // Use a different accent color if defined
+    marginBottom: 20,
   },
   profileName: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: '800',
     color: '#222',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  editToggleButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#ccc',
-    paddingVertical: 10,
-    paddingHorizontal: 36,
-    borderRadius: 25,
-    shadowColor: '#000',
-    shadowOpacity: 1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+  profileUsername: {
+    fontSize: 19,
+    color: '#777',
+    marginBottom: 20,
   },
- settingList: {
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 16,
-    marginBottom: 28,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
+  viewProfileButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    borderRadius: 30,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    marginTop: 15,
   },
-  buttonPoint: {
-    backgroundColor: '#f4f4f4',
-    borderRadius: 12,
-    paddingVertical: 15,
-    paddingHorizontal: 18,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1.6,
-  },
-  buttonPoint2: {
-    backgroundColor: '#f4f4f4',
-    display:'flex',
-    justifyContent:'center',
-    alignItems:'center',
-    borderRadius: 32,
-    paddingVertical: 10,
-    width:100,
-    paddingHorizontal: 18,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  textPoint: {
+  viewProfileButtonText: {
     fontSize: 16,
-    color: '#333',
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+
+  settingsSectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#555',
+    marginHorizontal: 25,
+    marginTop: 25,
+    marginBottom: 10,
+  },
+  settingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    paddingVertical: 5,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 8,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#f0f0f0',
+  },
+  lastSettingItem: {
+    borderBottomWidth: 0, // No border for the last item in a card
+  },
+  settingItemText: {
+    marginLeft: 15,
+    fontSize: 16,
+    color: '#444',
+    fontWeight: '500',
+    flex: 1,
+  },
+  arrowIcon: {
+    marginLeft: 'auto',
   },
 });
 

@@ -1,7 +1,7 @@
 import { Calendar } from "react-native-calendars";
 
 export const APIPATH = {
-  BASE_URL : "http://192.168.103.121:5000",  
+  BASE_URL : "http://192.168.125.121:5000",  
   LOGIN_API : "api/user/login",
   VERIFY_PASS : "api/user/verify-pass",
   FRIENDDATA : "api/user/friend",
