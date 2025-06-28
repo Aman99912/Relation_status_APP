@@ -43,6 +43,7 @@
     "react-native-circular-progress": "^1.4.1",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-image-picker": "^8.2.1",
+    "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-pager-view": "^6.7.1",
     "react-native-permissions": "^5.4.1",

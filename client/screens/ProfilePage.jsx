@@ -135,8 +135,9 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
-        <Logout style={{ marginHorizontal: 20, marginTop: 10 }} /> {/* Pass style to Logout component */}
+        <View style={styles.logoutbtn}>
+        <Logout  />
+        </View> 
 
       </ScrollView>
     </SafeAreaView>
@@ -149,6 +150,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f0f2f5',
+  },
+  logoutbtn:{
+
+    // display:'flex',
+    // marginBottom:20,
+
   },
   loadingText: {
     marginTop: 15,

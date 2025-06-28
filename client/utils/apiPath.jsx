@@ -34,11 +34,11 @@ CALENDERDELETE :"api/user/calendar/delete",
 
 
 //chats
-SENDCHAT:'api/chats/send',
-FATCHCHAT:'api/chats',
-GETCHATS:'api/chats/get',
-DELETECHAT:'api/chats/dlt'
-
+SENDCHAT: 'api/chats/send',
+    FATCHCHAT: 'api/chats', 
+    GETCHATS: 'api/chats/get',
+    DELETECHAT: 'api/chats/delete',
+    EDITCHAT: 'api/chats/edit', 
 
 };
 
