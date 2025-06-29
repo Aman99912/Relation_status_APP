@@ -126,3 +126,68 @@ export const changePassword = async (req, res) => {
     }
 };
 
+export const setSubPassword = async (req, res) => {
+    try {
+        const { userId, currentSubPassword, newSubPassword } = req.body;
+
+        if (req.user.id !== userId) {
+            return res.status(403).json({ message: 'Unauthorized access.' });
+        }
+
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        if (user.SubPass) {
+            if (user.SubPass !== currentSubPassword) {
+                return res.status(400).json({ success: false, message: 'Invalid current sub-password.' });
+            }
+        } else if (currentSubPassword) {
+            return res.status(400).json({ success: false, message: 'No current sub-password set. Please leave "Current Sub-Password" field blank to set a new one.' });
+        }
+
+        user.SubPass = newSubPassword;
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Sub-password updated successfully.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error while updating sub-password.' });
+    }
+};
+
+
+
+export  const generateSubPassCode = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await UserModel.findById(userId);
+
+    if (!user || !user.email) {
+      return res.status(404).json({ success: false, message: 'User or email not found.' });
+    }
+
+    const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+    user.SubPass = newCode;
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_ID,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_ID,
+      to: user.email,
+      subject: 'Your Unique-Password Created',
+      text: `Your  Unique-password is: ${newCode}`,
+    });
+
+    res.status(200).json({ success: true, message: 'Code sent successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to send code.' });
+  }
+};

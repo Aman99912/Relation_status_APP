@@ -52,7 +52,7 @@ export default function OtpScreen({ route }) {
       await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SEND_API}`, { email });
       setOtpTimer(300); 
       setResendCount(prev => prev + 1);
-      Alert.alert('OTP Sent', 'A new OTP has been sent to your email');
+      // Alert.alert('OTP Sent', 'A new OTP has been sent to your email');
     } catch (error) {
       Alert.alert('Error', error?.response?.data?.message || 'Failed to send OTP');
     } finally {

@@ -12,6 +12,7 @@ import {
   Animated,
   ActivityIndicator,
   Platform,
+  Alert, // Added Alert for confirmation dialog
 } from 'react-native';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -24,24 +25,21 @@ import CalendarNote from '../components/calender';
 const COLORS = {
   backgroundLight: '#FFF5F9',
   primary: '#ff98c3',
-  // primaryDark: '#872341',
   primaryDark: 'black',
   accent: '#fff',
   textDark: '#2D2D2D',
 };
 
-
 export default function DiaryScreen() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
-   const navigation = useNavigation();
+  const navigation = useNavigation();
   const calendarHandle = () => navigation.navigate('MainApp', { screen: 'calendarScreen' });
 
   const [modalVisible, setModalVisible] = useState(false);
   const [detailEntry, setDetailEntry] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
 
-  // Add Entry states
   const [addingEntry, setAddingEntry] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
@@ -51,12 +49,12 @@ export default function DiaryScreen() {
     const user_Id = await AsyncStorage.getItem('userId');
     try {
       setLoading(true);
-      const Token = await AsyncStorage.getItem('Token')
-      const { data } = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDIARY}/?userID=${user_Id}`,  {  
-           headers: {
-             Authorization: `${Token}` 
-                   },
-  });
+      const Token = await AsyncStorage.getItem('Token');
+      const { data } = await axios.get(`${APIPATH.BASE_URL}/${APIPATH.GETDIARY}?userID=${user_Id}`, {
+        headers: {
+          Authorization: `${Token}`,
+        },
+      });
       if (data.success) {
         setEntries(data.entries);
       } else {
@@ -70,18 +68,56 @@ export default function DiaryScreen() {
     }
   };
 
+  const handleDeleteEntry = async (entryId) => {
+    Alert.alert(
+      "Delete Entry",
+      "Are you sure you want to delete this diary entry?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const Token = await AsyncStorage.getItem('Token');
+              const { data } = await axios.delete(`${APIPATH.BASE_URL}/${APIPATH.DELETEDIARY}/${entryId}`, {
+                headers: {
+                  Authorization: `${Token}`,
+                },
+              });
+
+              if (data.success) {
+                Alert.alert('Success', 'Entry deleted successfully!');
+                fetchEntries(); // Refresh the list after deletion
+              } else {
+                Alert.alert('Failed', data.message || 'Failed to delete entry.');
+              }
+            } catch (error) {
+              console.error('Delete entry error:', error);
+              Alert.alert('Error', error.response?.data?.message || 'An error occurred while deleting the entry.');
+            } finally {
+              setLoading(false);
+            }
+          },
+          style: 'destructive'
+        }
+      ]
+    );
+  };
+
   useEffect(() => {
     fetchEntries();
   }, []);
 
-  // Refresh entries when modal closes (add entry modal)
   useEffect(() => {
     if (!modalVisible) {
       fetchEntries();
     }
   }, [modalVisible]);
 
-  // Fade animation for detail modal
   useEffect(() => {
     if (detailEntry) {
       Animated.timing(fadeAnim, {
@@ -94,7 +130,6 @@ export default function DiaryScreen() {
     }
   }, [detailEntry]);
 
-  // Open image picker for new entry
   const pickImage = async () => {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -123,18 +158,18 @@ export default function DiaryScreen() {
     }
     try {
       setAddingEntry(true);
-   const Token = await AsyncStorage.getItem('Token')
+      const Token = await AsyncStorage.getItem('Token');
       const { data } = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.ADDDIARY}`, {
         userId: user_Id,
         title: newTitle,
         description: newDescription,
         images: newImages,
       },
-      {  
-           headers: {
-             Authorization: `${Token}` 
-                   },
-  });
+        {
+          headers: {
+            Authorization: `${Token}`,
+          },
+        });
 
       if (data.success) {
         setNewTitle('');
@@ -165,138 +200,140 @@ export default function DiaryScreen() {
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.cardDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
       </View>
+      <TouchableOpacity
+        style={styles.optionsButton}
+        onPress={() => handleDeleteEntry(item._id)} // Pass entry ID to delete
+      >
+        <FontAwesome name="trash" size={24} color={COLORS.primaryDark} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
   return (
     <>
-    <CalendarNote/>
-    <View style={styles.container}>
-      
-      <Text style={styles.header}>Memories</Text>
+      <CalendarNote />
+      <View style={styles.container}>
+        <Text style={styles.header}>Memories</Text>
 
-      {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primaryDark} style={{ marginTop: 30 }} />
-      ) : (
-        <FlatList
-          data={entries}
-          renderItem={renderCard}
-          keyExtractor={item => item._id}
-          contentContainerStyle={{ paddingBottom: 140, paddingTop: 10 }}
-          ListEmptyComponent={<Text style={styles.emptyText}>No entries yet.</Text>}
-        />
-      )}
+        {loading ? (
+          <ActivityIndicator size="large" color={COLORS.primaryDark} style={{ marginTop: 30 }} />
+        ) : (
+          <FlatList
+            data={entries}
+            renderItem={renderCard}
+            keyExtractor={item => item._id}
+            contentContainerStyle={{ paddingBottom: 140, paddingTop: 10 }}
+            ListEmptyComponent={<Text style={styles.emptyText}>No entries yet.</Text>}
+          />
+        )}
 
-      {/* Detail Modal */}
-      <Modal visible={!!detailEntry} animationType="fade" transparent>
-        <Animated.View style={[styles.modalContainer, { opacity: fadeAnim }]}>
-          <View style={styles.modalContent}>
-            <ScrollView
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: 20 }}
-            >
-              {detailEntry?.images?.length > 0 ? (
-                detailEntry.images.map((img, i) => (
-                  <Image key={i} source={{ uri: img }} style={styles.modalImage} />
-                ))
-              ) : (
-                <Image source={require('../assets/male.png')} style={styles.modalImage} />
-              )}
-            </ScrollView>
-            <Text style={styles.modalTitle}>{detailEntry?.title}</Text>
-            <Text style={styles.modalDescription}>{detailEntry?.description || 'No description'}</Text>
-
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setDetailEntry(null)}>
-              <Text style={styles.closeBtnText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </Modal>
-
-      {/* Add Entry Button */}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setModalVisible(true)}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.addButtonText}>+ Add Entry</Text>
-      </TouchableOpacity>
-
-      {/* Add Entry Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.addModalContainer}>
-          <View style={styles.addModalContent}>
-            <Text style={styles.addModalHeader}>Add New Diary Entry</Text>
-
-            <TextInput
-              placeholder="Title"
-              value={newTitle}
-              onChangeText={setNewTitle}
-              style={styles.input}
-              editable={!addingEntry}
-            />
-            <TextInput
-              placeholder="Description"
-              value={newDescription}
-              onChangeText={setNewDescription}
-              style={[styles.input, { height: 90, textAlignVertical: 'top' }]}
-              multiline
-              editable={!addingEntry}
-            />
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginVertical: 12 }}
-            >
-              {newImages.map((uri, i) => (
-                <Image key={i} source={{ uri }} style={styles.thumbImage} />
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={styles.pickImageBtn}
-              onPress={pickImage}
-              disabled={addingEntry}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.pickImageBtnText}>Pick Images</Text>
-            </TouchableOpacity>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalActionBtn, styles.cancelBtn]}
-                onPress={() => {
-                  setModalVisible(false);
-                  setNewTitle('');
-                  setNewDescription('');
-                  setNewImages([]);
-                }}
-                disabled={addingEntry}
-                activeOpacity={0.7}
+        <Modal visible={!!detailEntry} animationType="fade" transparent>
+          <Animated.View style={[styles.modalContainer, { opacity: fadeAnim }]}>
+            <View style={styles.modalContent}>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                style={{ marginBottom: 20 }}
               >
-                <Text style={[styles.modalActionText, { color: '#333' }]}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalActionBtn, styles.saveBtn]}
-                onPress={submitNewEntry}
-                disabled={addingEntry}
-                activeOpacity={0.7}
-              >
-                {addingEntry ? (
-                  <ActivityIndicator color="white" />
+                {detailEntry?.images?.length > 0 ? (
+                  detailEntry.images.map((img, i) => (
+                    <Image key={i} source={{ uri: img }} style={styles.modalImage} />
+                  ))
                 ) : (
-                  <Text style={styles.modalActionText}>Save</Text>
+                  <Image source={require('../assets/male.png')} style={styles.modalImage} />
                 )}
+              </ScrollView>
+              <Text style={styles.modalTitle}>{detailEntry?.title}</Text>
+              <Text style={styles.modalDescription}>{detailEntry?.description || 'No description'}</Text>
+
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setDetailEntry(null)}>
+                <Text style={styles.closeBtnText}>Close</Text>
               </TouchableOpacity>
             </View>
+          </Animated.View>
+        </Modal>
+
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.addButtonText}>+ Add Entry</Text>
+        </TouchableOpacity>
+
+        <Modal visible={modalVisible} animationType="slide" transparent>
+          <View style={styles.addModalContainer}>
+            <View style={styles.addModalContent}>
+              <Text style={styles.addModalHeader}>Add New Diary Entry</Text>
+
+              <TextInput
+                placeholder="Title"
+                value={newTitle}
+                onChangeText={setNewTitle}
+                style={styles.input}
+                editable={!addingEntry}
+              />
+              <TextInput
+                placeholder="Description"
+                value={newDescription}
+                onChangeText={setNewDescription}
+                style={[styles.input, { height: 90, textAlignVertical: 'top' }]}
+                multiline
+                editable={!addingEntry}
+              />
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginVertical: 12 }}
+              >
+                {newImages.map((uri, i) => (
+                  <Image key={i} source={{ uri }} style={styles.thumbImage} />
+                ))}
+              </ScrollView>
+
+              <TouchableOpacity
+                style={styles.pickImageBtn}
+                onPress={pickImage}
+                disabled={addingEntry}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pickImageBtnText}>Pick Images</Text>
+              </TouchableOpacity>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalActionBtn, styles.cancelBtn]}
+                  onPress={() => {
+                    setModalVisible(false);
+                    setNewTitle('');
+                    setNewDescription('');
+                    setNewImages([]);
+                  }}
+                  disabled={addingEntry}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.modalActionText, { color: '#333' }]}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalActionBtn, styles.saveBtn]}
+                  onPress={submitNewEntry}
+                  disabled={addingEntry}
+                  activeOpacity={0.7}
+                >
+                  {addingEntry ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text style={styles.modalActionText}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
     </>
   );
 }
@@ -306,13 +343,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.backgroundLight,
     paddingHorizontal: 16,
-    // marginTop:-1,
     paddingTop: 32,
   },
   header: {
     fontSize: 32,
     fontWeight: '900',
-    marginTop:-20,
+    marginTop: -20,
     marginBottom: 10,
     color: COLORS.primaryDark,
     textAlign: 'center',
@@ -355,6 +391,9 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 6,
     fontWeight: '500',
+  },
+  optionsButton: {
+    padding: 8,
   },
   emptyText: {
     textAlign: 'center',
@@ -416,8 +455,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 90,
     right: 25,
-    // backgroundColor: COLORS.primary,
-    backgroundColor:"#ff6347",
+    backgroundColor: "#ff6347",
     borderRadius: 50,
     paddingVertical: 18,
     paddingHorizontal: 30,
@@ -430,7 +468,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: 'white',
     fontWeight: 'bold',
-    
     fontSize: 18,
     letterSpacing: 0.5,
   },
@@ -507,4 +544,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-

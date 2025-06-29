@@ -8,31 +8,49 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
-import { COLORS } from '../Color'; // Assuming COLORS is defined in Color.js
+import { useNavigation } from '@react-navigation/native'; 
+import { COLORS } from '../Color'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PrivacyPage = () => {
-  const navigation = useNavigation(); // Initialize navigation
+  const navigation = useNavigation();
 
-  // Define handler functions for each option
   const handlePassword = () => {
     
     navigation.navigate('MainApp', { screen: 'ChangePasswordScreen' }); 
   };
 
   const handleSubpassword = () => {
-    console.log("Sub Password clicked");
-    navigation.navigate('MainApp', { screen: 'UpdateContactSecurity' }); // Navigate to the combined update screen
+ 
+    navigation.navigate('MainApp', { screen: 'ChangeSubPasswordScreen' }); 
   };
 
-  const handleEmail = () => {
-    console.log("Email clicked");
-    navigation.navigate('MainApp', { screen: 'UpdateContactSecurity' }); // Navigate to the combined update screen
+  const handleEmail = async () => {
+    
+    
+  
+    const email = await AsyncStorage.getItem('userEmail');
+  
+    
+    navigation.navigate('OtpScreen', {
+      email,
+      onVerified: async () => {
+        navigation.navigate('MainApp', { screen: 'UpdateEmailScreen' });
+      },
+    }); 
   };
-
-  const handleMobile = () => {
-    console.log("Mobile No. clicked");
-    navigation.navigate('MainApp', { screen: 'UpdateContactSecurity' }); // Navigate to the combined update screen
+  
+  const handleMobile = async() => {
+    const email = await AsyncStorage.getItem('userEmail');
+    
+    
+    navigation.navigate('OtpScreen', {
+      email,
+      onVerified: async () => {
+        navigation.navigate('MainApp', { screen: 'UpdateMobileNum' });
+      },
+    }); 
+  
   };
 
   return (

@@ -26,6 +26,8 @@ import UpdateEmailScreen from './components/newEmail';
 import Dashboard from './components/Dashboard';
 import PrivacyPage from './components/PrivacyPage';
 import ChangePasswordScreen from './components/PassChange';
+import ChangeSubPasswordScreen from './components/subPass';
+import UpdateMobileNum from './components/newNum';
 
 
 const Stack = createStackNavigator();
@@ -48,6 +50,9 @@ function MainAppTabs() {
       <Tab.Screen name="updateEmail" component={UpdateEmailScreen} />
       <Tab.Screen name="PrivacyPage" component={PrivacyPage} />
       <Tab.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
+      <Tab.Screen name="ChangeSubPasswordScreen" component={ChangeSubPasswordScreen} />
+      <Tab.Screen name="UpdateEmailScreen" component={UpdateEmailScreen} />
+      <Tab.Screen name="UpdateMobileNum" component={UpdateMobileNum} />
     </Tab.Navigator>
     </>
   );

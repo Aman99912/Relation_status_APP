@@ -20,12 +20,15 @@ export const APIPATH = {
   PF_API : 'api/user/forgot-password',
   REST_API : 'api/user/reset-password',
   CHANGE_PASS : 'api/user/change-password',
+  CHANGE_SUB_PASS : 'api/user/set-subpassword',
+  GEN_SUB_PASS : 'api/user/generate-SubPassCode',
   
 
 // diary API
   
 ADDDIARY:"api/user/add-diary",
 GETDIARY:"api/user/userid-diary",
+DELETE_DIARY:"api/user/diary",
 
 // Calendar Api
 

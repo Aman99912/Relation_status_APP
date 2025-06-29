@@ -17,28 +17,33 @@ import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
 import FloatingInput from './floatintext';
 
-export default function UpdateMobileNum() {
+export default function UpdateEmailScreen() {
   const navigation = useNavigation();
-  const [newMobile, setNewMobile] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isValidMobile = (mobile) => {
-    return /^\d{10}$/.test(mobile);
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const handleUpdateMobile = async () => {
-    if (!newMobile.trim()) {
-      return Alert.alert('Validation Error', 'Please enter your new mobile number.');
+  const handleUpdateEmail = async () => {
+    if (!newEmail.trim()) {
+      return Alert.alert('Validation Error', 'Please enter your new email address.');
     }
-    if (!isValidMobile(newMobile)) {
-      return Alert.alert('Validation Error', 'Please enter a valid 10-digit mobile number.');
+    if (!isValidEmail(newEmail)) {
+      return Alert.alert('Validation Error', 'Please enter a valid email address.');
     }
-    
-        UpdateMobile(newMobile);
-    
+
+   
+    navigation.navigate('OtpScreen', {
+      email: newEmail, 
+      onVerified: async () => {
+        UpdateEmail(newEmail); 
+      },
+    });
   };
 
-  const UpdateMobile = async (mobileToUpdate) => {
+  const UpdateEmail = async (emailToUpdate) => { 
     setLoading(true);
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -51,7 +56,7 @@ export default function UpdateMobileNum() {
       }
 
       const updateResponse = await axios.put(`${APIPATH.BASE_URL}/${APIPATH.UPDATE_USER_API}/${userId}`, {
-        mobile: mobileToUpdate,
+        email: emailToUpdate,
       }, {
         headers: {
           Authorization: `${Token}`, 
@@ -59,15 +64,15 @@ export default function UpdateMobileNum() {
       });
 
       if (updateResponse.data.success) {
-        Alert.alert('Success', updateResponse.data.message || 'Mobile number updated successfully!');
-        await AsyncStorage.setItem('userMobile', mobileToUpdate);
+        Alert.alert('Success', updateResponse.data.message || 'Email updated successfully!');
+        await AsyncStorage.setItem('userEmail', emailToUpdate); 
         navigation.goBack(); 
       } else {
-        Alert.alert('Update Failed', updateResponse.data.message || 'Failed to update mobile number.');
+        Alert.alert('Update Failed', updateResponse.data.message || 'Failed to update email.');
       }
     } catch (error) {
-      console.error("Mobile update error:", error.response?.data || error.message);
-      Alert.alert('Error', error.response?.data?.message || 'An error occurred during mobile number update. Please check your network.');
+      console.error("Email update error:", error.response?.data || error.message);
+      Alert.alert('Error', error.response?.data?.message || 'An error occurred during email update. Please check your network.');
     } finally {
       setLoading(false);
     }
@@ -88,32 +93,32 @@ export default function UpdateMobileNum() {
           >
             <Ionicons name="arrow-back" size={26} color={COLORS.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Update Mobile Number</Text>
+          <Text style={styles.headerTitle}>Update Email</Text>
         </View>
 
         <View style={styles.formContainer}>
           <Text style={styles.instructionText}>
-            Enter your new mobile number to update.
+            Enter your new email address to update.
           </Text>
 
           <FloatingInput
-            label="New Mobile Number"
-            value={newMobile}
-            setValue={setNewMobile}
-            keyboardType="phone-pad"
+            label="New Email Address"
+            value={newEmail}
+            setValue={setNewEmail}
+            keyboardType="email-address"
             autoCapitalize="none"
             editable={!loading}
           />
 
           <TouchableOpacity
             style={styles.updateButton}
-            onPress={handleUpdateMobile}
+            onPress={handleUpdateEmail}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.updateButtonText}>Update Mobile Number</Text>
+              <Text style={styles.updateButtonText}>Update Email</Text>
             )}
           </TouchableOpacity>
         </View>

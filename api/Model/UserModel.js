@@ -72,7 +72,8 @@ const DiarySchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'UserInfo', required: true },
     title: { type: String, required: true },
     description: { type: String },
-    images: [{ type: String }], // Array of image URLs
+    images: [{ type: String }], 
+    isDeleted: { type: Boolean, default: false },
   },
   {
     collection: 'diary',

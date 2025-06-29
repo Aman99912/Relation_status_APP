@@ -15,13 +15,15 @@ import {
 } from "../controller/user.controller.js";
 import {
   changePassword,
+  generateSubPassCode,
   resetPassword,
   SendForgotPass,
+  setSubPassword,
   verifyForgotOtp,
 } from "../controller/forgotPass.controller.js";
 import { verifyToken } from "../middlewar/middleware.js"; 
 import { GetFriendNotif, getFriendRequests, respondToRequest, sendFriendRequest } from "../controller/Notif.js";
-import { addDiary, getAllEntries  } from "../controller/DiaryController.js";
+import { addDiary, deleteDiaryEntry, getAllEntries  } from "../controller/DiaryController.js";
 import { createOrUpdateNote, deleteNoteByDate, getAllNotes } from "../controller/calender.controller.js";
 
 
@@ -46,6 +48,8 @@ router.get('/dashboard/id',verifyToken, GetDashboardData);
 router.get('/code',verifyToken, getUserByCode);
 router.put("/update/:id", verifyToken, updateUser);
 router.post('/change-password',verifyToken,changePassword)
+router.post('/set-subpassword',verifyToken,setSubPassword)
+router.post('/generate-SubPassCode',verifyToken,generateSubPassCode)
 
 
 // add frnd
@@ -58,9 +62,12 @@ router.post('/respond',verifyToken, respondToRequest);
 
 router.post('/add-diary',verifyToken, addDiary)
 router.get('/userId-diary',verifyToken, getAllEntries)
+router.delete('/diary/:entryId',verifyToken, deleteDiaryEntry)
 
 //calender route
 router.post('/calendar/create',verifyToken , createOrUpdateNote);
 router.get('/calendar/get/id',verifyToken , getAllNotes);
 router.delete('/calendar/delete',verifyToken , deleteNoteByDate);
+
+
 export default router;
