@@ -47,6 +47,15 @@ const UserSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+     unfriendRequests: [
+      {
+        from: { 
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'UserInfo',
+        },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
 
     lastLoginAt: {
       type: Date,

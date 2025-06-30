@@ -13,22 +13,25 @@ const DEFAULT_AVATAR = 'https://via.placeholder.com/150/CCCCCC/FFFFFF?text=User'
 
 const CircularProgress = ({ value, maxValue, title, color }) => {
   const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0;
+  const displayValue = value !== null && value !== undefined ? String(value) : '0';
+  const displayTitle = title !== null && title !== undefined ? String(title) : 'N/A';
+
   return (
     <View style={styles.circularProgressContainer}>
       <AnimatedCircularProgress
         size={90}
         width={8}
         fill={percentage}
-        tintColor={color}
+        tintColor={color || COLORS.primary}
         backgroundColor="#e0e0e0"
         lineCap="round"
         rotation={0}
       >
         {() => (
-          <Text style={styles.circularProgressValue}>{value}</Text>
+          <Text style={styles.circularProgressValue}>{displayValue}</Text>
         )}
       </AnimatedCircularProgress>
-      <Text style={styles.circularProgressTitle}>{title}</Text>
+      <Text style={styles.circularProgressTitle}>{displayTitle}</Text>
     </View>
   );
 };
@@ -66,7 +69,8 @@ const Dashboard = () => {
         setData(res.data);
       } catch (err) {
         console.error('Error fetching dashboard:', err);
-        setError(err.response?.data?.message || "Failed to load dashboard data. Please check your network or server.");
+        const errorMessage = err.response?.data?.message || err.message || "Failed to load dashboard data. Please check your network or server.";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -78,7 +82,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6200EE" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Loading Dashboard...</Text>
       </View>
     );
@@ -106,21 +110,21 @@ const Dashboard = () => {
   const pieChartData = [
     {
       name: 'Friends',
-      population: friends.total || 0,
+      population: friends.total !== null && friends.total !== undefined ? friends.total : 0,
       color: '#4CAF50',
       legendFontColor: '#7F7F7F',
       legendFontSize: 12,
     },
     {
       name: 'Diary Entries',
-      population: diary.total || 0,
+      population: diary.total !== null && diary.total !== undefined ? diary.total : 0,
       color: '#2196F3',
       legendFontColor: '#7F7F7F',
       legendFontSize: 12,
     },
     {
       name: 'Notes',
-      population: notes.total || 0,
+      population: notes.total !== null && notes.total !== undefined ? notes.total : 0,
       color: '#FFC107',
       legendFontColor: '#7F7F7F',
       legendFontSize: 12,
@@ -137,9 +141,8 @@ const Dashboard = () => {
     colors: ['#4CAF50', '#2196F3', '#FFC107'],
   };
 
-  // Helper function to safely format message parts
   const formatMessagePart = (part) => {
-    if (part === undefined || part === null || String(part).toLowerCase() === 'undefined') {
+    if (part === undefined || part === null || String(part).toLowerCase() === 'undefined' || String(part).toLowerCase() === 'null') {
       return 'N/A';
     }
     return String(part);
@@ -147,12 +150,12 @@ const Dashboard = () => {
 
   return (
     <ScrollView style={styles.container}>
-       <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={26} color={COLORS.primary} />
-          </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={26} color={COLORS.primary} />
+      </TouchableOpacity>
       <View style={styles.dashboardTitleContainer}>
         <Text style={styles.dashboardTitleText}>Dashboard</Text>
       </View>
@@ -175,7 +178,7 @@ const Dashboard = () => {
             <Text style={styles.profileStatLabel}>Gender</Text>
           </View>
           <View style={styles.profileStatItem}>
-            <Text style={styles.profileStatValue}>{profile.age ? `${profile.age} yrs` : 'N/A'}</Text>
+            <Text style={styles.profileStatValue}>{profile.age ? `${String(profile.age)} yrs` : 'N/A'}</Text>
             <Text style={styles.profileStatLabel}>Age</Text>
           </View>
         </View>
@@ -185,25 +188,25 @@ const Dashboard = () => {
         <Text style={styles.sectionTitle}>📊 Your Overview</Text>
         <View style={styles.overviewGrid}>
           <View style={styles.overviewItem}>
-            <Text style={styles.overviewValue}>{friends.total}</Text>
+            <Text style={styles.overviewValue}>{String(friends.total || 0)}</Text>
             <Text style={styles.overviewLabel}>Friends</Text>
           </View>
           <View style={styles.overviewItem}>
-            <Text style={styles.overviewValue}>{diary.total}</Text>
+            <Text style={styles.overviewValue}>{String(diary.total || 0)}</Text>
             <Text style={styles.overviewLabel}>Diary Entries</Text>
           </View>
           <View style={styles.overviewItem}>
-            <Text style={styles.overviewValue}>{friends.pending}</Text>
+            <Text style={styles.overviewValue}>{String(friends.pending || 0)}</Text>
             <Text style={styles.overviewLabel}>Pending Req.</Text>
           </View>
           <View style={styles.overviewItem}>
-            <Text style={styles.overviewValue}>{notes.total}</Text>
+            <Text style={styles.overviewValue}>{String(notes.total || 0)}</Text>
             <Text style={styles.overviewLabel}>Total Notes</Text>
           </View>
         </View>
         <View style={styles.overviewSubTextContainer}>
-          <Text style={styles.subText}>Last Diary Entry: {diary.lastEntry || 'N/A'}</Text>
-          <Text style={styles.subText}>Today's Note: {notes.todayNote || 'None'}</Text>
+          <Text style={styles.subText}>Last Diary Entry: {String(diary.lastEntry || 'N/A')}</Text>
+          <Text style={styles.subText}>Today's Note: {String(notes.todayNote || 'None')}</Text>
         </View>
       </View>
 
@@ -212,15 +215,17 @@ const Dashboard = () => {
         <View style={styles.chatDetails}>
           <View style={styles.chatDetailRow}>
             <Text style={styles.detailLabel}>Today's Messages:</Text>
-            <Text style={styles.detailValue}>{chats.totalMessagesToday}</Text>
+            <Text style={styles.detailValue}>{String(chats.totalMessagesToday || 0)}</Text>
           </View>
           <View style={styles.chatDetailRow}>
             <Text style={styles.detailLabel}>Top Contact:</Text>
-            <Text style={styles.detailValue}>{chats.topContact || 'N/A'}</Text>
+            <Text style={styles.detailValue}>{String(chats.topContact || 'N/A')}</Text>
           </View>
           <View style={styles.chatDetailRow}>
             <Text style={styles.detailLabel}>Media Shared:</Text>
-            <Text style={styles.detailValue}>{chats.media?.images || 0} Images, {chats.media?.audio || 0} Audio</Text>
+            <Text style={styles.detailValue}>
+              {String(chats.media?.images || 0)} Images, {String(chats.media?.audio || 0)} Audio
+            </Text>
           </View>
           {chats.lastMessage ? (
             <View style={styles.chatDetailRow}>
@@ -240,13 +245,13 @@ const Dashboard = () => {
         <Text style={styles.sectionTitle}>🏆 Your Achievements</Text>
         <View style={styles.achievementItem}>
           <Text style={styles.detailLabel}>Overall Login Streak:</Text>
-          <Text style={styles.statValue}>{stats.loginStreak || 0} days</Text>
+          <Text style={styles.statValue}>{String(stats.loginStreak || 0)} days</Text>
         </View>
         <Text style={styles.detailLabel}>Badges Earned:</Text>
         <View style={styles.badgeContainer}>
           {stats.badges && stats.badges.length > 0 ? stats.badges.map((badge, i) => (
             <View key={i} style={styles.badge}>
-              <Text style={styles.badgeText}>🏅 {badge}</Text>
+              <Text style={styles.badgeText}>🏅 {String(badge)}</Text>
             </View>
           )) : <Text style={styles.textMuted}>No badges yet. Keep going!</Text>}
         </View>
@@ -374,6 +379,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  backButton: {
+    position: 'absolute',
+    top: -7,
+    left: 10,
+    zIndex: 10,
+    padding: 10,
+  },
   headerCard: {
     backgroundColor: '#fff',
     borderRadius: 15,
@@ -385,7 +397,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
     borderBottomWidth: 5,
-    borderBottomColor: '#6200EE',
+    borderBottomColor: COLORS.primary,
   },
   card: {
     backgroundColor: '#fff',
@@ -404,7 +416,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#6200EE',
+    borderLeftColor: COLORS.primary,
     paddingLeft: 10,
   },
   profileRow: {
@@ -418,7 +430,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     marginRight: 15,
     borderWidth: 3,
-    borderColor: '#6200EE',
+    borderColor: COLORS.primary,
   },
   profileInfo: {
     flex: 1,
@@ -552,7 +564,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#6200EE',
+    color: COLORS.primary,
   },
   badgeContainer: {
     flexDirection: 'row',

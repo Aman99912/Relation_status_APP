@@ -22,7 +22,7 @@ import {
   verifyForgotOtp,
 } from "../controller/forgotPass.controller.js";
 import { verifyToken } from "../middlewar/middleware.js"; 
-import { GetFriendNotif, getFriendRequests, respondToRequest, sendFriendRequest } from "../controller/Notif.js";
+import { GetFriendNotif, getFriendRequests, respondToRequest, respondToUnfriendRequest, sendFriendRequest, sendUnfriendRequest } from "../controller/Notif.js";
 import { addDiary, deleteDiaryEntry, getAllEntries  } from "../controller/DiaryController.js";
 import { createOrUpdateNote, deleteNoteByDate, getAllNotes } from "../controller/calender.controller.js";
 
@@ -51,6 +51,10 @@ router.post('/change-password',verifyToken,changePassword)
 router.post('/set-subpassword',verifyToken,setSubPassword)
 router.post('/generate-SubPassCode',verifyToken,generateSubPassCode)
 
+//notification 
+
+router.post('/send-unfriend-request',verifyToken, sendUnfriendRequest);
+router.post('/unfriend-response', respondToUnfriendRequest);
 
 // add frnd
 router.get('/friendnotif',verifyToken, GetFriendNotif);

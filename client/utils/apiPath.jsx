@@ -7,9 +7,14 @@ export const APIPATH = {
   FRIENDDATA : "api/user/friend",
   GETDATA : "api/user/id",
   GETDASHBOARD : "api/user/dashboard/id",
+
+
   GETFRIENDNOTIF : "api/user/friendnotif",
   SEND_REQ : "api/user/send-req",
   SEND_RESPON : "api/user/respond",
+  UNFRIEND_REQ : "api/user/unfriend-response",
+  SEND_UNFRIEND_REQUEST: 'api/user/send-unfriend-request',
+
   GETCODE : "api/user/code",
   SEND_API : "api/user/send-otp",
   VERIFY_API : "api/user/verify-otp",
