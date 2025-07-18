@@ -30,6 +30,20 @@ export const sendMessage = async (req, res) => {
     });
 
     await message.save();
+    // Emit socket event for real-time delivery
+    const io = req.app.get('io');
+    const connectedUsers = req.app.get('connectedUsers');
+    if (io && connectedUsers) {
+      const receiverSocketId = connectedUsers.get(receiverId.toString());
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit('receive_message', message);
+      }
+      // Optionally, emit to sender as well
+      const senderSocketId = connectedUsers.get(senderId.toString());
+      if (senderSocketId) {
+        io.to(senderSocketId).emit('receive_message', message);
+      }
+    }
     res.status(201).json(message);
   } catch (err) {
     console.error(err);

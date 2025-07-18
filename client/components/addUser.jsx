@@ -20,6 +20,7 @@ import { COLORS } from '../Color';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import FloatingInput from './floatintext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 function useDebounce(callback, delay) {
   const timer = useRef();
@@ -191,30 +192,70 @@ export default function AddUser() {
   const renderCard = (user) => {
     const isDisabled = user.id === myUserId || user.isFriend || user.isRequestPending;
     return (
-      <View style={styles.card}>
-        <Image
-          source={
-            user.avatarUrl && user.avatarUrl.startsWith('http')
-              ? { uri: user.avatarUrl }
-              : require('../assets/male.png')
-          }
-          style={styles.avatar}
-        />
-        <Text style={styles.name}>{user.fullname}</Text>
+      <LinearGradient
+        colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: 20,
+          padding: 18,
+          marginBottom: 18,
+          minHeight: 140,
+          shadowColor: COLORS.cardShadow,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.18,
+          shadowRadius: 24,
+          elevation: 10,
+          borderWidth: 1.5,
+          borderColor: COLORS.border,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
+        {/* Accent dot */}
+        <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: '#fff' }} />
+        {/* Avatar with premium ring */}
+        <View style={{
+          shadowColor: COLORS.accent,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.18,
+          shadowRadius: 8,
+          elevation: 6,
+          borderRadius: 40,
+          marginBottom: 10,
+          backgroundColor: '#fff',
+          padding: 3,
+          borderWidth: 2,
+          borderColor: COLORS.accent,
+        }}>
+          <Image
+            source={user.avatarUrl && user.avatarUrl.startsWith('http') ? { uri: user.avatarUrl } : require('../assets/male.png')}
+            style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: COLORS.white }}
+          />
+        </View>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 2, letterSpacing: 0.2 }}>{user.fullname}</Text>
+        {/* Status pill */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+          <View style={{ backgroundColor: user.isFriend ? COLORS.accent : user.isRequestPending ? COLORS.gray : COLORS.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, minWidth: 70, alignItems: 'center' }}>
+            <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>
+              {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Not Friend'}
+            </Text>
+          </View>
+        </View>
         <TouchableOpacity
-          style={[styles.button, isDisabled && styles.disabledButton]}
+          style={{ marginTop: 8, backgroundColor: isDisabled ? COLORS.gray : COLORS.primary, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 22, shadowColor: COLORS.primary, shadowOpacity: 0.12, shadowRadius: 8, elevation: 2 }}
           disabled={isDisabled}
           onPress={() => handleAddRequest(user.id)}
         >
           {sendingRequestId === user.id ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
               {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Add'}
             </Text>
           )}
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
     );
   };
 
@@ -229,24 +270,47 @@ export default function AddUser() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionTitle}>Follow These 3 Simple Steps:</Text>
-          <Text style={styles.instructionText}>1. Tap "Generate Code" to get your unique 10-digit code.</Text>
-          <Text style={styles.instructionText}>2. Enter a friend's 10-digit code below to find them.</Text>
-          <Text style={styles.instructionText}>3. Send a friend request by tapping the "Add" button.</Text>
-        </View>
+        <LinearGradient
+          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={{ borderRadius: 16, marginBottom: 24, padding: 18, shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 }}
+        >
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.instructionTitle}>Follow These 3 Simple Steps:</Text>
+            <Text style={styles.instructionText}>1. Tap "Generate Code" to get your unique 10-digit code.</Text>
+            <Text style={styles.instructionText}>2. Enter a friend's 10-digit code below to find them.</Text>
+            <Text style={styles.instructionText}>3. Send a friend request by tapping the "Add" button.</Text>
+          </View>
+        </LinearGradient>
 
         <TouchableOpacity
-          style={[styles.generateButton, isCodeGenerated && styles.disabledButton]}
-          onPress={handleGenerateCode}
           disabled={isCodeGenerated || loading}
+          onPress={handleGenerateCode}
+          activeOpacity={0.85}
         >
-          <Text style={styles.buttonText}>{isCodeGenerated ? 'Generated Code' : loading ? 'Generating...' : 'Get Your Code'}</Text>
+          <View
+            style={{
+              borderRadius: 16,
+              paddingVertical: 14,
+              alignItems: 'center',
+              marginBottom: 10,
+              backgroundColor: '#e75480',
+              shadowColor: '#e75480',
+              shadowOpacity: 0.13,
+              shadowRadius: 8,
+              elevation: 3,
+              opacity: isCodeGenerated || loading ? 0.6 : 1,
+            }}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, letterSpacing: 0.5 }}>
+              {isCodeGenerated ? 'Generated Code' : loading ? 'Generating...' : 'Get Your Code'}
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <View style={styles.codeRow}>
           {Array.from({ length: 10 }).map((_, i) => (
-            <View key={i} style={styles.displayBox}>
+            <View key={i} style={[styles.displayBox, { borderColor: '#e75480' }]}>
               <Text style={styles.codeDigit}>{generatedCode[i] || ''}</Text>
             </View>
           ))}

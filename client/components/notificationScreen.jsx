@@ -1,5 +1,3 @@
-
-
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     View,
@@ -18,12 +16,58 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
+import socket from '../utils/socket';
 
 const NotificationScreen = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const navigation = useNavigation();
+    const [userId, setUserId] = useState(null);
+
+    // Register userId with socket on mount
+    useEffect(() => {
+        (async () => {
+            const id = await AsyncStorage.getItem('userId');
+            setUserId(id);
+            if (id) {
+                socket.emit('register', id);
+            }
+        })();
+    }, []);
+
+    // Socket event listeners for real-time notifications
+    useEffect(() => {
+        if (!userId) return;
+        // New friend request
+        const handleNewFriendRequest = async ({ from }) => {
+            // Refetch notifications from API for consistency
+            await fetchFriendRequests();
+        };
+        // Friend request accepted/rejected
+        const handleFriendRequestUpdate = async ({ from, action }) => {
+            // Refetch notifications from API for consistency
+            await fetchFriendRequests();
+        };
+        // New unfriend request
+        const handleNewUnfriendRequest = async ({ from }) => {
+            await fetchFriendRequests();
+        };
+        // Unfriend request agree/cancel
+        const handleUnfriendRequestUpdate = async ({ from, action }) => {
+            await fetchFriendRequests();
+        };
+        socket.on('notification:new_friend_request', handleNewFriendRequest);
+        socket.on('notification:friend_request_update', handleFriendRequestUpdate);
+        socket.on('notification:new_unfriend_request', handleNewUnfriendRequest);
+        socket.on('notification:unfriend_request_update', handleUnfriendRequestUpdate);
+        return () => {
+            socket.off('notification:new_friend_request', handleNewFriendRequest);
+            socket.off('notification:friend_request_update', handleFriendRequestUpdate);
+            socket.off('notification:new_unfriend_request', handleNewUnfriendRequest);
+            socket.off('notification:unfriend_request_update', handleUnfriendRequestUpdate);
+        };
+    }, [userId]);
 
     const fetchFriendRequests = async () => {
         setLoading(true);

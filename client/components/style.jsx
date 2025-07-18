@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { View } from "react-native";
 import Constants from 'expo-constants'
+import { responsiveWidth, responsiveHeight, responsiveFontSize } from '../utils/responsive';
 
 const StatusBarHeight = Constants.statusBarHeight;
 
@@ -18,8 +19,8 @@ const {primary,secondary,tertiary,darkLight,brand,green,red} = colors;
 
 export const StyleContainer= styled.View`
 flex:1;
-padding:25px;
-padding-top: ${StatusBarHeight +10}px;
+padding:${responsiveWidth(6)}px;
+padding-top: ${StatusBarHeight + responsiveHeight(2)}px;
 background-color: ${primary};
 `;
 
@@ -31,13 +32,13 @@ align-items: center;
 `;
 
 export const PageLogo = styled.Image`
-width: 250px;
-height: 200px;
+width: ${responsiveWidth(60)}px;
+height: ${responsiveHeight(25)}px;
 `;
 
 export const PageTitle = styled.Text`
-font-size:30px;
+font-size:${responsiveFontSize(3.5)}px;
 text-align:center;
 font-weight: bold;
 
-`
+`;

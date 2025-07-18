@@ -5,8 +5,10 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { COLORS } from '../Color';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function CustomAlert({
   visible,
@@ -17,12 +19,45 @@ export default function CustomAlert({
   confirmText = 'OK',
   cancelText = 'Cancel',
   showCancel = true,
+  type = 'info', // 'info', 'success', 'error', 'warning'
 }) {
+  // Animation for scale/fade
+  const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
+  const opacityAnim = React.useRef(new Animated.Value(0)).current;
+  React.useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }),
+        Animated.timing(opacityAnim, { toValue: 1, duration: 180, useNativeDriver: true })
+      ]).start();
+    } else {
+      scaleAnim.setValue(0.8);
+      opacityAnim.setValue(0);
+    }
+  }, [visible]);
+
+  // Icon and color by type
+  let icon = 'information';
+  let accent = '#ff98c3';
+  if (type === 'success') { icon = 'check-circle'; accent = '#10B981'; }
+  else if (type === 'error') { icon = 'close-circle'; accent = '#EF4444'; }
+  else if (type === 'warning') { icon = 'alert-circle'; accent = '#fbbf24'; }
+
   return (
-    <Modal transparent animationType="fade" visible={visible}>
+    <Modal transparent animationType="none" visible={visible}>
       <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Text style={styles.title}>{title}</Text>
+        <Animated.View style={[styles.container, {
+          borderTopColor: accent,
+          borderTopWidth: 5,
+          transform: [{ scale: scaleAnim }],
+          opacity: opacityAnim,
+        }]}
+        >
+          {/* Icon */}
+          <View style={[styles.iconCircle, { backgroundColor: accent + '22' }]}> {/* 22 = ~13% opacity */}
+            <MaterialCommunityIcons name={icon} size={38} color={accent} />
+          </View>
+          <Text style={[styles.title, { color: accent }]}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
 
           <View style={styles.buttonContainer}>
@@ -31,11 +66,11 @@ export default function CustomAlert({
                 <Text style={styles.cancelText}>{cancelText}</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.confirmBtn} onPress={onConfirm}>
+            <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: accent }]} onPress={onConfirm}>
               <Text style={styles.confirmText}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -44,61 +79,72 @@ export default function CustomAlert({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    display:'flex',
+    backgroundColor: 'rgba(0,0,0,0.18)',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection:'column'
   },
   container: {
-    width: '80%',
+    width: '85%',
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    elevation: 10,
+    borderRadius: 20,
+    padding: 26,
+    elevation: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.13,
+    shadowRadius: 24,
+    alignItems: 'center',
+    borderTopWidth: 5,
+    borderTopColor: '#ff98c3', // default, overridden by accent
+  },
+  iconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 10,
-    color: COLORS.primaryDark || '#333',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   message: {
     fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
+    color: '#444',
+    marginBottom: 22,
     textAlign: 'center',
+    lineHeight: 22,
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    marginTop: 8,
   },
   cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 40,
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 10,
     marginRight: 10,
-    borderWidth:1,
-    borderRadius:8,
-    position:'relative',
-    right:10,
-   
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   cancelText: {
     fontSize: 16,
-    color: '#777',
+    color: '#888',
+    fontWeight: '600',
   },
   confirmBtn: {
-    backgroundColor: '#f69ef6',
-    // backgroundColor: '#ff6347',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 8,
-    left:10
-   
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
   },
   confirmText: {
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: 'bold',
     fontSize: 16,
   },
 });

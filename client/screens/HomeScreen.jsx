@@ -9,6 +9,8 @@ import {
     Alert,
     ToastAndroid,
     StyleSheet,
+    Animated,
+    Easing,
 } from 'react-native';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import FloatingInput from '../components/floatintext';
@@ -18,6 +20,10 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import Loader from '../components/Loader';
+import { LinearGradient } from 'expo-linear-gradient';
+import CustomAlert from '../components/alert';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function HomeScreen() {
     const navigation = useNavigation();
@@ -34,9 +40,55 @@ export default function HomeScreen() {
     const [friendMenuModalVisible, setFriendMenuModalVisible] = useState(false);
     const [selectedFriendForMenu, setSelectedFriendForMenu] = useState(null);
     const [hasUnfriendRequests, setHasUnfriendRequests] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState('info');
+    const [alertOnConfirm, setAlertOnConfirm] = useState(null);
+    const [alertShowCancel, setAlertShowCancel] = useState(false);
+
+    // Animation state for celebratory effect
+    const [petalAnims] = useState([
+        new Animated.Value(0),
+        new Animated.Value(0),
+        new Animated.Value(0),
+    ]);
 
     const scrollRef = useRef();
     const fetchUserDataRef = useRef(null);
+
+    useEffect(() => {
+        if (isVerified && friendsList.length > 0) {
+            petalAnims.forEach((anim, i) => {
+                Animated.loop(
+                    Animated.sequence([
+                        Animated.timing(anim, {
+                            toValue: 1,
+                            duration: 3200 + i * 400,
+                            easing: Easing.inOut(Easing.quad),
+                            useNativeDriver: true,
+                        }),
+                        Animated.timing(anim, {
+                            toValue: 0,
+                            duration: 0,
+                            useNativeDriver: true,
+                        }),
+                    ]),
+                ).start();
+            });
+        } else {
+            petalAnims.forEach(anim => anim.setValue(0));
+        }
+    }, [isVerified, friendsList.length]);
+
+    const showCustomAlert = (title, message, type = 'info', onConfirm = null, showCancel = false) => {
+        setAlertTitle(title);
+        setAlertMessage(message);
+        setAlertType(type);
+        setAlertOnConfirm(() => onConfirm);
+        setAlertShowCancel(showCancel);
+        setShowAlert(true);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -47,7 +99,7 @@ export default function HomeScreen() {
                     const Token = await AsyncStorage.getItem('Token');
 
                     if (!id) {
-                        Alert.alert('Error', 'User ID not found in storage');
+                        showCustomAlert('Error', 'User ID not found in storage', 'error');
                         return;
                     }
 
@@ -62,11 +114,11 @@ export default function HomeScreen() {
                         setFriendsList([]);
                         setHasUnfriendRequests(res.data.hasPendingUnfriendRequests || false);
                     } else {
-                        Alert.alert('Error', 'Failed to fetch user data');
+                        showCustomAlert('Error', 'Failed to fetch user data', 'error');
                     }
                 } catch (err) {
                     console.error("Error fetching user data:", err);
-                    Alert.alert('Error', 'Failed to load user data');
+                    showCustomAlert('Error', 'Failed to load user data', 'error');
                 } finally {
                     setLoading(false);
                 }
@@ -79,7 +131,7 @@ export default function HomeScreen() {
 
     const verifyPasswordAndFetchFriends = async () => {
         if (!inputPassword.trim()) {
-            Alert.alert('Validation', 'Please enter the secret code');
+            showCustomAlert('Validation', 'Please enter the secret code', 'warning');
             return;
         }
 
@@ -129,82 +181,61 @@ export default function HomeScreen() {
     };
 
     const handleRemoveFriend = async (friendId) => {
-        Alert.alert(
-            'Confirm Unfriend',
-            `Do you want to send an unfriend request to ${selectedFriendForMenu?.name}? They will need to approve it.`,
-            [
-                {
-                    text: 'No',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Yes, Send Request',
-                    onPress: async () => {
-                        try {
-                            const userId = await AsyncStorage.getItem('userId');
-                            const Token = await AsyncStorage.getItem('Token');
+        setAlertTitle('Unfriend');
+        setAlertMessage(`Do you want to send an unfriend request to ${selectedFriendForMenu?.name}? They will need to approve it.`);
+        setAlertType('warning');
+        setAlertShowCancel(true);
+        setAlertOnConfirm(() => async () => {
+            try {
+                const userId = await AsyncStorage.getItem('userId');
+                const Token = await AsyncStorage.getItem('Token');
 
-                            if (!userId) {
-                                Alert.alert('Error', 'Your user ID not found. Please log in again.');
-                                return;
-                            }
+                if (!userId) {
+                    showCustomAlert('Error', 'Your user ID not found. Please log in again.', 'error');
+                    return;
+                }
 
-                            const response = await axios.post(
-                                `${APIPATH.BASE_URL}/${APIPATH.SEND_UNFRIEND_REQUEST}`,
-                                {
-                                    senderId: userId,
-                                    receiverId: friendId,
-                                },
-                                {
-                                    headers: { Authorization: `${Token}` },
-                                }
-                            );
-
-                            if (response.data.success) {
-                                ToastAndroid.show('Unfriend request sent successfully!', ToastAndroid.LONG);
-                            } else {
-                                Alert.alert('Error', response.data.message || 'Failed to send unfriend request.');
-                            }
-                        } catch (error) {
-                            console.error("Error sending unfriend request:", error);
-                            Alert.alert(
-                                'Error',
-                                error?.response?.data?.message || 'Failed to send unfriend request.'
-                            );
-                        } finally {
-                            setFriendMenuModalVisible(false);
-                            setSelectedFriendForMenu(null);
-                        }
+                const response = await axios.post(
+                    `${APIPATH.BASE_URL}/${APIPATH.SEND_UNFRIEND_REQUEST}`,
+                    {
+                        senderId: userId,
+                        receiverId: friendId,
                     },
-                },
-            ],
-            { cancelable: true }
-        );
+                    {
+                        headers: { Authorization: `${Token}` },
+                    }
+                );
+
+                if (response.data.success) {
+                    showCustomAlert('Success', 'Unfriend request sent successfully!', 'success');
+                } else {
+                    showCustomAlert('Error', response.data.message || 'Failed to send unfriend request.', 'error');
+                }
+            } catch (error) {
+                console.error("Error sending unfriend request:", error);
+                showCustomAlert('Error', error?.response?.data?.message || 'Failed to send unfriend request.', 'error');
+            } finally {
+                setFriendMenuModalVisible(false);
+                setSelectedFriendForMenu(null);
+            }
+        });
+        setShowAlert(true);
     };
 
     const handleLocalHide = (friendId) => {
-        Alert.alert(
-            'Hide Card',
-            `Are you sure you want to hide ${selectedFriendForMenu?.name}'s card locally? It will reappear after re-verification.`,
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Hide',
-                    onPress: () => {
-                        const updatedFriendsList = friendsList.filter(f => f._id !== friendId);
-                        setFriendsList(updatedFriendsList);
-                        setIsVerified(updatedFriendsList.length > 0);
-                        ToastAndroid.show(`${selectedFriendForMenu?.name}'s card hidden locally.`, ToastAndroid.SHORT);
-                        setFriendMenuModalVisible(false);
-                        setSelectedFriendForMenu(null);
-                    },
-                },
-            ],
-            { cancelable: true }
-        );
+        setAlertTitle('Hide Card');
+        setAlertMessage(`Are you sure you want to hide ${selectedFriendForMenu?.name}'s card locally? It will reappear after re-verification.`);
+        setAlertType('warning');
+        setAlertShowCancel(true);
+        setAlertOnConfirm(() => () => {
+            const updatedFriendsList = friendsList.filter(f => f._id !== friendId);
+            setFriendsList(updatedFriendsList);
+            setIsVerified(updatedFriendsList.length > 0);
+            ToastAndroid.show(`${selectedFriendForMenu?.name}'s card hidden locally.`, ToastAndroid.SHORT);
+            setFriendMenuModalVisible(false);
+            setSelectedFriendForMenu(null);
+        });
+        setShowAlert(true);
     };
 
     if (loading) {
@@ -216,86 +247,184 @@ export default function HomeScreen() {
     }
 
     return (
-        <ScrollView
-            contentContainerStyle={styles.container}
-            ref={scrollRef}
-            keyboardShouldPersistTaps="handled"
-        >
-            <TouchableOpacity style={styles.navItem} onPress={NotificationHandle}>
-                <View style={styles.iconContainer}>
-                    <FontAwesome name="bell" size={26} color={COLORS.darkGray} />
-                    {(userData?.notifNo > 0 || hasUnfriendRequests) && (
-                        <View style={[
-                            styles.notificationNumber,
-                            hasUnfriendRequests && userData?.notifNo === 0 && styles.dotIndicator
-                        ]}>
-                            <Text style={styles.notificationText}>
-                                {userData?.notifNo > 0 ? userData.notifNo : ''}
-                                {hasUnfriendRequests && userData?.notifNo === 0 ? '•' : ''}
-                            </Text>
+        <>
+            {/* Modern gradient header with avatar and greeting */}
+            <LinearGradient
+                colors={[COLORS.primary, COLORS.accent]}
+                style={{ paddingTop: 60, paddingBottom: 30, paddingHorizontal: 24, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, elevation: 8 }}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            >
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Image
+                            source={userData?.avatar ? { uri: userData.avatar } : require('../assets/avatar.png')}
+                            style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: COLORS.white, marginRight: 18, backgroundColor: COLORS.white }}
+                        />
+                        <View>
+                            <Text style={{ color: COLORS.white, fontSize: 22, fontWeight: 'bold', marginBottom: 2 }}>Hi, {userData?.fullname?.split(' ')[0] || 'User'} 👋</Text>
+                            <Text style={{ color: COLORS.white, fontSize: 14, opacity: 0.85 }}>{userData?.email || ''}</Text>
                         </View>
-                    )}
+                    </View>
+                    <TouchableOpacity onPress={NotificationHandle} style={{ position: 'relative' }}>
+                        <FontAwesome name="bell" size={30} color={COLORS.white} />
+                        {(userData?.notifNo > 0 || hasUnfriendRequests) && (
+                            <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: COLORS.badge, borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
+                                <Text style={{ color: COLORS.white, fontSize: 12, fontWeight: 'bold' }}>{userData?.notifNo > 0 ? userData.notifNo : ''}{hasUnfriendRequests && userData?.notifNo === 0 ? '•' : ''}</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
                 </View>
-            </TouchableOpacity>
+            </LinearGradient>
 
-            {userData && (
-                <UserCard
-                    username={userData.fullname}
-                    email={userData.email}
-                    gender={userData.gender}
-                    avatar={userData.avatar}
-                    status={
-                        !isVerified
-                            ? 'Status: hidden'
-                            : friendsList.length > 0
-                                ? 'Status: In Relation'
-                                : 'Status: Single'
-                    }
-                    onPress={onUserCardPress}
-                    disabled={false}
-                    style={
-                        isVerified
-                            ? friendsList.length > 0
-                                ? styles.mainUserCardBelow
-                                : styles.mainUserCardCenter
-                            : styles.mainUserCardCenter
-                    }
-                />
-            )}
-
-            {friendsLoading && (
-                <ActivityIndicator size="large" color={COLORS.primary} style={styles.friendsLoader} />
-            )}
-
-            {isVerified && friendsList.length === 0 && !friendsLoading && (
-                <Text style={styles.noFriendsText}>You are currently single.</Text>
-            )}
-
-            {isVerified && friendsList.length > 0 &&
-                friendsList.map((friend) => (
-                    <UserCard
-                        key={friend._id}
-                        username={friend.name}
-                        email={friend.email}
-                        gender={friend.gender}
-                        avatar={friend.avatar}
-                        status="Status: In Relation"
-                        disabled={true}
-                        onMenuPress={() => {
-                            setSelectedFriendForMenu(friend);
-                            setFriendMenuModalVisible(true);
+            <ScrollView
+                contentContainerStyle={{ padding: 20, paddingTop: 0, flexGrow: 1 }}
+                ref={scrollRef}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                {/* User Card - modern card with shadow and background */}
+                {userData && (
+                    <LinearGradient
+                        colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                        style={{
+                            borderRadius: 20,
+                            padding: 18,
+                            marginTop: 16,
+                            marginBottom: 24,
+                            minHeight: 180,
+                            shadowColor: COLORS.cardShadow,
+                            shadowOffset: { width: 0, height: 8 },
+                            shadowOpacity: 0.18,
+                            shadowRadius: 24,
+                            elevation: 16,
+                            borderWidth: 1.5,
+                            borderColor: COLORS.border,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            position: 'relative',
                         }}
-                        onChatPress={() => {
-                            navigation.navigate('chats', {
-                                friendId: friend._id,
-                                friendName: friend.name,
-                                friendAvatar: friend.avatar,
-                                friendEmail: friend.email,
-                            });
-                        }}
-                        showChatAndMenuButtons={true}
-                    />
-                ))}
+                    >
+                        {/* Accent dot */}
+                        <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: '#fff' }} />
+                        {/* Avatar with premium ring */}
+                        <View style={{
+                            shadowColor: COLORS.accent,
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.18,
+                            shadowRadius: 8,
+                            elevation: 6,
+                            borderRadius: 40,
+                            marginBottom: 10,
+                            backgroundColor: '#fff',
+                            padding: 3,
+                            borderWidth: 2,
+                            borderColor: COLORS.accent,
+                        }}>
+                            <Image
+                                source={userData?.avatar ? { uri: userData.avatar } : require('../assets/avatar.png')}
+                                style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: COLORS.white }}
+                            />
+                        </View>
+                        <Text style={{ fontSize: 21, fontWeight: 'bold', color: COLORS.text, marginBottom: 2, letterSpacing: 0.2 }}>{userData.fullname || 'User Name'}</Text>
+                        <Text style={{ fontSize: 14, color: COLORS.gray, marginBottom: 8 }}>{userData.email || ''}</Text>
+                        {/* Status pill */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                            <MaterialCommunityIcons name="heart" size={18} color={isVerified && friendsList.length > 0 ? COLORS.accent : COLORS.gray} style={{ marginRight: 5 }} />
+                            <View style={{ backgroundColor: isVerified && friendsList.length > 0 ? COLORS.accent : COLORS.gray, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, marginLeft: 2, minWidth: 70, alignItems: 'center' }}>
+                                <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>
+                                    {isVerified ? (friendsList.length > 0 ? 'In Relation' : 'Single') : 'Hidden'}
+                                </Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity
+                            style={{ marginTop: 8, backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 22, shadowColor: COLORS.primary, shadowOpacity: 0.12, shadowRadius: 8, elevation: 2 }}
+                            onPress={onUserCardPress}
+                            disabled={isVerified}
+                        >
+                            <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 14 }}>{isVerified ? 'Verified' : 'Verify Secret Code'}</Text>
+                        </TouchableOpacity>
+                    </LinearGradient>
+                )}
+
+                {/* Centered red heart between cards */}
+                {isVerified && friendsList.length > 0 && (
+                    <>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 0, marginTop: -18, marginBottom: 2 }}>
+                            <MaterialCommunityIcons name="heart" size={32} color="#FF3B3B" />
+                        </View>
+                        {friendsList.map((friend) => (
+                            <LinearGradient
+                                key={friend._id}
+                                colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                style={{
+                                    borderRadius: 20,
+                                    padding: 18,
+                                    minHeight: 180,
+                                    marginBottom: 18,
+                                    shadowColor: COLORS.cardShadow,
+                                    shadowOffset: { width: 0, height: 8 },
+                                    shadowOpacity: 0.18,
+                                    shadowRadius: 24,
+                                    elevation: 16,
+                                    borderWidth: 1.5,
+                                    borderColor: COLORS.border,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    position: 'relative',
+                                }}
+                            >
+                                {/* Accent dot */}
+                                <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: '#fff' }} />
+                                {/* Avatar with premium ring */}
+                                <View style={{
+                                    shadowColor: COLORS.accent,
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.18,
+                                    shadowRadius: 8,
+                                    elevation: 6,
+                                    borderRadius: 30,
+                                    marginBottom: 8,
+                                    backgroundColor: '#fff',
+                                    padding: 2,
+                                    borderWidth: 2,
+                                    borderColor: COLORS.accent,
+                                }}>
+                                    <Image
+                                        source={friend.avatar ? { uri: friend.avatar } : require('../assets/avatar.png')}
+                                        style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.white }}
+                                    />
+                                </View>
+                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: COLORS.text, marginBottom: 2, letterSpacing: 0.2 }}>{friend.name}</Text>
+                                <Text style={{ fontSize: 13, color: COLORS.gray, marginBottom: 8 }}>{friend.email}</Text>
+                                {/* Status pill */}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                                    <MaterialCommunityIcons name="heart" size={14} color={COLORS.accent} style={{ marginRight: 4 }} />
+                                    <View style={{ backgroundColor: COLORS.accent, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, marginLeft: 2, minWidth: 70, alignItems: 'center' }}>
+                                        <Text style={{ fontSize: 12, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>In Relation</Text>
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 6 }}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('chats', {
+                                        friendId: friend._id,
+                                        friendName: friend.name,
+                                        friendAvatar: friend.avatar,
+                                        friendEmail: friend.email,
+                                    })} style={{ marginRight: 10 }} activeOpacity={0.7}>
+                                        <FontAwesome name="comments" size={20} color={COLORS.primary} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => {
+                                        setSelectedFriendForMenu(friend);
+                                        setFriendMenuModalVisible(true);
+                                    }} activeOpacity={0.7}>
+                                        <FontAwesome name="ellipsis-v" size={18} color={COLORS.gray} />
+                                    </TouchableOpacity>
+                                </View>
+                            </LinearGradient>
+                        ))}
+                    </>
+                )}
 
             <Modal
                 visible={passwordModalVisible}
@@ -306,38 +435,52 @@ export default function HomeScreen() {
                     setInputPassword('');
                 }}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalBox}>
-                        <Text style={styles.modalTitle}>Enter Secret Code</Text>
-
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.18)', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* Modern, beautiful modal container (neutral, no pink border/shadow) */}
+                    <View style={{
+                        width: '88%',
+                        backgroundColor: '#fff',
+                        borderRadius: 28,
+                        padding: 32,
+                        alignItems: 'center',
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 10 },
+                        shadowOpacity: 0.13,
+                        shadowRadius: 24,
+                        elevation: 18,
+                        borderTopWidth: 4,
+                        borderTopColor: '#e0e0e0',
+                    }}>
+                        <MaterialCommunityIcons name="lock-question" size={38} color={COLORS.primary} style={{ marginBottom: 10 }} />
+                        <Text style={{ fontSize: 22, fontWeight: 'bold', color: COLORS.primary, marginBottom: 8, textAlign: 'center' }}>Enter Secret Code</Text>
+                        <Text style={{ fontSize: 15, color: '#444', marginBottom: 18, textAlign: 'center' }}>To unlock your relationship status, please enter your secret code.</Text>
                         <FloatingInput
                             label="Secret Code"
                             value={inputPassword}
                             setValue={setInputPassword}
-                            secure='true'
-                            keyboardType="numeric"
+                            secure={true}
+                            numeric={true}
                         />
-
                         <TouchableOpacity
                             onPress={verifyPasswordAndFetchFriends}
-                            style={styles.verifyButton}
+                            style={{ marginTop: 8, backgroundColor: COLORS.accent, borderRadius: 18, paddingVertical: 12, paddingHorizontal: 38, alignItems: 'center', elevation: 2 }}
                             disabled={passwordVerifying}
+                            activeOpacity={0.8}
                         >
                             {passwordVerifying ? (
                                 <ActivityIndicator size="small" color="#fff" />
                             ) : (
-                                <Text style={styles.verifyText}>Verify</Text>
+                                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Verify</Text>
                             )}
                         </TouchableOpacity>
-
                         <TouchableOpacity
                             onPress={() => {
                                 setPasswordModalVisible(false);
                                 setInputPassword('');
                             }}
-                            style={styles.cancelButton}
+                            style={{ marginTop: 12, paddingVertical: 10 }}
                         >
-                            <Text style={styles.cancelText}>Cancel</Text>
+                            <Text style={{ color: COLORS.primary, fontWeight: '600', fontSize: 16 }}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -383,75 +526,23 @@ export default function HomeScreen() {
                 </View>
             </Modal>
 
+            <CustomAlert
+                visible={showAlert}
+                title={alertTitle}
+                message={alertMessage}
+                type={alertType}
+                onClose={() => setShowAlert(false)}
+                onConfirm={() => {
+                    setShowAlert(false);
+                    if (alertOnConfirm) alertOnConfirm();
+                }}
+                showCancel={alertShowCancel}
+            />
+
         </ScrollView>
+        </>
     );
 }
-
-const UserCard = ({
-    username,
-    email,
-    gender,
-    avatar,
-    onPress,
-    status,
-    disabled,
-    style,
-    onMenuPress,
-    onChatPress,
-    showChatAndMenuButtons = false,
-}) => {
-    const [imageError, setImageError] = useState(false);
-
-    const getDefaultAvatar = () => {
-        return gender === 'female'
-            ? require('../assets/female.webp')
-            : require('../assets/male.png');
-    };
-
-    const avatarSource = !avatar || imageError ? getDefaultAvatar() : { uri: avatar };
-
-    return (
-        <TouchableOpacity
-            activeOpacity={disabled ? 1 : 0.7}
-            onPress={disabled || status !== 'Status: hidden' ? null : onPress}
-            style={[styles.userBox, style]}
-        >
-            {showChatAndMenuButtons && (
-                <>
-                    <TouchableOpacity
-                        onPress={onMenuPress}
-                        style={styles.threeDotMenuButton}
-                    >
-                        <FontAwesome name="ellipsis-v" size={22} color={COLORS.darkGray} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        onPress={onChatPress}
-                        style={styles.chatButton}
-                    >
-                        <FontAwesome name="comments" size={26} color={COLORS.primary} />
-                    </TouchableOpacity>
-                </>
-            )}
-
-            <View style={styles.avatarContainer}>
-                <Image
-                    source={avatarSource}
-                    style={styles.avatarImage}
-                    onError={() => setImageError(true)}
-                />
-            </View>
-            <Text style={styles.userText}>Welcome, {username}</Text>
-            <View style={styles.infoContainer}>
-                <Text style={styles.infoText}>Email: {email}</Text>
-                <Text style={styles.infoText}>Gender: {gender}</Text>
-            </View>
-            <View style={styles.statusContainer}>
-                <Text style={styles.statusText}>{status}</Text>
-            </View>
-        </TouchableOpacity>
-    );
-};
 
 export const styles = StyleSheet.create({
     container: {

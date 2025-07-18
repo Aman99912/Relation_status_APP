@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import axios from 'axios';
 import { APIPATH } from '../utils/apiPath'; // Ensure APIPATH is correctly defined
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
+import { SocketContext } from '../context/SocketContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -44,19 +45,91 @@ const ChatScreen = () => {
   const scrollViewRef = useRef(null);
   const permissionsGranted = usePermissions(); // Custom hook for permissions
   const soundObjectRef = useRef(new Audio.Sound());
+  const socket = useContext(SocketContext);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState(null);
+  const [deliveredIds, setDeliveredIds] = useState([]);
+  const [seenIds, setSeenIds] = useState([]);
+  const [isOnline, setIsOnline] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       try {
         const Myid = await AsyncStorage.getItem('userId');
         setUserId(Myid);
+        if (socket && Myid) {
+          socket.emit('register', Myid);
+        }
         console.log('Current User ID from AsyncStorage:', Myid); // Debugging
       } catch (e) {
         console.error('Failed to load userId from AsyncStorage:', e);
       }
     };
     init();
-  }, []);
+    // Listen for incoming messages
+    if (socket) {
+      socket.on('receive_message', (msg) => {
+        // Only add if for this chat
+        if (
+          (msg.senderId === userId && msg.receiverId === friendId) ||
+          (msg.senderId === friendId && msg.receiverId === userId)
+        ) {
+          setMessages((prev) => [...prev, msg]);
+        }
+      });
+    }
+    // On mount, emit seen for all messages
+    if (socket && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg && lastMsg.receiverId === userId) {
+        socket.emit('seen', { messageId: lastMsg._id, userId, friendId });
+      }
+    }
+    // Cleanup
+    return () => {
+      if (socket) {
+        socket.off('receive_message');
+      }
+    };
+  }, [socket, userId, friendId, messages]);
+
+  useEffect(() => {
+    if (socket) {
+      setSocketConnected(socket.connected);
+      socket.on('connect', () => setSocketConnected(true));
+      socket.on('disconnect', () => setSocketConnected(false));
+      socket.on('user_online', ({ userId }) => {
+        if (userId === friendId) setIsOnline(true);
+      });
+      socket.on('user_offline', ({ userId }) => {
+        if (userId === friendId) setIsOnline(false);
+      });
+      socket.on('typing', ({ senderId }) => {
+        if (senderId === friendId) {
+          setTypingUser(friendId);
+          setTimeout(() => setTypingUser(null), 2000);
+        }
+      });
+      socket.on('delivered', ({ messageId, receiverId }) => {
+        if (receiverId === friendId) setDeliveredIds((prev) => [...prev, messageId]);
+      });
+      socket.on('seen', ({ messageId, userId }) => {
+        if (userId === friendId) setSeenIds((prev) => [...prev, messageId]);
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off('connect');
+        socket.off('disconnect');
+        socket.off('user_online');
+        socket.off('user_offline');
+        socket.off('typing');
+        socket.off('delivered');
+        socket.off('seen');
+      }
+    };
+  }, [socket, friendId, userId, messages]);
 
   const fetchMessages = async () => {
     if (!userId || !friendId) {
@@ -99,7 +172,7 @@ const ChatScreen = () => {
     }
     try {
       if (isEditing && editingMessage) {
-        console.log('Editing message:', editingMessage._id, 'with text:', inputText);
+        // Keep REST for editing
         await axios.put(`${APIPATH.BASE_URL}/${APIPATH.EDITCHAT}/${editingMessage._id}`, {
           text: inputText,
         });
@@ -109,20 +182,35 @@ const ChatScreen = () => {
         setIsEditing(false);
         setEditingMessage(null);
       } else {
-        console.log('Sending new text message:', inputText);
-        const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SENDCHAT}`, {
-          senderId: userId,
-          receiverId: friendId,
-          text: inputText,
-          messageType: 'text',
-        });
-        console.log('New Text Message Response:', JSON.stringify(res.data, null, 2)); // Detailed log
-        setMessages(prev => [...prev, res.data]);
+        // Use socket for sending
+        if (socket) {
+          socket.emit('send_message', {
+            senderId: userId,
+            receiverId: friendId,
+            text: inputText,
+            messageType: 'text',
+          });
+        }
+        // Optionally, keep REST for persistence (optional, can remove)
+        // const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.SENDCHAT}`, {
+        //   senderId: userId,
+        //   receiverId: friendId,
+        //   text: inputText,
+        //   messageType: 'text',
+        // });
+        // setMessages(prev => [...prev, res.data]);
       }
       setInputText('');
     } catch (err) {
       console.error('Send/Edit error:', err.response ? err.response.data : err.message);
       Alert.alert('Error', 'Failed to send message. Please try again.');
+    }
+  };
+
+  const handleInputChange = (text) => {
+    setInputText(text);
+    if (socket && userId && friendId) {
+      socket.emit('typing', { senderId: userId, receiverId: friendId });
     }
   };
 
@@ -155,6 +243,10 @@ const ChatScreen = () => {
       // IMPORTANT: Check this log for the 'imageUrl' or 'audioUrl' returned by your backend!
       console.log('Upload Media Response Data (Check imageUrl/audioUrl here):', JSON.stringify(res.data, null, 2));
       setMessages(prev => [...prev, res.data]);
+      // Emit socket event for real-time delivery
+      if (socket) {
+        socket.emit('send_message', res.data);
+      }
     } catch (err) {
       console.error('Upload media error:', err.response ? err.response.data : err.message);
       Alert.alert('Error', 'Failed to upload media. Please try again.');
@@ -304,8 +396,8 @@ const ChatScreen = () => {
     const isMine = item.senderId === userId;
     const isImageOrGif = item.messageType === 'image' || item.messageType === 'gif';
     const isAudio = item.messageType === 'audio';
-
-   
+    const delivered = deliveredIds.includes(item._id);
+    const seen = seenIds.includes(item._id);
     return (
       <TouchableOpacity onLongPress={() => handleLongPress(item)}>
         <View style={[styles.messageContainer, isMine ? styles.myMessage : styles.theirMessage]}>
@@ -353,6 +445,8 @@ const ChatScreen = () => {
 
           <Text style={[styles.timestamp, isMine ? styles.myTimestamp : styles.theirTimestamp]}>
             {moment(item.createdAt).format('hh:mm A')}
+            {isMine && delivered && ' ✓'}
+            {isMine && seen && ' ✓✓'}
           </Text>
         </View>
       </TouchableOpacity>
@@ -377,18 +471,38 @@ const ChatScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
     >
+      {/* Remove old connection and online status bar */}
+      {/* Connection and online status */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 4 }}>
+        <Text style={{ color: socketConnected ? 'green' : 'red', marginRight: 8 }}>
+          {socketConnected ? 'Connected' : 'Disconnected'}
+        </Text>
+        <Text style={{ color: isOnline ? 'green' : 'gray' }}>
+          {isOnline ? 'Friend Online' : 'Friend Offline'}
+        </Text>
+      </View>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={24} color={"black"} />
       </TouchableOpacity>
 
       <View style={styles.header}>
         <Image source={{ uri: friendAvatar }} style={styles.avatar} />
-        <Text style={styles.name}>{Name}</Text>
+        <View style={{ flex: 1, marginLeft: 15 }}>
+          <Text style={styles.name}>{Name}</Text>
+          {/* Online/offline status below name */}
+          <Text style={{ fontSize: 13, color: isOnline ? 'green' : 'gray', fontStyle: 'italic', marginTop: 2 }}>
+            {isOnline ? 'Active now' : 'Offline'}
+          </Text>
+        </View>
         <View style={styles.headerIcons}>
           <TouchableOpacity><Icon name="phone" size={24} color="black" /></TouchableOpacity>
           <TouchableOpacity style={{ marginLeft: 26 }}><Icon name="video" size={24} color="black" /></TouchableOpacity>
         </View>
       </View>
+      {/* Typing indicator */}
+      {typingUser && (
+        <Text style={{ marginLeft: 20, color: 'gray', fontStyle: 'italic' }}>Typing...</Text>
+      )}
 
       <FlatList
         ref={scrollViewRef}
@@ -428,7 +542,7 @@ const ChatScreen = () => {
           style={styles.textInput}
           placeholder="Type a message"
           value={inputText}
-          onChangeText={setInputText}
+          onChangeText={handleInputChange}
           multiline
         />
         <TouchableOpacity onPress={handleSend}>

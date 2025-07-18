@@ -1,4 +1,7 @@
 import React from 'react';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store/store';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -28,6 +31,7 @@ import PrivacyPage from './components/PrivacyPage';
 import ChangePasswordScreen from './components/PassChange';
 import ChangeSubPasswordScreen from './components/subPass';
 import UpdateMobileNum from './components/newNum';
+import { SocketProvider } from './context/SocketContext';
 
 
 const Stack = createStackNavigator();
@@ -61,19 +65,23 @@ function MainAppTabs() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Startup" component={StartupScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="OtpScreen" component={OtpScreen} />
-        <Stack.Screen name="Signup" component={SignupScreen} />
-        <Stack.Screen name="newPass" component={ResetPasswordScreen} />
-        <Stack.Screen name="forgot-password" component={ForgotPass} />
-        
-       
-        <Stack.Screen name="chats" component={ChatScreen}  />
-        <Stack.Screen name="MainApp" component={MainAppTabs} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <SocketProvider>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="Startup" component={StartupScreen} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="OtpScreen" component={OtpScreen} />
+              <Stack.Screen name="Signup" component={SignupScreen} />
+              <Stack.Screen name="newPass" component={ResetPasswordScreen} />
+              <Stack.Screen name="forgot-password" component={ForgotPass} />
+              <Stack.Screen name="chats" component={ChatScreen}  />
+              <Stack.Screen name="MainApp" component={MainAppTabs} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </SocketProvider>
+      </PersistGate>
+    </Provider>
   );
 }

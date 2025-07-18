@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 
 import userRoutes from './routes/user.route.js';
 import router from './routes/chatRoute.js';
+import { ChatMessageModel } from './Model/UserModel.js';
 
 dotenv.config();
 
@@ -30,15 +31,64 @@ io.on('connection', (socket) => {
   socket.on('register', (userId) => {
     connectedUsers.set(userId, socket.id);
     console.log(`Registered user ${userId} with socket ${socket.id}`);
+    // Broadcast online status
+    io.emit('user_online', { userId });
+  });
+
+  // SOCKET CHAT HANDLER
+  socket.on('send_message', async (data) => {
+    try {
+      const { senderId, receiverId, text, messageType, imageUrl = '', audioUrl = '' } = data;
+      const message = new ChatMessageModel({
+        senderId,
+        receiverId,
+        messageType,
+        text,
+        imageUrl,
+        audioUrl,
+      });
+      await message.save();
+      const receiverSocketId = connectedUsers.get(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit('receive_message', message);
+        // Emit delivered status
+        io.to(socket.id).emit('delivered', { messageId: message._id, receiverId });
+      }
+      socket.emit('receive_message', message);
+    } catch (err) {
+      console.error('Socket send_message error:', err);
+      socket.emit('error_message', { message: 'Failed to send message' });
+    }
+  });
+
+  // Typing indicator
+  socket.on('typing', ({ senderId, receiverId }) => {
+    const receiverSocketId = connectedUsers.get(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('typing', { senderId });
+    }
+  });
+
+  // Seen status
+  socket.on('seen', ({ messageId, userId, friendId }) => {
+    const friendSocketId = connectedUsers.get(friendId);
+    if (friendSocketId) {
+      io.to(friendSocketId).emit('seen', { messageId, userId });
+    }
   });
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    let disconnectedUserId = null;
     for (let [key, value] of connectedUsers.entries()) {
       if (value === socket.id) {
+        disconnectedUserId = key;
         connectedUsers.delete(key);
         break;
       }
+    }
+    if (disconnectedUserId) {
+      io.emit('user_offline', { userId: disconnectedUserId });
     }
   });
 });

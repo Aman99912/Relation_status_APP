@@ -35,6 +35,14 @@
 //     receiver.friendRequests.push({ from: senderId });
 //     await receiver.save();
 
+//     // SOCKET.IO: Notify receiver in real-time
+//     const io = req.app.get('io');
+//     const connectedUsers = req.app.get('connectedUsers');
+//     const receiverSocketId = connectedUsers.get(receiverId.toString());
+//     if (io && receiverSocketId) {
+//       io.to(receiverSocketId).emit('notification:new_friend_request', { from: senderId });
+//     }
+
 //     res.status(200).json({ success: true, message: "Request sent" });
 //   } catch (err) {
 //     console.error("Error sending request:", err);
@@ -75,17 +83,15 @@
 //       return res.status(404).json({ message: "User or sender not found" });
 //     }
 
- 
 //     if (action === "accept") {
 //       if ((user.friends || []).length >= 1) {
-//         return res.status(400).json({ message: `${user.fullname} cannot have more than one friend.` });
+//         return res.status(400).json({ message: `${user.name} cannot have more than one friend.` });
 //       }
 //       if ((sender.friends || []).length >= 1) {
-//         return res.status(400).json({ message: `${sender.fullname} cannot have more than one friend.` });
+//         return res.status(400).json({ message: `${sender.name} cannot have more than one friend.` });
 //       }
 //     }
 
-    
 //     user.friendRequests = (user.friendRequests || []).filter(
 //       (r) => r.from.toString() !== senderId
 //     );
@@ -98,7 +104,17 @@
 
 //     await user.save();
 
-//     res.json({ success: true, message: `Request ${action}ed` });
+//     // SOCKET.IO: Notify both users to update notifications
+//     const io = req.app.get('io');
+//     const connectedUsers = req.app.get('connectedUsers');
+//     const userSocketId = connectedUsers.get(userId.toString());
+//     const senderSocketId = connectedUsers.get(senderId.toString());
+//     if (io) {
+//       if (userSocketId) io.to(userSocketId).emit('notification:friend_request_update', { from: senderId, action });
+//       if (senderSocketId) io.to(senderSocketId).emit('notification:friend_request_update', { from: userId, action });
+//     }
+
+//     res.json({ success: true, message: `Friend request ${action}ed` });
 //   } catch (err) {
 //     console.error("Error responding to request:", err);
 //     res.status(500).json({ message: "Server error" });
@@ -123,8 +139,6 @@
 //       return res.status(404).json({ success: false, message: "User not found" });
 //     }
 
-   
-    
 //     res.json({
 //       success: true,
 //       pendingRequests: user.friendRequests,
@@ -170,6 +184,14 @@ export const sendFriendRequest = async (req, res) => {
 
     receiver.friendRequests.push({ from: senderId });
     await receiver.save();
+
+    // SOCKET.IO: Notify receiver in real-time
+    const io = req.app.get('io');
+    const connectedUsers = req.app.get('connectedUsers');
+    const receiverSocketId = connectedUsers.get(receiverId.toString());
+    if (io && receiverSocketId) {
+      io.to(receiverSocketId).emit('notification:new_friend_request', { from: senderId });
+    }
 
     res.status(200).json({ success: true, message: "Request sent" });
   } catch (err) {
@@ -236,6 +258,16 @@ export const respondToRequest = async (req, res) => {
 
     await user.save();
 
+    // SOCKET.IO: Notify both users to update notifications
+    const io = req.app.get('io');
+    const connectedUsers = req.app.get('connectedUsers');
+    const userSocketId = connectedUsers.get(userId.toString());
+    const senderSocketId = connectedUsers.get(senderId.toString());
+    if (io) {
+      if (userSocketId) io.to(userSocketId).emit('notification:friend_request_update', { from: senderId, action });
+      if (senderSocketId) io.to(senderSocketId).emit('notification:friend_request_update', { from: userId, action });
+    }
+
     res.json({ success: true, message: `Friend request ${action}ed` }); // More specific message
   } catch (err) {
     console.error("Error responding to request:", err);
@@ -283,6 +315,14 @@ export const sendUnfriendRequest = async (req, res) => {
     // Add unfriend request to the receiver's unfriendRequests array
     receiver.unfriendRequests.push({ from: senderId });
     await receiver.save();
+
+    // SOCKET.IO: Notify receiver in real-time
+    const io = req.app.get('io');
+    const connectedUsers = req.app.get('connectedUsers');
+    const receiverSocketId = connectedUsers.get(receiverId.toString());
+    if (io && receiverSocketId) {
+      io.to(receiverSocketId).emit('notification:new_unfriend_request', { from: senderId });
+    }
 
     res.status(200).json({ success: true, message: "Unfriend request sent successfully" });
   } catch (err) {
@@ -332,6 +372,16 @@ export const respondToUnfriendRequest = async (req, res) => {
       res.json({ success: true, message: "Unfriend request cancelled." });
     } else {
       return res.status(400).json({ message: "Invalid action for unfriend request" });
+    }
+
+    // SOCKET.IO: Notify both users to update notifications
+    const io = req.app.get('io');
+    const connectedUsers = req.app.get('connectedUsers');
+    const userSocketId = connectedUsers.get(userId.toString());
+    const senderSocketId = connectedUsers.get(senderId.toString());
+    if (io) {
+      if (userSocketId) io.to(userSocketId).emit('notification:unfriend_request_update', { from: senderId, action });
+      if (senderSocketId) io.to(senderSocketId).emit('notification:unfriend_request_update', { from: userId, action });
     }
 
   } catch (err) {

@@ -65,7 +65,7 @@ const ProfileScreen = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f0f2f5' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -156,35 +156,35 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 15,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.gray,
   },
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 40,
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.cardBg,
     paddingTop: 60,
     paddingBottom: 20,
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ebebeb',
+    borderBottomColor: COLORS.inputBorder,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
   },
 
   profileCard: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.cardBg,
     borderRadius: 25,
     padding: 20,
     marginHorizontal: 20,
     marginBottom: 10,
     marginTop: 10,
-    shadowColor: '#000',
+    shadowColor: COLORS.cardShadow,
     shadowOpacity: 0.06,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
@@ -195,22 +195,22 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 5,
-    borderColor: COLORS.background || '#8a2be2', 
+    borderColor: COLORS.gradientEnd,
     marginBottom: 20,
   },
   profileName: {
     fontSize: 30,
     fontWeight: '800',
-    color: '#222',
+    color: COLORS.text,
     marginBottom: 8,
   },
   profileUsername: {
     fontSize: 19,
-    color: '#777',
+    color: COLORS.gray,
     marginBottom: 20,
   },
   viewProfileButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: COLORS.background,
     borderWidth: 2,
     borderColor: COLORS.primary,
     borderRadius: 30,
@@ -227,18 +227,18 @@ const styles = StyleSheet.create({
   settingsSectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#555',
+    color: COLORS.gray,
     marginHorizontal: 25,
     marginTop: 25,
     marginBottom: 10,
   },
   settingCard: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.cardBg,
     borderRadius: 20,
     marginHorizontal: 20,
     paddingVertical: 5,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: COLORS.cardShadow,
     shadowOpacity: 0.05,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: COLORS.inputBorder,
   },
   lastSettingItem: {
     borderBottomWidth: 0, // No border for the last item in a card
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   settingItemText: {
     marginLeft: 15,
     fontSize: 16,
-    color: '#444',
+    color: COLORS.text,
     fontWeight: '500',
     flex: 1,
   },
