@@ -278,8 +278,8 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 30,
-    fontWeight: '800',
-    color: '#872341',
+    fontWeight: '400',
+    color: '#555',
     textAlign: 'center',
     marginBottom: 20,
   },

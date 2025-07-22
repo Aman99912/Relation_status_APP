@@ -12,19 +12,23 @@ import {
   Alert,
   Dimensions,
   ActivityIndicator,
+  Modal,
+  BackHandler,
+  Linking,
 } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
 import usePermissions from '../hooks/usePermissions'; // Ensure this hook is correctly implemented
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../Color'; // Ensure COLORS is correctly defined
 import axios from 'axios';
 import { APIPATH } from '../utils/apiPath'; // Ensure APIPATH is correctly defined
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import { SocketContext } from '../context/SocketContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -52,6 +56,77 @@ const ChatScreen = () => {
   const [seenIds, setSeenIds] = useState([]);
   const [isOnline, setIsOnline] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [mediaModal, setMediaModal] = useState({ visible: false, uri: null, type: null, group: [], index: 0 });
+  const [audioState, setAudioState] = useState({
+    playingId: null,
+    isPlaying: false,
+    position: 0,
+    duration: 1,
+  });
+
+  // Helper to format time
+  const formatTime = (ms) => {
+    const totalSec = Math.floor(ms / 1000);
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+  };
+
+  // Play/Pause/Seek logic
+  const playPauseAudio = async (uri, id) => {
+    try {
+      if (audioState.playingId === id && audioState.isPlaying) {
+        await soundObjectRef.current.pauseAsync();
+        setAudioState((s) => ({ ...s, isPlaying: false }));
+        return;
+      }
+      if (audioState.playingId === id && !audioState.isPlaying) {
+        await soundObjectRef.current.playAsync();
+        setAudioState((s) => ({ ...s, isPlaying: true }));
+        return;
+      }
+      if (soundObjectRef.current && soundObjectRef.current._loaded) {
+        await soundObjectRef.current.unloadAsync();
+      }
+      const { sound, status } = await Audio.Sound.createAsync(
+        { uri },
+        { shouldPlay: true },
+        (playbackStatus) => {
+          if (!playbackStatus.isLoaded) return;
+          setAudioState((s) => ({
+            ...s,
+            position: playbackStatus.positionMillis,
+            duration: playbackStatus.durationMillis || 1,
+            isPlaying: playbackStatus.isPlaying,
+          }));
+          if (playbackStatus.didJustFinish) {
+            setAudioState({ playingId: null, isPlaying: false, position: 0, duration: 1 });
+          }
+        }
+      );
+      soundObjectRef.current = sound;
+      setAudioState({ playingId: id, isPlaying: true, position: 0, duration: status.durationMillis || 1 });
+    } catch (err) {
+      Alert.alert('Error', 'Could not play audio.');
+    }
+  };
+
+  const seekAudio = async (value) => {
+    if (soundObjectRef.current && audioState.playingId) {
+      await soundObjectRef.current.setPositionAsync(value);
+      setAudioState((s) => ({ ...s, position: value }));
+    }
+  };
+
+  useEffect(() => {
+    if (mediaModal.visible) {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        setMediaModal({ visible: false, uri: null, type: null, group: [], index: 0 });
+        return true;
+      });
+      return () => backHandler.remove();
+    }
+  }, [mediaModal.visible]);
 
   useEffect(() => {
     const init = async () => {
@@ -148,7 +223,7 @@ const ChatScreen = () => {
   };
 
   useFocusEffect(
-    useCallback(() => {
+    React.useCallback(() => {
       // Only fetch messages if userId and friendId are available
       if (userId && friendId) {
         fetchMessages();
@@ -257,19 +332,21 @@ const ChatScreen = () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Camera permission is required to take photos.');
+        // Re-request permission popup
+        await ImagePicker.requestCameraPermissionsAsync();
         return;
       }
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.7,
+        quality: 1,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
         await uploadMedia(result.assets[0].uri, 'image');
       }
     } catch (error) {
       console.error('Error launching camera:', error);
-      Alert.alert('Error', 'Could not open camera. Please check permissions or try again.');
+      // Do not show error, just return
+      return;
     }
   };
 
@@ -277,45 +354,79 @@ const ChatScreen = () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Media library permission is required to pick photos.');
+        // Re-request permission popup
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images, // Only allow images from gallery
-        quality: 0.7,
+        quality: 1,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
         await uploadMedia(result.assets[0].uri, 'image');
       }
     } catch (error) {
       console.error('Error launching image library:', error);
-      Alert.alert('Error', 'Could not open gallery. Please check permissions or try again.');
+      // Do not show error, just return
+      return;
     }
   };
 
   const startRecording = async () => {
+    // Ensure any previous recording is fully cleaned up
+    if (recording) {
+      try {
+        await recording.stopAndUnloadAsync();
+      } catch (e) {
+        // Ignore errors
+      }
+      setRecording(null);
+    }
     try {
+      const DuckOthers = Audio?.InterruptionModeAndroid?.DuckOthers ?? 1;
+      const DuckOthersIOS = Audio?.InterruptionModeIOS?.DuckOthers ?? 1;
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Microphone permission is required for audio recording.');
-        return;
+        // Re-request permission popup
+        const { status: retryStatus } = await Audio.requestPermissionsAsync();
+        if (retryStatus !== 'granted') {
+          Alert.alert(
+            'Microphone Permission Needed',
+            'Microphone permission is denied. Please enable it in your device settings.',
+            [
+              {
+                text: 'Open Settings',
+                onPress: () => {
+                  if (Platform.OS === 'ios') {
+                    Linking.openURL('app-settings:');
+                  } else {
+                    Linking.openSettings();
+                  }
+                }
+              },
+              { text: 'Cancel', style: 'cancel' }
+            ]
+          );
+          return;
+        }
       }
 
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
         shouldDuckAndroid: true,
-        interruptionModeAndroid: Audio.InterruptionModeAndroid.DuckOthers,
-        interruptionModeIOS: Audio.InterruptionModeIOS.DuckOthers,
+        interruptionModeAndroid: DuckOthers,
+        interruptionModeIOS: DuckOthersIOS,
         playThroughEarpieceAndroid: false,
         staysActiveInBackground: false,
       });
-      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      setRecording(recording);
+      const { recording: newRecording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording(newRecording);
       Alert.alert('Recording Started', 'Tap microphone again to stop.');
     } catch (err) {
       console.error('Start recording error:', err);
       Alert.alert('Error', 'Failed to start recording. Please check microphone permissions and try again.');
+      setRecording(null);
     }
   };
 
@@ -333,6 +444,7 @@ const ChatScreen = () => {
     } catch (err) {
       console.error('Stop recording error:', err);
       Alert.alert('Error', 'Failed to stop recording or upload audio. Try again.');
+      setRecording(null);
     }
   };
 
@@ -395,51 +507,119 @@ const ChatScreen = () => {
   const renderMessage = ({ item }) => {
     const isMine = item.senderId === userId;
     const isImageOrGif = item.messageType === 'image' || item.messageType === 'gif';
+    const isVideo = item.messageType === 'video';
     const isAudio = item.messageType === 'audio';
     const delivered = deliveredIds.includes(item._id);
     const seen = seenIds.includes(item._id);
-    return (
-      <TouchableOpacity onLongPress={() => handleLongPress(item)}>
-        <View style={[styles.messageContainer, isMine ? styles.myMessage : styles.theirMessage]}>
-          {item.messageType === 'text' && <Text style={styles.messageText}>{item.text}</Text>}
 
-          {/* Conditional rendering for Image/GIF */}
-          {isImageOrGif && item.imageUrl ? ( // Ensure imageUrl exists
-            <View>
+    // Grouped images logic (if item.images is an array of image URLs)
+    const images = Array.isArray(item.images) && item.images.length > 0 ? item.images : item.imageUrl ? [item.imageUrl] : [];
+    const showGroup = images.length >= 4;
+
+    return (
+      <TouchableOpacity onLongPress={() => handleLongPress(item)} activeOpacity={1}>
+        <View style={[
+          styles.messageContainer,
+          isMine ? styles.myMessage : styles.theirMessage,
+          { flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start', padding: isImageOrGif || isVideo ? 0 : 10, minWidth: isImageOrGif || isVideo ? 90 : undefined }
+        ]}>
+          {/* Text message */}
+          {item.messageType === 'text' && (
+            <Text style={styles.messageText}>{item.text}</Text>
+          )}
+
+          {/* Grouped images (4+) */}
+          {showGroup && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 2 }}>
+              {images.slice(0, 4).map((img, idx) => (
+                <TouchableOpacity
+                  key={img + idx}
+                  activeOpacity={0.85}
+                  onPress={() => setMediaModal({ visible: true, uri: img, type: 'image', group: images, index: idx })}
+                  style={{
+                    marginLeft: idx === 0 ? 0 : -18,
+                    zIndex: 10 - idx,
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    borderWidth: 0.5,
+                    borderColor: '#bbb',
+                    backgroundColor: '#f0f0f0',
+                  }}
+                >
+                  <Image
+                    source={{ uri: img }}
+                    style={{ width: width * 0.3, height: width * 0.3, borderRadius: 8 }}
+                  />
+                  <View style={{ position: 'absolute', bottom: 6, right: 8, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                    <Text style={{ color: '#fff', fontSize: 11 }}>{moment(item.createdAt).format('hh:mm A')}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+              {images.length > 4 && (
+                <View style={{ marginLeft: -18, zIndex: 1, borderRadius: 8, backgroundColor: '#e75480', width: width * 0.3, height: width * 0.3, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>+{images.length - 4}</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Single image (or <4 images) */}
+          {!showGroup && isImageOrGif && images.length === 1 && images[0] && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setMediaModal({ visible: true, uri: images[0], type: 'image', group: images, index: 0 })}
+              style={{ alignItems: isMine ? 'flex-end' : 'flex-start', width: width * 0.3 }}
+            >
               {imageLoading[item._id] && <ActivityIndicator size="small" color={COLORS.primary} style={styles.imageLoadingIndicator} />}
               <Image
-                source={{ uri: item.imageUrl }}
-                style={styles.chatImage}
-                onLoadStart={() => {
-                    // console.log('Image Load Start:', item.imageUrl);
-                    setImageLoading(prev => ({ ...prev, [item._id]: true }))
-                }}
-                onLoadEnd={() => {
-                    // console.log('Image Load End:', item.imageUrl);
-                    setImageLoading(prev => ({ ...prev, [item._id]: false }))
-                }}
+                source={{ uri: images[0] }}
+                style={{ width: '100%', aspectRatio: 1, borderRadius: 8, marginTop: 2, marginBottom: 2, backgroundColor: '#f0f0f0', borderWidth: 0.5, borderColor: '#bbb' }}
+                onLoadStart={() => setImageLoading(prev => ({ ...prev, [item._id]: true }))}
+                onLoadEnd={() => setImageLoading(prev => ({ ...prev, [item._id]: false }))}
                 onError={(e) => {
-                  console.error(`Image Load Error for message ID ${item._id} (URL: ${item.imageUrl}):`, e.nativeEvent.error);
                   setImageLoading(prev => ({ ...prev, [item._id]: false }));
-                  // You might want to display a broken image icon or text here instead
                 }}
               />
-              {item.text && item.text.trim() !== '' && <Text style={styles.imageCaptionText}>{item.text}</Text>}
-            </View>
-          ) : isImageOrGif && !item.imageUrl ? (
-            // Fallback for image/gif if imageUrl is missing
-            <Text style={styles.messageText}>Image/GIF unavailable. Missing URL.</Text>
+              <View style={{ position: 'absolute', bottom: 6, right: 8, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                <Text style={{ color: '#fff', fontSize: 11 }}>{moment(item.createdAt).format('hh:mm A')}</Text>
+              </View>
+              {item.text && item.text.trim() !== '' && (
+                <Text style={{ fontSize: 14, color: '#232323', marginTop: 4, marginBottom: 2, textAlign: isMine ? 'right' : 'left', backgroundColor: '#fff', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, alignSelf: isMine ? 'flex-end' : 'flex-start' }}>{item.text}</Text>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {/* Video message (same as before, can add grouping if needed) */}
+          {isVideo && item.videoUrl ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setMediaModal({ visible: true, uri: item.videoUrl, type: 'video', group: [item.videoUrl], index: 0 })}
+              style={{ alignItems: isMine ? 'flex-end' : 'flex-start', width: width * 0.3 }}
+            >
+              <View style={{ width: '100%', aspectRatio: 1, borderRadius: 8, marginTop: 2, marginBottom: 2, backgroundColor: '#000', borderWidth: 2, borderColor: '#e75480', justifyContent: 'center', alignItems: 'center' }}>
+                <Icon name="play-circle" size={32} color="#fff" />
+              </View>
+            </TouchableOpacity>
+          ) : isVideo && !item.videoUrl ? (
+            <Text style={styles.messageText}>Video unavailable. Missing URL.</Text>
           ) : null}
 
-          {/* Conditional rendering for Audio */}
-          {isAudio && item.audioUrl ? ( // Ensure audioUrl exists
-            <TouchableOpacity onPress={() => playAudio(item.audioUrl)}>
-              <Text style={styles.audioText}>
-                <Icon name="play-circle" size={20} color="green" /> Play Audio
-              </Text>
-            </TouchableOpacity>
+          {/* Audio message */}
+          {isAudio && item.audioUrl ? (
+            <View style={{ backgroundColor: '#f0f0f0', borderRadius: 8, padding: 8, marginTop: 2, marginBottom: 2, width: width * 0.6 }}>
+              <TouchableOpacity onPress={() => playPauseAudio(item.audioUrl, item._id)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name={audioState.playingId === item._id && audioState.isPlaying ? 'pause-circle' : 'play-circle'} size={28} color="#e75480" style={{ marginRight: 8 }} />
+                <Text style={{ color: '#232323', fontWeight: '500' }}>{audioState.playingId === item._id && audioState.isPlaying ? 'Pause' : 'Play'} Audio</Text>
+              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                <Text style={{ fontSize: 11, color: '#888', width: 38 }}>{formatTime(audioState.playingId === item._id ? audioState.position : 0)}</Text>
+                <View style={{ flex: 1, height: 4, backgroundColor: '#eee', borderRadius: 2, marginHorizontal: 6, overflow: 'hidden' }}>
+                  <View style={{ width: `${((audioState.playingId === item._id ? audioState.position : 0) / (audioState.playingId === item._id ? audioState.duration : 1)) * 100}%`, height: 4, backgroundColor: '#e75480' }} />
+                </View>
+                <Text style={{ fontSize: 11, color: '#888', width: 38, textAlign: 'right' }}>{formatTime(audioState.playingId === item._id ? audioState.duration : 0)}</Text>
+              </View>
+            </View>
           ) : isAudio && !item.audioUrl ? (
-            // Fallback for audio if audioUrl is missing
             <Text style={styles.messageText}>Audio unavailable. Missing URL.</Text>
           ) : null}
 
@@ -482,21 +662,21 @@ const ChatScreen = () => {
         </Text>
       </View>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={24} color={"black"} />
+        <Ionicons name="arrow-back" size={26} color="#232323" />
       </TouchableOpacity>
 
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', borderRadius: 0, marginHorizontal: 0, marginTop: 0, elevation: 0, shadowColor: 'transparent' }]}> 
         <Image source={{ uri: friendAvatar }} style={styles.avatar} />
-        <View style={{ flex: 1, marginLeft: 15 }}>
-          <Text style={styles.name}>{Name}</Text>
+        <View style={{ flex: 1, marginLeft: 15, justifyContent: 'center' }}>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: '#232323', letterSpacing: 0.2, textAlign: 'left' }}>{Name}</Text>
           {/* Online/offline status below name */}
-          <Text style={{ fontSize: 13, color: isOnline ? 'green' : 'gray', fontStyle: 'italic', marginTop: 2 }}>
+          <Text style={{ fontSize: 13, color: isOnline ? '#10B981' : '#bbb', fontStyle: 'italic', marginTop: 2, textAlign: 'left' }}>
             {isOnline ? 'Active now' : 'Offline'}
           </Text>
         </View>
         <View style={styles.headerIcons}>
-          <TouchableOpacity><Icon name="phone" size={24} color="black" /></TouchableOpacity>
-          <TouchableOpacity style={{ marginLeft: 26 }}><Icon name="video" size={24} color="black" /></TouchableOpacity>
+          <TouchableOpacity><Icon name="phone" size={24} color="#232323" /></TouchableOpacity>
+          <TouchableOpacity style={{ marginLeft: 26 }}><Icon name="video" size={24} color="#232323" /></TouchableOpacity>
         </View>
       </View>
       {/* Typing indicator */}
@@ -529,14 +709,14 @@ const ChatScreen = () => {
           </View>
         )}
         <TouchableOpacity onPress={handleCamera}>
-          <Icon name="camera" size={24} color="grey" />
+          <Ionicons name="camera-outline" size={24} color="#232323" />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleGallery}>
-          <Icon name="image" size={24} color="grey" style={styles.icon} />
+          <Ionicons name="image-outline" size={24} color="#232323" style={styles.icon} />
         </TouchableOpacity>
         {/* Removed the GIF sticker emoji button as per previous request */}
         <TouchableOpacity onPress={recording ? stopRecording : startRecording}>
-          <Icon name={recording ? 'stop' : 'microphone'} size={24} color={recording ? 'red' : 'grey'} style={styles.icon} />
+          <MaterialCommunityIcons name={recording ? 'stop-circle-outline' : 'microphone-outline'} size={24} color={recording ? '#e75480' : '#bbb'} style={styles.icon} />
         </TouchableOpacity>
         <TextInput
           style={styles.textInput}
@@ -546,9 +726,34 @@ const ChatScreen = () => {
           multiline
         />
         <TouchableOpacity onPress={handleSend}>
-          <Icon name="send" size={24} color="grey" style={styles.icon} />
+          <Ionicons name="send" size={26} color="#e75480" style={styles.icon} />
         </TouchableOpacity>
       </View>
+      {/* Media Modal for viewing images/videos fullscreen */}
+      <Modal visible={mediaModal.visible} transparent animationType="fade" onRequestClose={() => setMediaModal({ visible: false, uri: null, type: null, group: [], index: 0 })}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center', alignItems: 'center' }}>
+          {mediaModal.type === 'image' && mediaModal.group.length > 1 ? (
+            <FlatList
+              data={mediaModal.group}
+              horizontal
+              pagingEnabled
+              initialScrollIndex={mediaModal.index}
+              getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+              renderItem={({ item: img }) => (
+                <Image source={{ uri: img }} style={{ width: width, height: height * 0.7, resizeMode: 'contain' }} />
+              )}
+              keyExtractor={(img, idx) => img + idx}
+              showsHorizontalScrollIndicator={false}
+            />
+          ) : mediaModal.type === 'image' ? (
+            <Image source={{ uri: mediaModal.uri }} style={{ width: width, height: height * 0.7, resizeMode: 'contain' }} />
+          ) : null}
+          {mediaModal.type === 'video' && (
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>Video player coming soon</Text>
+            // You can use expo-av or react-native-video for actual video playback
+          )}
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -558,7 +763,7 @@ export default ChatScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F4F4',
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
@@ -610,17 +815,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   myMessage: {
-    backgroundColor: '#DBE2D9', // A slightly muted green/grey
+    backgroundColor: '#f0f0f0',
     alignSelf: 'flex-end',
     marginRight: 5, // Small margin to prevent sticking to edge
   },
   theirMessage: {
-    backgroundColor: '#f7ecdc', // A light peach/cream
+    backgroundColor: '#f9f9f9',
     alignSelf: 'flex-start',
     marginLeft: 5, // Small margin
   },
   messageText: {
-    color: 'black',
+    color: '#232323',
   },
   chatImage: {
     width: width * 0.65, // Make image width responsive, max 65% of screen width
@@ -663,8 +868,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 8,
     alignItems: 'center',
-    backgroundColor: "#FFF5F9",
-    borderTopColor: '#ddd',
+    backgroundColor: '#fff',
+    borderTopColor: '#eee',
     borderTopWidth: 1,
     position: 'absolute',
     bottom: 0,

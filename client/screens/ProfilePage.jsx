@@ -18,6 +18,7 @@ import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
 import Logout from '../components/logout';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 
 const ProfileScreen = () => {
@@ -73,31 +74,66 @@ const ProfileScreen = () => {
       >
        
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
+          <Text style={[styles.headerTitle, { fontWeight: '700', color: '#444', letterSpacing: 0.2 }]}>My Profile</Text>
         </View>
 
-       
-        <View style={styles.profileCard}>
-          <Image
-            source={user?.avatar ? { uri: user.avatar } : require('../assets/avatar.png')}
-            style={styles.profileImage}
-          />
-          <Text style={styles.profileName}>{user?.fullname || 'Guest User'}</Text>
-          <Text style={styles.profileUsername}>@{user?.username || 'unknown'}</Text>
-
+        <LinearGradient
+          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={{
+            borderRadius: 25,
+            padding: 24,
+            marginHorizontal: 20,
+            marginBottom: 10,
+            marginTop: 10,
+            shadowColor: COLORS.cardShadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 18,
+            shadowOffset: { width: 0, height: 10 },
+            elevation: 6,
+            alignItems: 'center',
+            position: 'relative',
+          }}
+        >
+          {/* Accent dot */}
+          <View style={{ position: 'absolute', top: 18, left: 22, width: 14, height: 14, borderRadius: 7, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: '#fff' }} />
+          {/* Avatar with premium ring */}
+          <View style={{
+            shadowColor: COLORS.accent,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.18,
+            shadowRadius: 8,
+            elevation: 6,
+            borderRadius: 70,
+            backgroundColor: '#fff',
+            padding: 5,
+            borderWidth: 2,
+            borderColor: COLORS.accent,
+            marginBottom: 18,
+          }}>
+            <Image
+              source={user?.avatar ? { uri: user.avatar } : require('../assets/avatar.png')}
+              style={{ width: 110, height: 110, borderRadius: 55, backgroundColor: COLORS.white }}
+            />
+          </View>
+          <Text style={{ fontSize: 26, fontWeight: '700', color: COLORS.text, marginBottom: 4, letterSpacing: 0.2 }}>{user?.fullname || 'Guest User'}</Text>
+          <Text style={{ fontSize: 16, color: COLORS.gray, marginBottom: 16 }}>@{user?.username || 'unknown'}</Text>
           <TouchableOpacity
-            style={styles.viewProfileButton}
-            onPress={() => {
-              navigation.navigate('MainApp', { screen: 'chatPF' })
-            }}
+            style={{ backgroundColor: COLORS.primary, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 32, marginTop: 5, shadowColor: COLORS.primary, shadowOpacity: 0.10, shadowRadius: 8, elevation: 2 }}
+            onPress={() => navigation.navigate('MainApp', { screen: 'chatPF' })}
+            activeOpacity={0.85}
           >
-            <Text style={styles.viewProfileButtonText}>Edit Profile</Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Edit Profile</Text>
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
         {/* Settings Sections */}
-        <Text style={styles.settingsSectionTitle}>Account</Text>
-        <View style={styles.settingCard}>
+        <Text style={[styles.settingsSectionTitle, { fontWeight: '500', color: '#888', fontSize: 16 }]}>Account</Text>
+        <LinearGradient
+          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[styles.settingCard, { borderWidth: 1.5, borderColor: '#e75480', shadowColor: '#e75480', shadowOpacity: 0.08, shadowRadius: 10, elevation: 6 }]}
+        >
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => navigation.navigate('MainApp', { screen: 'Dashboard' })}
@@ -119,10 +155,14 @@ const ProfileScreen = () => {
             <Text style={styles.settingItemText}>Gift Shop</Text>
             <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
-        <Text style={styles.settingsSectionTitle}>General</Text>
-        <View style={styles.settingCard}>
+        <Text style={[styles.settingsSectionTitle, { fontWeight: '500', color: '#888', fontSize: 16 }]}>General</Text>
+        <LinearGradient
+          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[styles.settingCard, { borderWidth: 1.5, borderColor: '#e75480', shadowColor: '#e75480', shadowOpacity: 0.08, shadowRadius: 10, elevation: 6 }]}
+        >
           <TouchableOpacity style={styles.settingItem}>
             <Ionicons name="map-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Map</Text>
@@ -134,7 +174,7 @@ const ProfileScreen = () => {
             <Text style={styles.settingItemText}>Help & Support</Text>
             <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
        
         <Logout  />

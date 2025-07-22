@@ -207,8 +207,9 @@ export default function AddUser() {
           elevation: 10,
           borderWidth: 1.5,
           borderColor: COLORS.border,
+          flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           position: 'relative',
         }}
       >
@@ -222,39 +223,63 @@ export default function AddUser() {
           shadowRadius: 8,
           elevation: 6,
           borderRadius: 40,
-          marginBottom: 10,
           backgroundColor: '#fff',
           padding: 3,
           borderWidth: 2,
           borderColor: COLORS.accent,
+          marginRight: 18,
         }}>
           <Image
             source={user.avatarUrl && user.avatarUrl.startsWith('http') ? { uri: user.avatarUrl } : require('../assets/male.png')}
             style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: COLORS.white }}
           />
         </View>
-        <Text style={{ fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 2, letterSpacing: 0.2 }}>{user.fullname}</Text>
-        {/* Status pill */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-          <View style={{ backgroundColor: user.isFriend ? COLORS.accent : user.isRequestPending ? COLORS.gray : COLORS.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, minWidth: 70, alignItems: 'center' }}>
-            <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>
-              {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Not Friend'}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={{ marginTop: 8, backgroundColor: isDisabled ? COLORS.gray : COLORS.primary, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 22, shadowColor: COLORS.primary, shadowOpacity: 0.12, shadowRadius: 8, elevation: 2 }}
-          disabled={isDisabled}
-          onPress={() => handleAddRequest(user.id)}
-        >
-          {sendingRequestId === user.id ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
-              {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Add'}
-            </Text>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 4, letterSpacing: 0.2 }}>{user.fullname}</Text>
+          {/* Status pill */}
+          {user.id === myUserId && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <View style={{ backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, minWidth: 70, alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>You</Text>
+              </View>
+            </View>
           )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              marginTop: 0,
+              backgroundColor:
+                user.isFriend
+                  ? '#e75480' // dark pink for Friend
+                  : user.isRequestPending
+                  ? '#ffb347' // light orange for Requested
+                  : COLORS.accent, // accent pink for Add
+              borderRadius: 16,
+              paddingVertical: 7,
+              paddingHorizontal: 22,
+              shadowColor:
+                user.isFriend
+                  ? '#e75480'
+                  : user.isRequestPending
+                  ? '#ffb347'
+                  : COLORS.accent,
+              shadowOpacity: 0.12,
+              shadowRadius: 8,
+              elevation: 2,
+              alignSelf: 'flex-start',
+              opacity: isDisabled ? 0.7 : 1,
+            }}
+            disabled={isDisabled}
+            onPress={() => handleAddRequest(user.id)}
+          >
+            {sendingRequestId === user.id ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
+                {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Add'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
     );
   };
@@ -303,14 +328,14 @@ export default function AddUser() {
             }}
           >
             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, letterSpacing: 0.5 }}>
-              {isCodeGenerated ? 'Generated Code' : loading ? 'Generating...' : 'Get Your Code'}
+              {isCodeGenerated ? 'Generated Code' : loading ? 'Generating...' : 'Generate My Code'}
             </Text>
           </View>
         </TouchableOpacity>
 
         <View style={styles.codeRow}>
           {Array.from({ length: 10 }).map((_, i) => (
-            <View key={i} style={[styles.displayBox, { borderColor: '#e75480' }]}>
+            <View key={i} style={[styles.displayBox, { borderColor: '#e75480', backgroundColor: '#fff0f5', borderRadius: 8 }]}>
               <Text style={styles.codeDigit}>{generatedCode[i] || ''}</Text>
             </View>
           ))}
@@ -343,7 +368,9 @@ export default function AddUser() {
         ) : hasSearched && !userData ? (
           <Text style={styles.notFound}>User not found</Text>
         ) : userData ? (
-          renderCard(userData)
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', marginTop: 18, marginBottom: 10 }}>
+            {renderCard(userData)}
+          </View>
         ) : null}
       </ScrollView>
     </KeyboardAvoidingView>

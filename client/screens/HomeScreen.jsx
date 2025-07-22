@@ -186,38 +186,38 @@ export default function HomeScreen() {
         setAlertType('warning');
         setAlertShowCancel(true);
         setAlertOnConfirm(() => async () => {
-            try {
-                const userId = await AsyncStorage.getItem('userId');
-                const Token = await AsyncStorage.getItem('Token');
+                        try {
+                            const userId = await AsyncStorage.getItem('userId');
+                            const Token = await AsyncStorage.getItem('Token');
 
-                if (!userId) {
+                            if (!userId) {
                     showCustomAlert('Error', 'Your user ID not found. Please log in again.', 'error');
-                    return;
-                }
+                                return;
+                            }
 
-                const response = await axios.post(
-                    `${APIPATH.BASE_URL}/${APIPATH.SEND_UNFRIEND_REQUEST}`,
-                    {
-                        senderId: userId,
-                        receiverId: friendId,
-                    },
-                    {
-                        headers: { Authorization: `${Token}` },
-                    }
-                );
+                            const response = await axios.post(
+                                `${APIPATH.BASE_URL}/${APIPATH.SEND_UNFRIEND_REQUEST}`,
+                                {
+                                    senderId: userId,
+                                    receiverId: friendId,
+                                },
+                                {
+                                    headers: { Authorization: `${Token}` },
+                                }
+                            );
 
-                if (response.data.success) {
+                            if (response.data.success) {
                     showCustomAlert('Success', 'Unfriend request sent successfully!', 'success');
-                } else {
+                            } else {
                     showCustomAlert('Error', response.data.message || 'Failed to send unfriend request.', 'error');
-                }
-            } catch (error) {
-                console.error("Error sending unfriend request:", error);
+                            }
+                        } catch (error) {
+                            console.error("Error sending unfriend request:", error);
                 showCustomAlert('Error', error?.response?.data?.message || 'Failed to send unfriend request.', 'error');
-            } finally {
-                setFriendMenuModalVisible(false);
-                setSelectedFriendForMenu(null);
-            }
+                        } finally {
+                            setFriendMenuModalVisible(false);
+                            setSelectedFriendForMenu(null);
+                        }
         });
         setShowAlert(true);
     };
@@ -228,12 +228,12 @@ export default function HomeScreen() {
         setAlertType('warning');
         setAlertShowCancel(true);
         setAlertOnConfirm(() => () => {
-            const updatedFriendsList = friendsList.filter(f => f._id !== friendId);
-            setFriendsList(updatedFriendsList);
-            setIsVerified(updatedFriendsList.length > 0);
-            ToastAndroid.show(`${selectedFriendForMenu?.name}'s card hidden locally.`, ToastAndroid.SHORT);
-            setFriendMenuModalVisible(false);
-            setSelectedFriendForMenu(null);
+                        const updatedFriendsList = friendsList.filter(f => f._id !== friendId);
+                        setFriendsList(updatedFriendsList);
+                        setIsVerified(updatedFriendsList.length > 0);
+                        ToastAndroid.show(`${selectedFriendForMenu?.name}'s card hidden locally.`, ToastAndroid.SHORT);
+                        setFriendMenuModalVisible(false);
+                        setSelectedFriendForMenu(null);
         });
         setShowAlert(true);
     };
@@ -267,11 +267,11 @@ export default function HomeScreen() {
                     </View>
                     <TouchableOpacity onPress={NotificationHandle} style={{ position: 'relative' }}>
                         <FontAwesome name="bell" size={30} color={COLORS.white} />
-                        {(userData?.notifNo > 0 || hasUnfriendRequests) && (
+                    {(userData?.notifNo > 0 || hasUnfriendRequests) && (
                             <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: COLORS.badge, borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
                                 <Text style={{ color: COLORS.white, fontSize: 12, fontWeight: 'bold' }}>{userData?.notifNo > 0 ? userData.notifNo : ''}{hasUnfriendRequests && userData?.notifNo === 0 ? '•' : ''}</Text>
-                            </View>
-                        )}
+                        </View>
+                    )}
                     </TouchableOpacity>
                 </View>
             </LinearGradient>
@@ -283,7 +283,7 @@ export default function HomeScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* User Card - modern card with shadow and background */}
-                {userData && (
+            {userData && (
                     <LinearGradient
                         colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
                         start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -339,13 +339,13 @@ export default function HomeScreen() {
                         </View>
                         <TouchableOpacity
                             style={{ marginTop: 8, backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 22, shadowColor: COLORS.primary, shadowOpacity: 0.12, shadowRadius: 8, elevation: 2 }}
-                            onPress={onUserCardPress}
+                    onPress={onUserCardPress}
                             disabled={isVerified}
                         >
                             <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 14 }}>{isVerified ? 'Verified' : 'Verify Secret Code'}</Text>
                         </TouchableOpacity>
                     </LinearGradient>
-                )}
+            )}
 
                 {/* Centered red heart between cards */}
                 {isVerified && friendsList.length > 0 && (
@@ -355,7 +355,7 @@ export default function HomeScreen() {
                         </View>
                         {friendsList.map((friend) => (
                             <LinearGradient
-                                key={friend._id}
+                        key={friend._id}
                                 colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                                 style={{
@@ -407,10 +407,10 @@ export default function HomeScreen() {
                                 </View>
                                 <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 6 }}>
                                     <TouchableOpacity onPress={() => navigation.navigate('chats', {
-                                        friendId: friend._id,
-                                        friendName: friend.name,
-                                        friendAvatar: friend.avatar,
-                                        friendEmail: friend.email,
+                                friendId: friend._id,
+                                friendName: friend.name,
+                                friendAvatar: friend.avatar,
+                                friendEmail: friend.email,
                                     })} style={{ marginRight: 10 }} activeOpacity={0.7}>
                                         <FontAwesome name="comments" size={20} color={COLORS.primary} />
                                     </TouchableOpacity>

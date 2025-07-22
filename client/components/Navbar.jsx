@@ -3,6 +3,8 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { COLORS } from '../Color';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function NavBar() {
   const navigation = useNavigation();
@@ -14,24 +16,26 @@ export default function NavBar() {
   const ProfileHandle = () => navigation.navigate('MainApp', { screen: 'Logout' });
 
   return (
-    <View style={navStyle.container}>
+    <LinearGradient
+      colors={['#e75480', '#f8e1f4']}
+      start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }}
+      style={navStyle.container}
+    >
       <TouchableOpacity style={navStyle.navItem} onPress={HomeHandle}>
-        <FontAwesome name="home" size={22} color="white" />
+        <Ionicons name="home-outline" size={26} color="#fff" />
       </TouchableOpacity>
 
       <TouchableOpacity style={navStyle.navItem} onPress={PlusHandle}>
-        <FontAwesome name="plus" size={22} color="white" />
+        <Ionicons name="person-add-outline" size={26} color="#fff" />
       </TouchableOpacity>
       <TouchableOpacity style={navStyle.navItem} onPress={bookHandle}>
-        <FontAwesome name="book" size={22} color="white" />
+        <MaterialCommunityIcons name="notebook-outline" size={26} color="#fff" />
       </TouchableOpacity>
-
-     
 
       <TouchableOpacity style={navStyle.navItem} onPress={ProfileHandle}>
-        <FontAwesome name="user" size={22} color="white" />
+        <Ionicons name="person-circle-outline" size={26} color="#fff" />
       </TouchableOpacity>
-    </View>
+    </LinearGradient>
   );
 }
 

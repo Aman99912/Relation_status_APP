@@ -21,6 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation } from '@react-navigation/native';
 import CalendarNote from '../components/calender';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const COLORS = {
   backgroundLight: '#FFF5F9',
@@ -187,154 +188,89 @@ export default function DiaryScreen() {
   };
 
   const renderCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => setDetailEntry(item)}
-      activeOpacity={0.85}
+    <LinearGradient
+      colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+      style={[styles.card, { borderWidth: 1.5, borderColor: '#e75480', shadowColor: '#e75480', shadowOpacity: 0.10, shadowRadius: 10, elevation: 6 }]}
     >
-      <Image
-        source={item.images && item.images.length > 0 ? { uri: item.images[0] } : require('../assets/male.png')}
-        style={styles.cardImage}
-      />
-      <View style={styles.cardTextContainer}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.cardDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-      </View>
+      <TouchableOpacity
+        style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+        onPress={() => setDetailEntry(item)}
+        activeOpacity={0.85}
+      >
+        <Image
+          source={item.images && item.images.length > 0 ? { uri: item.images[0] } : require('../assets/male.png')}
+          style={styles.cardImage}
+        />
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+          <Text style={styles.cardDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+        </View>
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.optionsButton}
-        onPress={() => handleDeleteEntry(item._id)} // Pass entry ID to delete
+        onPress={() => handleDeleteEntry(item._id)}
       >
         <FontAwesome name="trash" size={24} color={COLORS.primaryDark} />
       </TouchableOpacity>
-    </TouchableOpacity>
+    </LinearGradient>
   );
 
   return (
-    <>
-      <CalendarNote />
-      <View style={styles.container}>
-        <Text style={styles.header}>Memories</Text>
-
-        {loading ? (
-          <ActivityIndicator size="large" color={COLORS.primaryDark} style={{ marginTop: 30 }} />
-        ) : (
-          <FlatList
-            data={entries}
-            renderItem={renderCard}
-            keyExtractor={item => item._id}
-            contentContainerStyle={{ paddingBottom: 140, paddingTop: 10 }}
-            ListEmptyComponent={<Text style={styles.emptyText}>No entries yet.</Text>}
-          />
-        )}
-
-        <Modal visible={!!detailEntry} animationType="fade" transparent>
-          <Animated.View style={[styles.modalContainer, { opacity: fadeAnim }]}>
-            <View style={styles.modalContent}>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={{ marginBottom: 20 }}
-              >
-                {detailEntry?.images?.length > 0 ? (
-                  detailEntry.images.map((img, i) => (
-                    <Image key={i} source={{ uri: img }} style={styles.modalImage} />
-                  ))
-                ) : (
-                  <Image source={require('../assets/male.png')} style={styles.modalImage} />
-                )}
-              </ScrollView>
-              <Text style={styles.modalTitle}>{detailEntry?.title}</Text>
-              <Text style={styles.modalDescription}>{detailEntry?.description || 'No description'}</Text>
-
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setDetailEntry(null)}>
-                <Text style={styles.closeBtnText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </Modal>
-
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.addButtonText}>+ Add Entry</Text>
-        </TouchableOpacity>
-
-        <Modal visible={modalVisible} animationType="slide" transparent>
-          <View style={styles.addModalContainer}>
-            <View style={styles.addModalContent}>
-              <Text style={styles.addModalHeader}>Add New Diary Entry</Text>
-
-              <TextInput
-                placeholder="Title"
-                value={newTitle}
-                onChangeText={setNewTitle}
-                style={styles.input}
-                editable={!addingEntry}
-              />
-              <TextInput
-                placeholder="Description"
-                value={newDescription}
-                onChangeText={setNewDescription}
-                style={[styles.input, { height: 90, textAlignVertical: 'top' }]}
-                multiline
-                editable={!addingEntry}
-              />
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginVertical: 12 }}
-              >
-                {newImages.map((uri, i) => (
-                  <Image key={i} source={{ uri }} style={styles.thumbImage} />
-                ))}
-              </ScrollView>
-
-              <TouchableOpacity
-                style={styles.pickImageBtn}
-                onPress={pickImage}
-                disabled={addingEntry}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.pickImageBtnText}>Pick Images</Text>
-              </TouchableOpacity>
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalActionBtn, styles.cancelBtn]}
-                  onPress={() => {
-                    setModalVisible(false);
-                    setNewTitle('');
-                    setNewDescription('');
-                    setNewImages([]);
-                  }}
-                  disabled={addingEntry}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.modalActionText, { color: '#333' }]}>Cancel</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.modalActionBtn, styles.saveBtn]}
-                  onPress={submitNewEntry}
-                  disabled={addingEntry}
-                  activeOpacity={0.7}
-                >
-                  {addingEntry ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <Text style={styles.modalActionText}>Save</Text>
-                  )}
-                </TouchableOpacity>
+    <View style={{ flex: 1, backgroundColor: COLORS.backgroundLight }}>
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primaryDark} style={{ marginTop: 30 }} />
+      ) : (
+        <FlatList
+          data={entries}
+          renderItem={renderCard}
+          keyExtractor={item => item._id}
+          contentContainerStyle={{ paddingBottom: 140, paddingTop: 10 }}
+          ListEmptyComponent={<Text style={styles.emptyText}>No entries yet.</Text>}
+          ListHeaderComponent={
+            <>
+              <CalendarNote />
+              <View style={styles.container}>
+                <Text style={{ fontSize: 22, fontWeight: '500', color: '#555', marginBottom: 10, letterSpacing: 0.2, textAlign: 'center' }}>Diary Journal</Text>
               </View>
-            </View>
+            </>
+          }
+        />
+      )}
+      <Modal visible={!!detailEntry} animationType="fade" transparent>
+        <Animated.View style={[styles.modalContainer, { opacity: fadeAnim }]}>
+          <View style={styles.modalContent}>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: 20 }}
+            >
+              {detailEntry?.images?.length > 0 ? (
+                detailEntry.images.map((img, i) => (
+                  <Image key={i} source={{ uri: img }} style={styles.modalImage} />
+                ))
+              ) : (
+                <Image source={require('../assets/male.png')} style={styles.modalImage} />
+              )}
+            </ScrollView>
+            <Text style={styles.modalTitle}>{detailEntry?.title}</Text>
+            <Text style={styles.modalDescription}>{detailEntry?.description || 'No description'}</Text>
+
+            <TouchableOpacity style={styles.closeBtn} onPress={() => setDetailEntry(null)}>
+              <Text style={styles.closeBtnText}>Close</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-      </View>
-    </>
+        </Animated.View>
+      </Modal>
+      <TouchableOpacity
+        style={[styles.addButton, { backgroundColor: '#e75480', width: '45%', shadowColor: '#e75480', position: 'absolute', bottom: 80, right: 15,  zIndex: 10 }]}
+        onPress={() => setModalVisible(true)}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.addButtonText}>+ Add Entry</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -364,6 +300,7 @@ const styles = StyleSheet.create({
     padding: 16,
     shadowColor: '#000',
     shadowOpacity: 0.1,
+    marginHorizontal: 15,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 5 },
     elevation: 5,
@@ -407,13 +344,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 50,
   },
   modalContent: {
     backgroundColor: '#fff',
     borderRadius: 24,
     padding: 24,
-    width: '100%',
+    width: '90%',
     maxHeight: '85%',
     shadowColor: '#000',
     shadowOpacity: 0.15,
@@ -470,6 +407,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
     letterSpacing: 0.5,
+    textAlign: 'center',
+
   },
   addModalContainer: {
     flex: 1,
