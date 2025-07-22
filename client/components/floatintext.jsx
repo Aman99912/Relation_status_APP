@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from '../Color';
 
 export default function FloatingInput({
   label,
@@ -16,6 +17,7 @@ export default function FloatingInput({
   setValue,
   secure = false,
   numeric = false, // New prop for numeric input
+  ...rest // Spread all extra props to TextInput
 }) {
   const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -34,15 +36,9 @@ export default function FloatingInput({
     setShowPassword(!showPassword);
   };
 
-  // Allow only numeric input if `numeric` prop is true
+  // Directly set value for smooth typing; let parent handle any filtering
   const handleTextChange = (text) => {
-    if (numeric) {
-      // Remove non-numeric characters using regex
-      const numericText = text.replace(/[^0-9]/g, '');
-      setValue(numericText);
-    } else {
-      setValue(text);
-    }
+    setValue(text);
   };
 
   const labelStyle = {
@@ -56,8 +52,8 @@ export default function FloatingInput({
       inputRange: [0, 1],
       outputRange: [16, 12],
     }),
-    color: focused ? '#4a90e2' : '#aaa',
-    backgroundColor: '#fff',
+    color: focused ? COLORS.primary : COLORS.gray,
+    backgroundColor: COLORS.white,
     paddingHorizontal: 4,
     zIndex: 10,
   };
@@ -71,18 +67,20 @@ export default function FloatingInput({
         ref={inputRef}
         style={[styles.input, { paddingRight: secure ? 40 : 10 }]}
         value={value}
-        onChangeText={handleTextChange} // Updated handler
+        onChangeText={handleTextChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder=""
-        placeholderTextColor="#aaa"
+        placeholderTextColor={COLORS.gray}
         secureTextEntry={secure && !showPassword}
-        keyboardType={numeric ? "numeric" : "default"} 
+        keyboardType={numeric ? "numeric" : "default"}
+        {...rest}
       />
       {secure && (
         <TouchableOpacity
           onPress={togglePasswordVisibility}
           style={styles.eyeButton}
+          testID="eye-icon"
         >
           <Ionicons
             name={showPassword ? 'eye-off' : 'eye'}
@@ -102,17 +100,17 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderBottomWidth: 2,
     borderTopWidth: 0,
-    borderColor: '#ccc',
+    borderColor: COLORS.inputBorder,
     paddingTop: 18,
     paddingBottom: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 8,
     width: '95%',
     alignSelf: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.cardShadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 6,
@@ -125,12 +123,12 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
     paddingVertical: 6,
-    color: '#333',
+    color: COLORS.text,
   },
   eyeButton: {
     position: 'absolute',
     right: 15,
-    top: '50%',
-    transform: [{ translateY: 1 }],
+    top: 18, // fixed value for better vertical alignment
+    // Remove transform for more reliable positioning
   },
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-// import { COLORS } from '../colors';
+import { COLORS } from '../Color';
 
 export default function StartupScreen({ navigation }) {
   return (
@@ -19,11 +19,11 @@ export default function StartupScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { height:"100%",  backgroundColor: "rgb(255, 255, 255)", alignItems: 'center', justifyContent: 'center', padding: 20 },
+  container: { height:"100%",  backgroundColor: COLORS.logoBg, alignItems: 'center', justifyContent: 'center', padding: 20 },
   image: { width: 200, height: 200, marginBottom: 30, resizeMode: 'contain' },
   imageTop: { width: 60, height: 60, marginBottom: 60, resizeMode: 'contain' },
-  title: { fontSize: 22, fontWeight: 'bold', color: "white", marginBottom: 40 },
-  subtitle: { fontSize: 14, color: "gray", textAlign: 'center'  },
-  button: { marginTop: 90, backgroundColor: "grey", paddingVertical: 12, paddingHorizontal: 40, borderRadius: 25 },
-  buttonText: { color: '#fff', fontSize: 16 }
+  title: { fontSize: 22, fontWeight: 'bold', color: COLORS.logoTitle, marginBottom: 40 },
+  subtitle: { fontSize: 14, color: COLORS.logoSubtitle, textAlign: 'center'  },
+  button: { marginTop: 90, backgroundColor: COLORS.addfriendbtn, paddingVertical: 12, paddingHorizontal: 40, borderRadius: 25 },
+  buttonText: { color: COLORS.white, fontSize: 16 }
 });

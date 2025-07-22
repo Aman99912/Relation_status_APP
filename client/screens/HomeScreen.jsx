@@ -21,7 +21,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Loader from '../components/Loader';
-import { LinearGradient } from 'expo-linear-gradient';
 import CustomAlert from '../components/alert';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -247,13 +246,20 @@ export default function HomeScreen() {
     }
 
     return (
-        <>
-            {/* Modern gradient header with avatar and greeting */}
-            <LinearGradient
-                colors={[COLORS.primary, COLORS.accent]}
-                style={{ paddingTop: 60, paddingBottom: 30, paddingHorizontal: 24, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, elevation: 8 }}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            >
+        <><View style={{backgroundColor: COLORS.background}}>
+            <View style={{
+                paddingTop: 60,
+                paddingBottom: 30,
+                paddingHorizontal: 24,
+                borderBottomLeftRadius: 32,
+                borderBottomRightRadius: 32,
+                elevation: 8,
+                backgroundColor: COLORS.white,
+                shadowColor: COLORS.cardShadow,
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.12,
+                shadowRadius: 24,
+            }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Image
@@ -261,8 +267,8 @@ export default function HomeScreen() {
                             style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: COLORS.white, marginRight: 18, backgroundColor: COLORS.white }}
                         />
                         <View>
-                            <Text style={{ color: COLORS.white, fontSize: 22, fontWeight: 'bold', marginBottom: 2 }}>Hi, {userData?.fullname?.split(' ')[0] || 'User'} 👋</Text>
-                            <Text style={{ color: COLORS.white, fontSize: 14, opacity: 0.85 }}>{userData?.email || ''}</Text>
+                            <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: 'bold', marginBottom: 2 }}>Hi, {userData?.fullname?.split(' ')[0] || 'User'} 👋</Text>
+                            <Text style={{ color: COLORS.text, fontSize: 14, opacity: 0.85 }}>{userData?.email || ''}</Text>
                         </View>
                     </View>
                     <TouchableOpacity onPress={NotificationHandle} style={{ position: 'relative' }}>
@@ -274,19 +280,17 @@ export default function HomeScreen() {
                     )}
                     </TouchableOpacity>
                 </View>
-            </LinearGradient>
+            </View>
 
             <ScrollView
-                contentContainerStyle={{ padding: 20, paddingTop: 0, flexGrow: 1 }}
+                contentContainerStyle={{ padding: 20, paddingTop: 0, flexGrow: 1, backgroundColor: COLORS.background }}
                 ref={scrollRef}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 {/* User Card - modern card with shadow and background */}
             {userData && (
-                    <LinearGradient
-                        colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    <View
                         style={{
                             borderRadius: 20,
                             padding: 18,
@@ -303,10 +307,11 @@ export default function HomeScreen() {
                             alignItems: 'center',
                             justifyContent: 'center',
                             position: 'relative',
+                            backgroundColor: COLORS.cardBg,
                         }}
                     >
                         {/* Accent dot */}
-                        <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: '#fff' }} />
+                        <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: COLORS.white }} />
                         {/* Avatar with premium ring */}
                         <View style={{
                             shadowColor: COLORS.accent,
@@ -316,7 +321,7 @@ export default function HomeScreen() {
                             elevation: 6,
                             borderRadius: 40,
                             marginBottom: 10,
-                            backgroundColor: '#fff',
+                            backgroundColor: COLORS.white,
                             padding: 3,
                             borderWidth: 2,
                             borderColor: COLORS.accent,
@@ -332,32 +337,30 @@ export default function HomeScreen() {
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                             <MaterialCommunityIcons name="heart" size={18} color={isVerified && friendsList.length > 0 ? COLORS.accent : COLORS.gray} style={{ marginRight: 5 }} />
                             <View style={{ backgroundColor: isVerified && friendsList.length > 0 ? COLORS.accent : COLORS.gray, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, marginLeft: 2, minWidth: 70, alignItems: 'center' }}>
-                                <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>
+                                <Text style={{ fontSize: 13, color: COLORS.white, fontWeight: '600', letterSpacing: 0.2 }}>
                                     {isVerified ? (friendsList.length > 0 ? 'In Relation' : 'Single') : 'Hidden'}
                                 </Text>
                             </View>
                         </View>
                         <TouchableOpacity
-                            style={{ marginTop: 8, backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 22, shadowColor: COLORS.primary, shadowOpacity: 0.12, shadowRadius: 8, elevation: 2 }}
+                            style={{ marginTop: 8, backgroundColor: COLORS.addfriendbtn, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 22, shadowColor: COLORS.primary, shadowOpacity: 0.12, shadowRadius: 8, elevation: 2 }}
                     onPress={onUserCardPress}
                             disabled={isVerified}
                         >
                             <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 14 }}>{isVerified ? 'Verified' : 'Verify Secret Code'}</Text>
                         </TouchableOpacity>
-                    </LinearGradient>
+                    </View>
             )}
 
                 {/* Centered red heart between cards */}
                 {isVerified && friendsList.length > 0 && (
                     <>
                         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 0, marginTop: -18, marginBottom: 2 }}>
-                            <MaterialCommunityIcons name="heart" size={32} color="#FF3B3B" />
+                            <MaterialCommunityIcons name="heart" size={32} color={COLORS.badge} />
                         </View>
                         {friendsList.map((friend) => (
-                            <LinearGradient
+                            <View
                         key={friend._id}
-                                colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                                 style={{
                                     borderRadius: 20,
                                     padding: 18,
@@ -373,10 +376,11 @@ export default function HomeScreen() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     position: 'relative',
+                                    backgroundColor: COLORS.cardBg,
                                 }}
                             >
                                 {/* Accent dot */}
-                                <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: '#fff' }} />
+                                <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: COLORS.white }} />
                                 {/* Avatar with premium ring */}
                                 <View style={{
                                     shadowColor: COLORS.accent,
@@ -386,7 +390,7 @@ export default function HomeScreen() {
                                     elevation: 6,
                                     borderRadius: 30,
                                     marginBottom: 8,
-                                    backgroundColor: '#fff',
+                                    backgroundColor: COLORS.white,
                                     padding: 2,
                                     borderWidth: 2,
                                     borderColor: COLORS.accent,
@@ -402,7 +406,7 @@ export default function HomeScreen() {
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                                     <MaterialCommunityIcons name="heart" size={14} color={COLORS.accent} style={{ marginRight: 4 }} />
                                     <View style={{ backgroundColor: COLORS.accent, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, marginLeft: 2, minWidth: 70, alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 12, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>In Relation</Text>
+                                        <Text style={{ fontSize: 12, color: COLORS.white, fontWeight: '600', letterSpacing: 0.2 }}>In Relation</Text>
                                     </View>
                                 </View>
                                 <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 6 }}>
@@ -421,7 +425,7 @@ export default function HomeScreen() {
                                         <FontAwesome name="ellipsis-v" size={18} color={COLORS.gray} />
                                     </TouchableOpacity>
                                 </View>
-                            </LinearGradient>
+                            </View>
                         ))}
                     </>
                 )}
@@ -435,25 +439,25 @@ export default function HomeScreen() {
                     setInputPassword('');
                 }}
             >
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.18)', justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ flex: 1, backgroundColor: COLORS.overlay, justifyContent: 'center', alignItems: 'center' }}>
                     {/* Modern, beautiful modal container (neutral, no pink border/shadow) */}
                     <View style={{
                         width: '88%',
-                        backgroundColor: '#fff',
+                        backgroundColor: COLORS.white,
                         borderRadius: 28,
                         padding: 32,
                         alignItems: 'center',
-                        shadowColor: '#000',
+                        shadowColor: COLORS.cardShadow,
                         shadowOffset: { width: 0, height: 10 },
                         shadowOpacity: 0.13,
                         shadowRadius: 24,
                         elevation: 18,
                         borderTopWidth: 4,
-                        borderTopColor: '#e0e0e0',
+                        borderTopColor: COLORS.border,
                     }}>
                         <MaterialCommunityIcons name="lock-question" size={38} color={COLORS.primary} style={{ marginBottom: 10 }} />
                         <Text style={{ fontSize: 22, fontWeight: 'bold', color: COLORS.primary, marginBottom: 8, textAlign: 'center' }}>Enter Secret Code</Text>
-                        <Text style={{ fontSize: 15, color: '#444', marginBottom: 18, textAlign: 'center' }}>To unlock your relationship status, please enter your secret code.</Text>
+                        <Text style={{ fontSize: 15, color: COLORS.text, marginBottom: 18, textAlign: 'center' }}>To unlock your relationship status, please enter your secret code.</Text>
                         <FloatingInput
                             label="Secret Code"
                             value={inputPassword}
@@ -468,9 +472,9 @@ export default function HomeScreen() {
                             activeOpacity={0.8}
                         >
                             {passwordVerifying ? (
-                                <ActivityIndicator size="small" color="#fff" />
+                                <ActivityIndicator size="small" color={COLORS.white} />
                             ) : (
-                                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Verify</Text>
+                                <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>Verify</Text>
                             )}
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -540,6 +544,8 @@ export default function HomeScreen() {
             />
 
         </ScrollView>
+
+        </View>
         </>
     );
 }
@@ -595,7 +601,7 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 0,
     },
     userBox: {
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
         borderRadius: 15,
         width: '95%',
         maxWidth: 360,
@@ -604,12 +610,12 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 18,
         elevation: 8,
-        shadowColor: '#000',
+        shadowColor: COLORS.cardShadow,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 10,
         borderWidth: 1,
-        borderColor: '#e0e0e0',
+        borderColor: COLORS.border,
     },
     mainUserCardCenter: {
         marginTop: "40%",
@@ -657,7 +663,7 @@ export const styles = StyleSheet.create({
     },
     statusContainer: {
         borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: '#ccc',
+        borderTopColor: COLORS.border,
         width: '100%',
         paddingTop: 10,
         alignItems: 'center',
@@ -670,20 +676,20 @@ export const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: COLORS.overlay,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 20,
     },
     modalBox: {
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
         width: '100%',
         maxWidth: 320,
         borderRadius: 15,
         padding: 25,
         alignItems: 'center',
         elevation: 10,
-        shadowColor: '#000',
+        shadowColor: COLORS.cardShadow,
         shadowOffset: { width: 0, height: 5 },
         shadowOpacity: 0.25,
         shadowRadius: 15,
@@ -706,7 +712,7 @@ export const styles = StyleSheet.create({
         width: '100%',
     },
     verifyText: {
-        color: '#fff',
+        color: COLORS.white,
         fontWeight: 'bold',
         fontSize: 17,
     },

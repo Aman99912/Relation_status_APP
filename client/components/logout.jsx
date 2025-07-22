@@ -109,6 +109,7 @@ import axios from 'axios';
 
 import { APIPATH } from '../utils/apiPath';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS } from '../Color';
 
 export default function Logout() {
   const navigation = useNavigation();
@@ -175,7 +176,7 @@ export default function Logout() {
       {loading ? (
         <ActivityIndicator size="large" color="#e75480" />
       ) : (
-        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: '#e75480' }]} onPress={handleLogout}>
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: COLORS.addfriendbtn }]} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       )}
@@ -195,8 +196,7 @@ const styles = StyleSheet.create({
     marginBottom:40,
   },
   logoutButton: {
-    backgroundColor: '#ff6347',
-    // backgroundColor: '#FFDAE0',
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 13,
     paddingHorizontal: 34,
     borderRadius: 30,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutText: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: '500',
   },

@@ -21,15 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation } from '@react-navigation/native';
 import CalendarNote from '../components/calender';
-import { LinearGradient } from 'expo-linear-gradient';
-
-const COLORS = {
-  backgroundLight: '#FFF5F9',
-  primary: '#ff98c3',
-  primaryDark: 'black',
-  accent: '#fff',
-  textDark: '#2D2D2D',
-};
+import { COLORS } from '../Color';
 
 export default function DiaryScreen() {
   const [entries, setEntries] = useState([]);
@@ -188,10 +180,8 @@ export default function DiaryScreen() {
   };
 
   const renderCard = ({ item }) => (
-    <LinearGradient
-      colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-      style={[styles.card, { borderWidth: 1.5, borderColor: '#e75480', shadowColor: '#e75480', shadowOpacity: 0.10, shadowRadius: 10, elevation: 6 }]}
+    <View
+      style={[styles.card, { borderWidth: 1.5, borderColor: COLORS.diaryCardBorder, shadowColor: COLORS.diaryCardBorder, shadowOpacity: 0.10, shadowRadius: 10, elevation: 6 }]}
     >
       <TouchableOpacity
         style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
@@ -213,7 +203,7 @@ export default function DiaryScreen() {
       >
         <FontAwesome name="trash" size={24} color={COLORS.primaryDark} />
       </TouchableOpacity>
-    </LinearGradient>
+    </View>
   );
 
   return (
@@ -264,7 +254,7 @@ export default function DiaryScreen() {
         </Animated.View>
       </Modal>
       <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: '#e75480', width: '45%', shadowColor: '#e75480', position: 'absolute', bottom: 80, right: 15,  zIndex: 10 }]}
+        style={[styles.addButton, { backgroundColor: COLORS.addfriendbtn, width: '45%', shadowColor: COLORS.primary, position: 'absolute', bottom: 80, right: 15,  zIndex: 10 }]}
         onPress={() => setModalVisible(true)}
         activeOpacity={0.85}
       >
@@ -288,17 +278,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: COLORS.primaryDark,
     textAlign: 'center',
-    textShadowColor: '#f8d3dd',
+    textShadowColor: COLORS.diaryCardBorder,
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: COLORS.accent,
+    backgroundColor: COLORS.backgroundLight,
     borderRadius: 20,
     marginBottom: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: COLORS.diaryModalShadow,
     shadowOpacity: 0.1,
     marginHorizontal: 15,
     shadowRadius: 12,
@@ -306,13 +296,13 @@ const styles = StyleSheet.create({
     elevation: 5,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#fbd3e0',
+    borderColor: COLORS.diaryCardBorder,
   },
   cardImage: {
     width: 90,
     height: 90,
     borderRadius: 16,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: COLORS.lightGray,
   },
   cardTextContainer: {
     flex: 1,
@@ -321,11 +311,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.primaryDark,
+    color: COLORS.text,
   },
   cardDate: {
     fontSize: 14,
-    color: '#888',
+    color: COLORS.text,
     marginTop: 6,
     fontWeight: '500',
   },
@@ -336,23 +326,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
     fontSize: 16,
-    color: '#999',
+    color: COLORS.gray,
     fontStyle: 'italic',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: COLORS.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 50,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.diaryModalBg,
     borderRadius: 24,
     padding: 24,
     width: '90%',
     maxHeight: '85%',
-    shadowColor: '#000',
+    shadowColor: COLORS.diaryModalShadow,
     shadowOpacity: 0.15,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -368,23 +358,23 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     marginTop: 14,
-    color: COLORS.primaryDark,
+    color: COLORS.text,
   },
   modalDescription: {
     fontSize: 17,
     marginTop: 10,
-    color: '#555',
+    color: COLORS.text,
     fontWeight: '500',
   },
   closeBtn: {
     marginTop: 24,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
   },
   closeBtnText: {
-    color: 'white',
+    color: COLORS.text,
     fontWeight: '700',
     fontSize: 16,
   },
@@ -392,7 +382,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 90,
     right: 25,
-    backgroundColor: "#ff6347",
+    backgroundColor: COLORS.addfriendbtn,
     borderRadius: 50,
     paddingVertical: 18,
     paddingHorizontal: 30,
@@ -403,7 +393,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
   },
   addButtonText: {
-    color: 'white',
+    color: "#fff",
     fontWeight: 'bold',
     fontSize: 18,
     letterSpacing: 0.5,
@@ -412,12 +402,12 @@ const styles = StyleSheet.create({
   },
   addModalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.38)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
   addModalContent: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.white,
     borderRadius: 20,
     padding: 24,
   },
@@ -430,12 +420,12 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#f1b7c2',
+    borderColor: COLORS.inputBorder,
     borderRadius: 14,
     padding: 14,
     marginBottom: 16,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     color: COLORS.textDark,
   },
   pickImageBtn: {
@@ -445,7 +435,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 14,
-    backgroundColor: '#fff0f5',
+    backgroundColor: COLORS.backgroundLight,
   },
   pickImageBtnText: {
     color: COLORS.primaryDark,
@@ -457,7 +447,7 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 14,
     marginRight: 14,
-    backgroundColor: '#eee',
+    backgroundColor: COLORS.lightGray,
   },
   modalActions: {
     flexDirection: 'row',
@@ -470,15 +460,19 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     marginHorizontal: 6,
-  },
-  cancelBtn: {
-    backgroundColor: '#ccc',
+    backgroundColor: COLORS.addfriendbtn,
   },
   saveBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
+  },
+  cancelBtn: {
+    backgroundColor: COLORS.addfriendbtn,
+  },
+  deleteBtn: {
+    backgroundColor: COLORS.addfriendbtn,
   },
   modalActionText: {
-    color: 'white',
+    color: COLORS.text,
     fontWeight: '700',
     fontSize: 16,
   },

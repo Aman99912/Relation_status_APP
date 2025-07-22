@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: COLORS.white,
   },
   profileHeader: {
     alignItems: 'center',
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   editToggleButton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 25,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   editToggleText: {
-    color: '#555',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -365,13 +365,13 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 15,
-    color: '#666',
+    color: COLORS.gray,
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   infoValue: {
     fontSize: 17,
-    color: '#222',
+    color: COLORS.text,
     fontWeight: '500',
   },
   input: {
@@ -379,11 +379,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     fontSize: 17,
     paddingVertical: 5,
-    color: '#222',
+    color: COLORS.text,
   },
   saveButton: {
     marginTop: 30,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 16,
     borderRadius: 30,
     elevation: 8,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   saveText: {
-    color: '#fff',
+    color: COLORS.white,
     textAlign: 'center',
     fontWeight: '700',
     fontSize: 18,

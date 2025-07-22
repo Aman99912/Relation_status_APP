@@ -206,14 +206,14 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   signupBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
     marginBottom: 20,
   },
   signupText: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   genderLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#ccc',
+    color: COLORS.gray,
     marginBottom: 10,
   },
   radioGroup: {
@@ -265,6 +265,6 @@ const styles = StyleSheet.create({
   },
   radioText: {
     fontSize: 16,
-    color: '#ccc',
+    color: COLORS.gray,
   },
 });

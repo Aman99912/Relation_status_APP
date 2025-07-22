@@ -17,7 +17,7 @@ export default function Card({
 
   const renderButtonContent = () => {
     if (isLoading) {
-      return <ActivityIndicator color="#fff" />;
+      return <ActivityIndicator color={COLORS.white} />;
     }
     if (isMyself) {
       return <Text style={styles.disabledText}>You</Text>;
@@ -28,7 +28,7 @@ export default function Card({
     if (isRequestPending) {
       return <Text style={styles.disabledText}>Requested</Text>;
     }
-    return <Ionicons name="person-add" size={20} color="#fff" />;
+    return <Ionicons name="person-add" size={20} color={COLORS.white} />;
   };
 
   return (
@@ -61,10 +61,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     marginTop: 10,
-    shadowColor: '#000',
+    shadowColor: COLORS.cardShadow,
     shadowOpacity: 0.05,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -80,19 +80,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: COLORS.text,
   },
   button: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
   },
   disabledButton: {
-    backgroundColor: '#aaa',
+    backgroundColor: COLORS.disabled,
   },
   disabledText: {
-    color: '#fff',
+    color: COLORS.text,
     fontWeight: 'bold',
   },
 });

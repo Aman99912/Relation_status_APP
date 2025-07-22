@@ -289,9 +289,9 @@ const Dashboard = () => {
           width={screenWidth - 32}
           height={200}
           chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
+            backgroundColor: COLORS.white,
+            backgroundGradientFrom: COLORS.white,
+            backgroundGradientTo: COLORS.white,
             decimalPlaces: 0,
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -312,9 +312,9 @@ const Dashboard = () => {
           width={screenWidth - 30}
           height={180}
           chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
+            backgroundColor: COLORS.white,
+            backgroundGradientFrom: COLORS.white,
+            backgroundGradientTo: COLORS.white,
             decimalPlaces: 0,
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -334,37 +334,37 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F2F5',
+    backgroundColor: COLORS.background,
     padding: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F0F2F5',
+    backgroundColor: COLORS.background,
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.gray,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F0F2F5',
+    backgroundColor: COLORS.background,
     padding: 20,
   },
   errorText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#D32F2F',
+    color: COLORS.error,
     textAlign: 'center',
     marginBottom: 8,
   },
   errorDetails: {
     fontSize: 14,
-    color: '#D32F2F',
+    color: COLORS.error,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   dashboardTitleText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
   },
   backButton: {
     position: 'absolute',
@@ -387,11 +387,11 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   headerCard: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: COLORS.cardShadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -400,11 +400,11 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.primary,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: COLORS.cardShadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 15,
     borderLeftWidth: 4,
     borderLeftColor: COLORS.primary,
@@ -438,17 +438,17 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#222',
+    color: COLORS.text,
     marginBottom: 2,
   },
   username: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.gray,
     marginBottom: 5,
   },
   bio: {
     fontSize: 14,
-    color: '#555',
+    color: COLORS.gray,
     lineHeight: 20,
   },
   profileStats: {
@@ -462,11 +462,11 @@ const styles = StyleSheet.create({
   profileStatValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#444',
+    color: COLORS.text,
   },
   profileStatLabel: {
     fontSize: 13,
-    color: '#777',
+    color: COLORS.gray,
     marginTop: 2,
   },
   overviewGrid: {
@@ -477,13 +477,13 @@ const styles = StyleSheet.create({
   overviewItem: {
     width: Dimensions.get('window').width * 0.4 - 20,
     height: Dimensions.get('window').width * 0.4 - 20,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: COLORS.lightGray,
     padding: 10,
     borderRadius: (Dimensions.get('window').width * 0.4 - 20) / 2,
     marginBottom: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: COLORS.cardShadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
@@ -492,24 +492,24 @@ const styles = StyleSheet.create({
   overviewValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#28A745',
+    color: COLORS.success,
     marginBottom: 5,
   },
   overviewLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#444',
+    color: COLORS.text,
     textAlign: 'center',
   },
   overviewSubTextContainer: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: COLORS.lightBorder,
   },
   subText: {
     fontSize: 13,
-    color: '#777',
+    color: COLORS.gray,
     marginTop: 5,
     textAlign: 'center',
   },
@@ -527,11 +527,11 @@ const styles = StyleSheet.create({
   circularProgressValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
   },
   circularProgressTitle: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.gray,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -541,18 +541,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: COLORS.lightBorder,
     paddingBottom: 8,
   },
   detailLabel: {
     fontSize: 15,
-    color: '#555',
+    color: COLORS.gray,
     fontWeight: '500',
   },
   detailValue: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
   },
   achievementItem: {
     flexDirection: 'row',
@@ -573,30 +573,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badge: {
-    backgroundColor: '#E0E7FF',
+    backgroundColor: COLORS.lightGray,
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 20,
     marginRight: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#C5CAE9',
+    borderColor: COLORS.lightBorder,
   },
   badgeText: {
     fontSize: 13,
-    color: '#3F51B5',
+    color: COLORS.primary,
     fontWeight: '500',
   },
   textMuted: {
     fontSize: 14,
-    color: '#888',
+    color: COLORS.gray,
     textAlign: 'center',
     paddingVertical: 5,
   },
   chartTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 10,
     textAlign: 'center',
     marginTop: 15,

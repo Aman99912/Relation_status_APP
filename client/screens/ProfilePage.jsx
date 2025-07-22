@@ -18,7 +18,6 @@ import { COLORS } from '../Color';
 import { APIPATH } from '../utils/apiPath';
 import Logout from '../components/logout';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 
 const ProfileScreen = () => {
@@ -74,13 +73,12 @@ const ProfileScreen = () => {
       >
        
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { fontWeight: '700', color: '#444', letterSpacing: 0.2 }]}>My Profile</Text>
+          <Text style={[styles.headerTitle, { fontWeight: '700', color: COLORS.text, letterSpacing: 0.2 }]}>My Profile</Text>
         </View>
 
-        <LinearGradient
-          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        <View
           style={{
+            backgroundColor: COLORS.cardBg,
             borderRadius: 25,
             padding: 24,
             marginHorizontal: 20,
@@ -96,7 +94,7 @@ const ProfileScreen = () => {
           }}
         >
           {/* Accent dot */}
-          <View style={{ position: 'absolute', top: 18, left: 22, width: 14, height: 14, borderRadius: 7, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: '#fff' }} />
+          <View style={{ position: 'absolute', top: 18, left: 22, width: 14, height: 14, borderRadius: 7, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: COLORS.white }} />
           {/* Avatar with premium ring */}
           <View style={{
             shadowColor: COLORS.accent,
@@ -105,7 +103,7 @@ const ProfileScreen = () => {
             shadowRadius: 8,
             elevation: 6,
             borderRadius: 70,
-            backgroundColor: '#fff',
+            backgroundColor: COLORS.white,
             padding: 5,
             borderWidth: 2,
             borderColor: COLORS.accent,
@@ -119,20 +117,18 @@ const ProfileScreen = () => {
           <Text style={{ fontSize: 26, fontWeight: '700', color: COLORS.text, marginBottom: 4, letterSpacing: 0.2 }}>{user?.fullname || 'Guest User'}</Text>
           <Text style={{ fontSize: 16, color: COLORS.gray, marginBottom: 16 }}>@{user?.username || 'unknown'}</Text>
           <TouchableOpacity
-            style={{ backgroundColor: COLORS.primary, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 32, marginTop: 5, shadowColor: COLORS.primary, shadowOpacity: 0.10, shadowRadius: 8, elevation: 2 }}
+            style={{ backgroundColor: COLORS.addfriendbtn, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 32, marginTop: 5, shadowColor: COLORS.addfriendbtn, shadowOpacity: 0.10, shadowRadius: 8, elevation: 2 }}
             onPress={() => navigation.navigate('MainApp', { screen: 'chatPF' })}
             activeOpacity={0.85}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Edit Profile</Text>
+            <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 15 }}>Edit Profile</Text>
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
         {/* Settings Sections */}
-        <Text style={[styles.settingsSectionTitle, { fontWeight: '500', color: '#888', fontSize: 16 }]}>Account</Text>
-        <LinearGradient
-          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={[styles.settingCard, { borderWidth: 1.5, borderColor: '#e75480', shadowColor: '#e75480', shadowOpacity: 0.08, shadowRadius: 10, elevation: 6 }]}
+        <Text style={[styles.settingsSectionTitle, { fontWeight: '500', color: COLORS.gray, fontSize: 16 }]}>Account</Text>
+        <View
+          style={[styles.settingCard, { borderWidth: 1.5, borderColor: COLORS.primary, shadowColor: COLORS.primary, shadowOpacity: 0.08, shadowRadius: 10, elevation: 6 }]}
         >
           <TouchableOpacity
             style={styles.settingItem}
@@ -141,40 +137,38 @@ const ProfileScreen = () => {
           >
             <Ionicons name="grid-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Dashboard</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+            <Ionicons name="chevron-forward-outline" size={20} color={COLORS.gray} style={styles.arrowIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingItem} 
            onPress={() => navigation.navigate('MainApp', { screen: 'PrivacyPage' })} >
             <Ionicons name="lock-closed-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Privacy and Security</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+            <Ionicons name="chevron-forward-outline" size={20} color={COLORS.gray} style={styles.arrowIcon} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.settingItem, styles.lastSettingItem]}>
             <Ionicons name="gift-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Gift Shop</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+            <Ionicons name="chevron-forward-outline" size={20} color={COLORS.gray} style={styles.arrowIcon} />
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
-        <Text style={[styles.settingsSectionTitle, { fontWeight: '500', color: '#888', fontSize: 16 }]}>General</Text>
-        <LinearGradient
-          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={[styles.settingCard, { borderWidth: 1.5, borderColor: '#e75480', shadowColor: '#e75480', shadowOpacity: 0.08, shadowRadius: 10, elevation: 6 }]}
+        <Text style={[styles.settingsSectionTitle, { fontWeight: '500', color: COLORS.gray, fontSize: 16 }]}>General</Text>
+        <View
+          style={[styles.settingCard, { borderWidth: 1.5, borderColor: COLORS.primary, shadowColor: COLORS.primary, shadowOpacity: 0.08, shadowRadius: 10, elevation: 6 }]}
         >
           <TouchableOpacity style={styles.settingItem}>
             <Ionicons name="map-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Map</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+            <Ionicons name="chevron-forward-outline" size={20} color={COLORS.gray} style={styles.arrowIcon} />
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.settingItem, styles.lastSettingItem]}>
             <Ionicons name="help-circle-outline" size={24} color={COLORS.primary} />
             <Text style={styles.settingItemText}>Help & Support</Text>
-            <Ionicons name="chevron-forward-outline" size={20} color="#bbb" style={styles.arrowIcon} />
+            <Ionicons name="chevron-forward-outline" size={20} color={COLORS.gray} style={styles.arrowIcon} />
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
        
         <Logout  />
@@ -190,7 +184,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f2f5',
+    backgroundColor: COLORS.background,
   },
 
   loadingText: {
@@ -267,7 +261,7 @@ const styles = StyleSheet.create({
   settingsSectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.gray,
+    color: COLORS.text,
     marginHorizontal: 25,
     marginTop: 25,
     marginBottom: 10,

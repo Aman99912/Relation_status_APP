@@ -20,7 +20,6 @@ import { COLORS } from '../Color';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import FloatingInput from './floatintext';
-import { LinearGradient } from 'expo-linear-gradient';
 
 function useDebounce(callback, delay) {
   const timer = useRef();
@@ -192,9 +191,7 @@ export default function AddUser() {
   const renderCard = (user) => {
     const isDisabled = user.id === myUserId || user.isFriend || user.isRequestPending;
     return (
-      <LinearGradient
-        colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+      <View
         style={{
           borderRadius: 20,
           padding: 18,
@@ -211,6 +208,7 @@ export default function AddUser() {
           alignItems: 'center',
           justifyContent: 'flex-start',
           position: 'relative',
+          backgroundColor: COLORS.cardBg,
         }}
       >
         {/* Accent dot */}
@@ -240,7 +238,7 @@ export default function AddUser() {
           {user.id === myUserId && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
               <View style={{ backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, minWidth: 70, alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600', letterSpacing: 0.2 }}>You</Text>
+                <Text style={{ fontSize: 13, color: COLORS.white, fontWeight: '600', letterSpacing: 0.2 }}>You</Text>
               </View>
             </View>
           )}
@@ -249,18 +247,18 @@ export default function AddUser() {
               marginTop: 0,
               backgroundColor:
                 user.isFriend
-                  ? '#e75480' // dark pink for Friend
+                  ? COLORS.addfriendbtn // dark pink for Friend
                   : user.isRequestPending
-                  ? '#ffb347' // light orange for Requested
+                  ? COLORS.requestedButton // light orange for Requested
                   : COLORS.accent, // accent pink for Add
               borderRadius: 16,
               paddingVertical: 7,
               paddingHorizontal: 22,
               shadowColor:
                 user.isFriend
-                  ? '#e75480'
+                  ? COLORS.friendButton
                   : user.isRequestPending
-                  ? '#ffb347'
+                  ? COLORS.requestedButton
                   : COLORS.accent,
               shadowOpacity: 0.12,
               shadowRadius: 8,
@@ -272,15 +270,15 @@ export default function AddUser() {
             onPress={() => handleAddRequest(user.id)}
           >
             {sendingRequestId === user.id ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
+              <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 14 }}>
                 {user.id === myUserId ? 'You' : user.isFriend ? 'Friend' : user.isRequestPending ? 'Requested' : 'Add'}
               </Text>
             )}
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
     );
   };
 
@@ -295,10 +293,18 @@ export default function AddUser() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <LinearGradient
-          colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ borderRadius: 16, marginBottom: 24, padding: 18, shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 }}
+        <View
+          style={{
+            backgroundColor: COLORS.cardBg,
+            borderRadius: 16,
+            marginBottom: 24,
+            padding: 18,
+            shadowColor: COLORS.cardShadow,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.08,
+            shadowRadius: 10,
+            elevation: 4,
+          }}
         >
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionTitle}>Follow These 3 Simple Steps:</Text>
@@ -306,7 +312,7 @@ export default function AddUser() {
             <Text style={styles.instructionText}>2. Enter a friend's 10-digit code below to find them.</Text>
             <Text style={styles.instructionText}>3. Send a friend request by tapping the "Add" button.</Text>
           </View>
-        </LinearGradient>
+        </View>
 
         <TouchableOpacity
           disabled={isCodeGenerated || loading}
@@ -319,15 +325,15 @@ export default function AddUser() {
               paddingVertical: 14,
               alignItems: 'center',
               marginBottom: 10,
-              backgroundColor: '#e75480',
-              shadowColor: '#e75480',
+              backgroundColor: COLORS.addfriendbtn,
+              shadowColor: COLORS.addfriendbtn,
               shadowOpacity: 0.13,
               shadowRadius: 8,
               elevation: 3,
               opacity: isCodeGenerated || loading ? 0.6 : 1,
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, letterSpacing: 0.5 }}>
+            <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 16, letterSpacing: 0.5 }}>
               {isCodeGenerated ? 'Generated Code' : loading ? 'Generating...' : 'Generate My Code'}
             </Text>
           </View>
@@ -335,7 +341,7 @@ export default function AddUser() {
 
         <View style={styles.codeRow}>
           {Array.from({ length: 10 }).map((_, i) => (
-            <View key={i} style={[styles.displayBox, { borderColor: '#e75480', backgroundColor: '#fff0f5', borderRadius: 8 }]}>
+            <View key={i} style={[styles.displayBox, { borderColor: COLORS.primary, backgroundColor: COLORS.backgroundLight, borderRadius: 8 }]}>
               <Text style={styles.codeDigit}>{generatedCode[i] || ''}</Text>
             </View>
           ))}
@@ -378,46 +384,45 @@ export default function AddUser() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 25, paddingTop: 60, backgroundColor: '#FFF5F9' },
+  container: { flex: 1, padding: 25, paddingTop: 60, backgroundColor: COLORS.backgroundLight },
   generateButton: {
-    // backgroundColor: COLORS.primary || '#4a90e2',
-    backgroundColor:"#ff6347",
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 14,
     borderRadius: 30,
     alignItems: 'center',
     marginBottom: 20,
   },
   disabledButton: { backgroundColor: '#aaa' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  orText: { textAlign: 'center', marginVertical: 18, color: '#555', fontWeight: '600' },
+  buttonText: { color: COLORS.text, fontSize: 16, fontWeight: '600' },
+  orText: { textAlign: 'center', marginVertical: 18, color: COLORS.text, fontWeight: '600' },
   codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 15 },
   displayBox: {
     width: 32,
     height: 42,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#6b9eff',
+    borderColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#eaf3ff',
+    backgroundColor: COLORS.backgroundLight,
   },
-  codeDigit: { fontSize: 18, fontWeight: '600', color: '#333' },
+  codeDigit: { fontSize: 18, fontWeight: '600', color: COLORS.text },
   inputBox: {
     width: 32,
     height: 42,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#999',
-    backgroundColor: '#fff',
+    borderColor: COLORS.gray,
+    backgroundColor: COLORS.white,
     textAlign: 'center',
     fontSize: 18,
-    color: '#000',
+    color: COLORS.text,
   },
-  notFound: { marginTop: 15, textAlign: 'center', color: 'red' },
+  notFound: { marginTop: 15, textAlign: 'center', color: COLORS.error },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 16,
     marginTop: 20,
@@ -428,7 +433,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   instructionsContainer: {
-    backgroundColor: '#FFF5F9',
+    backgroundColor: COLORS.backgroundLight,
     borderRadius: 15,
     padding: 20,
     marginBottom: 30,
@@ -442,21 +447,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
-    color: '#1a3d8f',
+    color: COLORS.text,
     textAlign: 'center',
   },
   instructionText: {
     fontSize: 15,
-    color: '#0d2b66',
+    color: COLORS.text,
     marginBottom: 6,
     fontWeight: '600',
   },
   avatar: { width: 48, height: 48, borderRadius: 24, marginRight: 12 },
-  name: { flex: 1, fontSize: 16, fontWeight: '600', color: '#333' },
+  name: { flex: 1, fontSize: 16, fontWeight: '600', color: COLORS.text },
   button: {
-    backgroundColor: COLORS.primary || '#4a90e2',
-    paddingHorizontal: 14,
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 20,
   },
 });

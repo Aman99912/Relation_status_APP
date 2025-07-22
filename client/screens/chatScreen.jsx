@@ -28,7 +28,6 @@ import { APIPATH } from '../utils/apiPath'; // Ensure APIPATH is correctly defin
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import { SocketContext } from '../context/SocketContext';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -649,26 +648,19 @@ const ChatScreen = () => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       {/* Remove old connection and online status bar */}
       {/* Connection and online status */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 4 }}>
-        <Text style={{ color: socketConnected ? 'green' : 'red', marginRight: 8 }}>
-          {socketConnected ? 'Connected' : 'Disconnected'}
-        </Text>
-        <Text style={{ color: isOnline ? 'green' : 'gray' }}>
-          {isOnline ? 'Friend Online' : 'Friend Offline'}
-        </Text>
-      </View>
+      
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={26} color="#232323" />
       </TouchableOpacity>
 
-      <View style={[styles.header, { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', borderRadius: 0, marginHorizontal: 0, marginTop: 0, elevation: 0, shadowColor: 'transparent' }]}> 
+      <View style={[styles.header, { backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E0E0E0', borderRadius: 0, marginHorizontal: 0, marginTop: 0, elevation: 0, shadowColor: 'transparent' }]}> 
         <Image source={{ uri: friendAvatar }} style={styles.avatar} />
         <View style={{ flex: 1, marginLeft: 15, justifyContent: 'center' }}>
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#232323', letterSpacing: 0.2, textAlign: 'left' }}>{Name}</Text>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: 'black', letterSpacing: 0.2, textAlign: 'left' }}>{Name}</Text>
           {/* Online/offline status below name */}
           <Text style={{ fontSize: 13, color: isOnline ? '#10B981' : '#bbb', fontStyle: 'italic', marginTop: 2, textAlign: 'left' }}>
             {isOnline ? 'Active now' : 'Offline'}
@@ -725,8 +717,8 @@ const ChatScreen = () => {
           onChangeText={handleInputChange}
           multiline
         />
-        <TouchableOpacity onPress={handleSend}>
-          <Ionicons name="send" size={26} color="#e75480" style={styles.icon} />
+        <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
+          <Ionicons name="send" size={26} color="#fff" style={styles.icon} />
         </TouchableOpacity>
       </View>
       {/* Media Modal for viewing images/videos fullscreen */}
@@ -767,8 +759,8 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    backgroundColor: '#FFF5F9',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20, // Adjust for iOS status bar
+    backgroundColor: '#FFF', // periwinkle header
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
     paddingBottom: 15,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -792,7 +784,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 15,
     fontSize: 18,
-    color: 'black',
+    color: 'black', // black name text
     fontWeight: 'bold',
   },
   headerIcons: {
@@ -815,17 +807,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   myMessage: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#E6ECFF', // light periwinkle for sent messages
     alignSelf: 'flex-end',
-    marginRight: 5, // Small margin to prevent sticking to edge
+    marginRight: 5,
   },
   theirMessage: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFF', // periwinkle for received messages
     alignSelf: 'flex-start',
-    marginLeft: 5, // Small margin
+    marginLeft: 5,
   },
   messageText: {
-    color: '#232323',
+    color: 'black', // black chat text
   },
   chatImage: {
     width: width * 0.65, // Make image width responsive, max 65% of screen width
@@ -868,7 +860,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 8,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF', // periwinkle input bar
     borderTopColor: '#eee',
     borderTopWidth: 1,
     position: 'absolute',
@@ -876,7 +868,7 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 60,
     paddingHorizontal: 10,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 8, // Add padding for iPhone X/newer models' safe area
+    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
   },
   icon: {
     marginHorizontal: 6,
@@ -885,11 +877,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff', // white input
     borderRadius: 20,
     marginHorizontal: 8,
-    maxHeight: 120, // To prevent the input from growing too large
-    minHeight: 40, // Minimum height for single line
+    maxHeight: 120,
+    minHeight: 40,
+    color: 'black', // black text in input
+  },
+  sendButton: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 10,
+    marginLeft: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   permissionContainer: {
     flex: 1,

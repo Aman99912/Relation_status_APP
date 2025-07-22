@@ -211,7 +211,7 @@ const NotificationScreen = () => {
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <ActivityIndicator size="small" color="#fff" />
+                                    <ActivityIndicator size="small" color={COLORS.white} />
                                 ) : (
                                     <Text style={styles.buttonText}>Accept</Text>
                                 )}
@@ -222,7 +222,7 @@ const NotificationScreen = () => {
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <ActivityIndicator size="small" color="#fff" />
+                                    <ActivityIndicator size="small" color={COLORS.white} />
                                 ) : (
                                     <Text style={styles.buttonText}>Reject</Text>
                                 )}
@@ -236,7 +236,7 @@ const NotificationScreen = () => {
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <ActivityIndicator size="small" color="#fff" />
+                                    <ActivityIndicator size="small" color={COLORS.white} />
                                 ) : (
                                     <Text style={styles.buttonText}>Agree to Unfriend</Text>
                                 )}
@@ -247,7 +247,7 @@ const NotificationScreen = () => {
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <ActivityIndicator size="small" color="#fff" />
+                                    <ActivityIndicator size="small" color={COLORS.white} />
                                 ) : (
                                     <Text style={styles.buttonText}>Cancel</Text>
                                 )}
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     timestamp: {
-        color: 'green',
+        color: COLORS.success,
         fontSize: 12,
         marginTop: 4,
     },
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     NotificationText: {
         fontSize: 24,
         fontWeight: '800',
-        color: COLORS.darkText,
+        color: COLORS.textDark,
     },
     centered: {
         flex: 1,
@@ -330,22 +330,22 @@ const styles = StyleSheet.create({
     noRequestsText: {
         fontSize: 18,
         fontWeight: '600',
-        color: COLORS.grayText,
+        color: COLORS.gray,
     },
     card: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
         borderRadius: 12,
         padding: 15,
         marginBottom: 10,
-        shadowColor: '#000',
+        shadowColor: COLORS.cardShadow,
         shadowOpacity: 0.08,
         shadowRadius: 8,
         shadowOffset: { width: 0, height: 3 },
         elevation: 4,
         borderLeftWidth: 5,
-        borderColor: COLORS.primaryLight,
+        borderColor: COLORS.primary,
     },
     avatar: {
         width: 55,
@@ -358,11 +358,11 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 17,
         fontWeight: '600',
-        color: COLORS.darkText,
+        color: COLORS.textDark,
     },
     messageText: {
         fontSize: 14,
-        color: COLORS.grayText,
+        color: COLORS.gray,
         marginTop: 2,
     },
     buttonsContainer: {
@@ -379,19 +379,19 @@ const styles = StyleSheet.create({
         minWidth: 100,
     },
     acceptButton: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.addfriendbtn,
     },
     rejectButton: {
-        backgroundColor: COLORS.gray,
+        backgroundColor: COLORS.addfriendbtn,
     },
     agreeButton: {
-        backgroundColor: 'red',
+        backgroundColor: COLORS.addfriendbtn,
     },
     cancelUnfriendButton: {
-        backgroundColor: COLORS.gray,
+        backgroundColor: COLORS.addfriendbtn,
     },
     buttonText: {
-        color: '#fff',
+        color: COLORS.text,
         fontWeight: 'bold',
         fontSize: 14,
     },

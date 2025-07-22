@@ -116,11 +116,11 @@ const styles = StyleSheet.create({
   backBtn: { position: 'absolute', top: 50, left: 20 },
   inputBox: { marginBottom: 20 },
   loginBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
     marginBottom: 20,
   },
-  loginText: { color: '#fff', fontSize: 16, fontWeight: '500' },
+  loginText: { color: COLORS.text, fontSize: 16, fontWeight: '500' },
 });

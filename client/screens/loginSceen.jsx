@@ -141,14 +141,14 @@ const styles = StyleSheet.create({
   forgot: { alignSelf: 'flex-end', marginBottom: responsiveHeight(2.5) },
   forgotText: { fontSize: responsiveFontSize(1.7), color: COLORS.gray },
   loginBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: responsiveHeight(2),
     borderRadius: responsiveWidth(7),
     alignItems: 'center',
     marginBottom: responsiveHeight(2.5),
   },
-  loginText: { color: '#fff', fontSize: responsiveFontSize(2), fontWeight: '500' },
+  loginText: { color: COLORS.white, fontSize: responsiveFontSize(2), fontWeight: '500' },
   orText: { textAlign: 'center', color: COLORS.gray, marginBottom: responsiveHeight(1.5) },
   bottomText: { alignSelf: 'center' },
-  signUpLink: { fontWeight: 'bold', color: COLORS.primary },
+  signUpLink: { fontWeight: 'bold', color: COLORS.addfriendbtn },
 });

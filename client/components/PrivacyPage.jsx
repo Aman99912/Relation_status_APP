@@ -158,12 +158,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#555',
+    color: COLORS.text,
     marginHorizontal: 25,
     marginTop: 30,
     marginBottom: 10,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   settingItemText: {
     marginLeft: 15,
     fontSize: 16,
-    color: '#444',
+    color: COLORS.text,
     fontWeight: '500',
     flex: 1, // Ensures text takes available space
   },

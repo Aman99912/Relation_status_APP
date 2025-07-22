@@ -38,10 +38,10 @@ export default function CustomAlert({
 
   // Icon and color by type
   let icon = 'information';
-  let accent = '#ff98c3';
-  if (type === 'success') { icon = 'check-circle'; accent = '#10B981'; }
-  else if (type === 'error') { icon = 'close-circle'; accent = '#EF4444'; }
-  else if (type === 'warning') { icon = 'alert-circle'; accent = '#fbbf24'; }
+  let accent = COLORS.accent;
+  if (type === 'success') { icon = 'check-circle'; accent = COLORS.success; }
+  else if (type === 'error') { icon = 'close-circle'; accent = COLORS.error; }
+  else if (type === 'warning') { icon = 'alert-circle'; accent = COLORS.warning; }
 
   return (
     <Modal transparent animationType="none" visible={visible}>
@@ -79,23 +79,23 @@ export default function CustomAlert({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.18)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   container: {
     width: '85%',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 20,
     padding: 26,
     elevation: 16,
-    shadowColor: '#000',
+    shadowColor: COLORS.cardShadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.13,
     shadowRadius: 24,
     alignItems: 'center',
     borderTopWidth: 5,
-    borderTopColor: '#ff98c3', // default, overridden by accent
+    borderTopColor: COLORS.accent, // default, overridden by accent
   },
   iconCircle: {
     width: 60,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: '#444',
+    color: COLORS.text,
     marginBottom: 22,
     textAlign: 'center',
     lineHeight: 22,
@@ -124,26 +124,27 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cancelBtn: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 10,
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: COLORS.lightBorder,
   },
   cancelText: {
     fontSize: 16,
-    color: '#888',
+    color: COLORS.text,
     fontWeight: '600',
   },
   confirmBtn: {
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 10,
   },
   confirmText: {
-    color: '#fff',
+    color: COLORS.text,
     fontWeight: 'bold',
     fontSize: 16,
   },

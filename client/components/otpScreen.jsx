@@ -137,14 +137,14 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   button: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 16,
   },
   resendBtn: {
