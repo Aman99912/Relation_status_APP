@@ -1,5 +1,4 @@
-
-import express, { Router } from 'express';
+import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -31,14 +30,20 @@ io.on('connection', (socket) => {
   socket.on('register', (userId) => {
     connectedUsers.set(userId, socket.id);
     console.log(`Registered user ${userId} with socket ${socket.id}`);
-    // Broadcast online status
-    io.emit('user_online', { userId });
+    socket.broadcast.emit('user_online', { userId });
+  });
+
+  // Check initial online status for a specific friend
+  socket.on('check_online_status', ({ friendId }) => {
+    if (connectedUsers.has(friendId)) {
+      socket.emit('user_online', { userId: friendId });
+    }
   });
 
   // SOCKET CHAT HANDLER
   socket.on('send_message', async (data) => {
     try {
-      const { senderId, receiverId, text, messageType, imageUrl = '', audioUrl = '' } = data;
+      const { tempId, senderId, receiverId, text, messageType, imageUrl = '', audioUrl = '' } = data;
       const message = new ChatMessageModel({
         senderId,
         receiverId,
@@ -48,13 +53,16 @@ io.on('connection', (socket) => {
         audioUrl,
       });
       await message.save();
+      
       const receiverSocketId = connectedUsers.get(receiverId);
+      
+      // Send to receiver if they are online
       if (receiverSocketId) {
         io.to(receiverSocketId).emit('receive_message', message);
-        // Emit delivered status
-        io.to(socket.id).emit('delivered', { messageId: message._id, receiverId });
       }
-      socket.emit('receive_message', message);
+      // Send confirmation back to the sender with the final message object (including the real _id)
+      io.to(socket.id).emit('receive_message', message);
+
     } catch (err) {
       console.error('Socket send_message error:', err);
       socket.emit('error_message', { message: 'Failed to send message' });
@@ -69,13 +77,39 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Seen status
-  socket.on('seen', ({ messageId, userId, friendId }) => {
+  // Mark messages as seen
+  socket.on('mark_as_seen', ({ messageIds, userId, friendId }) => {
     const friendSocketId = connectedUsers.get(friendId);
     if (friendSocketId) {
-      io.to(friendSocketId).emit('seen', { messageId, userId });
+        io.to(friendSocketId).emit('seen', { messageIds, userId });
     }
   });
+
+  // --- LOCATION SHARING HANDLERS ---
+
+  socket.on('join-location-room', ({ userId, friendId }) => {
+    const roomName = [userId, friendId].sort().join('-');
+    socket.join(roomName);
+    console.log(`Socket ${socket.id} (User ${userId}) joined location room: ${roomName}`);
+    
+    // **FIX:** Inform the friend that you have started sharing location
+    socket.to(roomName).emit('friend-started-sharing', { userId });
+  });
+  
+  socket.on('location-update', ({ userId, friendId, location }) => {
+    const roomName = [userId, friendId].sort().join('-');
+    socket.to(roomName).emit('friend-location-update', location);
+  });
+
+  socket.on('stop-sharing', ({ userId, friendId, lastLocation }) => {
+    const roomName = [userId, friendId].sort().join('-');
+    const data = { lastLocation: lastLocation, lastSeen: new Date() };
+    socket.to(roomName).emit('friend-went-offline', data);
+    socket.leave(roomName);
+    console.log(`Socket ${socket.id} (User ${userId}) left location room: ${roomName}`);
+  });
+
+  // --- END OF LOCATION HANDLERS ---
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
@@ -89,12 +123,12 @@ io.on('connection', (socket) => {
     }
     if (disconnectedUserId) {
       io.emit('user_offline', { userId: disconnectedUserId });
+      console.log(`User ${disconnectedUserId} went offline.`);
     }
   });
 });
 
 app.set('io', io);
-app.set('connectedUsers', connectedUsers);
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
@@ -102,7 +136,6 @@ app.use(express.urlencoded({ extended: true }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

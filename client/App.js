@@ -32,6 +32,8 @@ import ChangePasswordScreen from './components/PassChange';
 import ChangeSubPasswordScreen from './components/subPass';
 import UpdateMobileNum from './components/newNum';
 import { SocketProvider } from './context/SocketContext';
+import RelationshipScreen from './screens/RelationshipScreen';
+import LocationShare from './components/locationShare';
 
 
 const Stack = createStackNavigator();
@@ -48,6 +50,8 @@ function MainAppTabs() {
       <Tab.Screen name="Adduser" component={AddUser} />
       <Tab.Screen name="Dashboard" component={Dashboard} />
       <Tab.Screen name="diary" component={DiaryScreen} />
+      <Tab.Screen name='LocationShare' component={LocationShare} />
+      <Tab.Screen name='RelationshipScreen' component={RelationshipScreen}/>
       <Tab.Screen name="chatPF" component={ProfileCompo} />
       <Tab.Screen name="calendarScreen" component={CalendarNote} />
       <Tab.Screen name="notification" component={NotificationScreen} />

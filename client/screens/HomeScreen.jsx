@@ -20,7 +20,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import Loader from '../components/Loader';
+import { LinearGradient } from 'expo-linear-gradient';
 import CustomAlert from '../components/alert';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -46,39 +46,7 @@ export default function HomeScreen() {
     const [alertOnConfirm, setAlertOnConfirm] = useState(null);
     const [alertShowCancel, setAlertShowCancel] = useState(false);
 
-    // Animation state for celebratory effect
-    const [petalAnims] = useState([
-        new Animated.Value(0),
-        new Animated.Value(0),
-        new Animated.Value(0),
-    ]);
-
     const scrollRef = useRef();
-    const fetchUserDataRef = useRef(null);
-
-    useEffect(() => {
-        if (isVerified && friendsList.length > 0) {
-            petalAnims.forEach((anim, i) => {
-                Animated.loop(
-                    Animated.sequence([
-                        Animated.timing(anim, {
-                            toValue: 1,
-                            duration: 3200 + i * 400,
-                            easing: Easing.inOut(Easing.quad),
-                            useNativeDriver: true,
-                        }),
-                        Animated.timing(anim, {
-                            toValue: 0,
-                            duration: 0,
-                            useNativeDriver: true,
-                        }),
-                    ]),
-                ).start();
-            });
-        } else {
-            petalAnims.forEach(anim => anim.setValue(0));
-        }
-    }, [isVerified, friendsList.length]);
 
     const showCustomAlert = (title, message, type = 'info', onConfirm = null, showCancel = false) => {
         setAlertTitle(title);
@@ -122,8 +90,6 @@ export default function HomeScreen() {
                     setLoading(false);
                 }
             };
-
-            fetchUserDataRef.current = fetchUserData;
             fetchUserData();
         }, [])
     );
@@ -157,18 +123,30 @@ export default function HomeScreen() {
                         },
                     }
                 );
+                
+                // --- NEW REDIRECTION LOGIC ---
+                const friends = friendsRes.data.friends || [];
+             if (friends.length > 0) {
+    navigation.navigate('MainApp', {
+        screen: 'RelationshipScreen',
+        params: { friend: friends[0] }, // 'friend' object ko 'params' ke andar rakhein
+    });
+    setPasswordModalVisible(false);
+    setInputPassword('');
 
-                setFriendsList(friendsRes.data.friends || []);
-                setPasswordModalVisible(false);
-                setInputPassword('');
-                setIsVerified(true);
-                scrollRef.current?.scrollTo({ y: 0, animated: true });
+                } else {
+                    setFriendsList([]);
+                    setPasswordModalVisible(false);
+                    setInputPassword('');
+                    setIsVerified(true);
+                    scrollRef.current?.scrollTo({ y: 0, animated: true });
+                }
             } else {
-                Alert.alert('Error', 'Incorrect secret code');
+                showCustomAlert('Error', 'Incorrect secret code', 'error');
             }
         } catch (error) {
             console.error("Error verifying password or fetching friends:", error);
-            Alert.alert('Error', error?.response?.data?.message || 'Error verifying code');
+            showCustomAlert('Error', error?.response?.data?.message || 'Error verifying code', 'error');
         } finally {
             setPasswordVerifying(false);
             setFriendsLoading(false);
@@ -176,66 +154,12 @@ export default function HomeScreen() {
     };
 
     const onUserCardPress = () => {
-        setPasswordModalVisible(true);
+        if (!isVerified) {
+            setPasswordModalVisible(true);
+        }
     };
-
-    const handleRemoveFriend = async (friendId) => {
-        setAlertTitle('Unfriend');
-        setAlertMessage(`Do you want to send an unfriend request to ${selectedFriendForMenu?.name}? They will need to approve it.`);
-        setAlertType('warning');
-        setAlertShowCancel(true);
-        setAlertOnConfirm(() => async () => {
-                        try {
-                            const userId = await AsyncStorage.getItem('userId');
-                            const Token = await AsyncStorage.getItem('Token');
-
-                            if (!userId) {
-                    showCustomAlert('Error', 'Your user ID not found. Please log in again.', 'error');
-                                return;
-                            }
-
-                            const response = await axios.post(
-                                `${APIPATH.BASE_URL}/${APIPATH.SEND_UNFRIEND_REQUEST}`,
-                                {
-                                    senderId: userId,
-                                    receiverId: friendId,
-                                },
-                                {
-                                    headers: { Authorization: `${Token}` },
-                                }
-                            );
-
-                            if (response.data.success) {
-                    showCustomAlert('Success', 'Unfriend request sent successfully!', 'success');
-                            } else {
-                    showCustomAlert('Error', response.data.message || 'Failed to send unfriend request.', 'error');
-                            }
-                        } catch (error) {
-                            console.error("Error sending unfriend request:", error);
-                showCustomAlert('Error', error?.response?.data?.message || 'Failed to send unfriend request.', 'error');
-                        } finally {
-                            setFriendMenuModalVisible(false);
-                            setSelectedFriendForMenu(null);
-                        }
-        });
-        setShowAlert(true);
-    };
-
-    const handleLocalHide = (friendId) => {
-        setAlertTitle('Hide Card');
-        setAlertMessage(`Are you sure you want to hide ${selectedFriendForMenu?.name}'s card locally? It will reappear after re-verification.`);
-        setAlertType('warning');
-        setAlertShowCancel(true);
-        setAlertOnConfirm(() => () => {
-                        const updatedFriendsList = friendsList.filter(f => f._id !== friendId);
-                        setFriendsList(updatedFriendsList);
-                        setIsVerified(updatedFriendsList.length > 0);
-                        ToastAndroid.show(`${selectedFriendForMenu?.name}'s card hidden locally.`, ToastAndroid.SHORT);
-                        setFriendMenuModalVisible(false);
-                        setSelectedFriendForMenu(null);
-        });
-        setShowAlert(true);
-    };
+    
+    // Other functions like handleRemoveFriend, handleLocalHide can be here if needed
 
     if (loading) {
         return (
@@ -246,290 +170,113 @@ export default function HomeScreen() {
     }
 
     return (
-        <><View style={{backgroundColor: COLORS.background}}>
-            <View style={{
-                paddingTop: 60,
-                paddingBottom: 30,
-                paddingHorizontal: 24,
-                borderBottomLeftRadius: 32,
-                borderBottomRightRadius: 32,
-                elevation: 8,
-                backgroundColor: COLORS.white,
-                shadowColor: COLORS.cardShadow,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.12,
-                shadowRadius: 24,
-            }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <>
+            <LinearGradient
+                colors={[COLORS.primary, COLORS.accent]}
+                style={styles.header}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            >
+                <View style={styles.headerContent}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Image
                             source={userData?.avatar ? { uri: userData.avatar } : require('../assets/avatar.png')}
-                            style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: COLORS.white, marginRight: 18, backgroundColor: COLORS.white }}
+                            style={styles.headerAvatar}
                         />
                         <View>
-                            <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: 'bold', marginBottom: 2 }}>Hi, {userData?.fullname?.split(' ')[0] || 'User'} 👋</Text>
-                            <Text style={{ color: COLORS.text, fontSize: 14, opacity: 0.85 }}>{userData?.email || ''}</Text>
+                            <Text style={styles.headerGreeting}>Hi, {userData?.fullname?.split(' ')[0] || 'User'} 👋</Text>
+                            <Text style={styles.headerEmail}>{userData?.email || ''}</Text>
                         </View>
                     </View>
                     <TouchableOpacity onPress={NotificationHandle} style={{ position: 'relative' }}>
-                        <FontAwesome name="bell" size={30} color={COLORS.white} />
-                    {(userData?.notifNo > 0 || hasUnfriendRequests) && (
-                            <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: COLORS.badge, borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 }}>
-                                <Text style={{ color: COLORS.white, fontSize: 12, fontWeight: 'bold' }}>{userData?.notifNo > 0 ? userData.notifNo : ''}{hasUnfriendRequests && userData?.notifNo === 0 ? '•' : ''}</Text>
-                        </View>
-                    )}
+                        <FontAwesome name="bell" size={26} color={COLORS.white} />
+                        {(userData?.notifNo > 0 || hasUnfriendRequests) && (
+                            <View style={styles.notificationBadge}>
+                                <Text style={styles.notificationText}>{userData?.notifNo > 0 ? userData.notifNo : '!'}</Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
                 </View>
-            </View>
+            </LinearGradient>
 
             <ScrollView
-                contentContainerStyle={{ padding: 20, paddingTop: 0, flexGrow: 1, backgroundColor: COLORS.background }}
+                contentContainerStyle={styles.scrollContainer}
                 ref={scrollRef}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
-                {/* User Card - modern card with shadow and background */}
-            {userData && (
-                    <View
-                        style={{
-                            borderRadius: 20,
-                            padding: 18,
-                            marginTop: 16,
-                            marginBottom: 24,
-                            minHeight: 180,
-                            shadowColor: COLORS.cardShadow,
-                            shadowOffset: { width: 0, height: 8 },
-                            shadowOpacity: 0.18,
-                            shadowRadius: 24,
-                            elevation: 16,
-                            borderWidth: 1.5,
-                            borderColor: COLORS.border,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            position: 'relative',
-                            backgroundColor: COLORS.cardBg,
-                        }}
+                {userData && (
+                    <LinearGradient
+                        colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
+                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                        style={styles.mainCard}
                     >
-                        {/* Accent dot */}
-                        <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: COLORS.white }} />
-                        {/* Avatar with premium ring */}
-                        <View style={{
-                            shadowColor: COLORS.accent,
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.18,
-                            shadowRadius: 8,
-                            elevation: 6,
-                            borderRadius: 40,
-                            marginBottom: 10,
-                            backgroundColor: COLORS.white,
-                            padding: 3,
-                            borderWidth: 2,
-                            borderColor: COLORS.accent,
-                        }}>
+                        <View style={styles.accentDot} />
+                        <View style={styles.cardAvatarRing}>
                             <Image
                                 source={userData?.avatar ? { uri: userData.avatar } : require('../assets/avatar.png')}
-                                style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: COLORS.white }}
+                                style={styles.cardAvatar}
                             />
                         </View>
-                        <Text style={{ fontSize: 21, fontWeight: 'bold', color: COLORS.text, marginBottom: 2, letterSpacing: 0.2 }}>{userData.fullname || 'User Name'}</Text>
-                        <Text style={{ fontSize: 14, color: COLORS.gray, marginBottom: 8 }}>{userData.email || ''}</Text>
-                        {/* Status pill */}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                            <MaterialCommunityIcons name="heart" size={18} color={isVerified && friendsList.length > 0 ? COLORS.accent : COLORS.gray} style={{ marginRight: 5 }} />
-                            <View style={{ backgroundColor: isVerified && friendsList.length > 0 ? COLORS.accent : COLORS.gray, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, marginLeft: 2, minWidth: 70, alignItems: 'center' }}>
-                                <Text style={{ fontSize: 13, color: COLORS.white, fontWeight: '600', letterSpacing: 0.2 }}>
-                                    {isVerified ? (friendsList.length > 0 ? 'In Relation' : 'Single') : 'Hidden'}
-                                </Text>
-                            </View>
+                        <Text style={styles.cardName}>{userData.fullname || 'User Name'}</Text>
+                        <Text style={styles.cardEmail}>{userData.email || ''}</Text>
+
+                        <View style={[styles.statusPill, {backgroundColor: isVerified && friendsList.length > 0 ? COLORS.accent : COLORS.gray}]}>
+                             <MaterialCommunityIcons name="heart" size={14} color={'#fff'} style={{ marginRight: 5 }} />
+                            <Text style={styles.statusPillText}>
+                                {isVerified ? (friendsList.length > 0 ? 'In Relation' : 'Single') : 'Hidden'}
+                            </Text>
                         </View>
                         <TouchableOpacity
-                            style={{ marginTop: 8, backgroundColor: COLORS.addfriendbtn, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 22, shadowColor: COLORS.primary, shadowOpacity: 0.12, shadowRadius: 8, elevation: 2 }}
-                    onPress={onUserCardPress}
+                            style={styles.verifyButton}
+                            onPress={onUserCardPress}
                             disabled={isVerified}
                         >
-                            <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 14 }}>{isVerified ? 'Verified' : 'Verify Secret Code'}</Text>
+                            <Text style={styles.verifyButtonText}>{isVerified ? 'Verified' : 'Verify Secret Code'}</Text>
                         </TouchableOpacity>
-                    </View>
-            )}
-
-                {/* Centered red heart between cards */}
-                {isVerified && friendsList.length > 0 && (
-                    <>
-                        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 0, marginTop: -18, marginBottom: 2 }}>
-                            <MaterialCommunityIcons name="heart" size={32} color={COLORS.badge} />
-                        </View>
-                        {friendsList.map((friend) => (
-                            <View
-                        key={friend._id}
-                                style={{
-                                    borderRadius: 20,
-                                    padding: 18,
-                                    minHeight: 180,
-                                    marginBottom: 18,
-                                    shadowColor: COLORS.cardShadow,
-                                    shadowOffset: { width: 0, height: 8 },
-                                    shadowOpacity: 0.18,
-                                    shadowRadius: 24,
-                                    elevation: 16,
-                                    borderWidth: 1.5,
-                                    borderColor: COLORS.border,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    position: 'relative',
-                                    backgroundColor: COLORS.cardBg,
-                                }}
-                            >
-                                {/* Accent dot */}
-                                <View style={{ position: 'absolute', top: 16, left: 18, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, opacity: 0.7, zIndex: 3, borderWidth: 2, borderColor: COLORS.white }} />
-                                {/* Avatar with premium ring */}
-                                <View style={{
-                                    shadowColor: COLORS.accent,
-                                    shadowOffset: { width: 0, height: 2 },
-                                    shadowOpacity: 0.18,
-                                    shadowRadius: 8,
-                                    elevation: 6,
-                                    borderRadius: 30,
-                                    marginBottom: 8,
-                                    backgroundColor: COLORS.white,
-                                    padding: 2,
-                                    borderWidth: 2,
-                                    borderColor: COLORS.accent,
-                                }}>
-                                    <Image
-                                        source={friend.avatar ? { uri: friend.avatar } : require('../assets/avatar.png')}
-                                        style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.white }}
-                                    />
-                                </View>
-                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: COLORS.text, marginBottom: 2, letterSpacing: 0.2 }}>{friend.name}</Text>
-                                <Text style={{ fontSize: 13, color: COLORS.gray, marginBottom: 8 }}>{friend.email}</Text>
-                                {/* Status pill */}
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                                    <MaterialCommunityIcons name="heart" size={14} color={COLORS.accent} style={{ marginRight: 4 }} />
-                                    <View style={{ backgroundColor: COLORS.accent, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 3, marginLeft: 2, minWidth: 70, alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 12, color: COLORS.white, fontWeight: '600', letterSpacing: 0.2 }}>In Relation</Text>
-                                    </View>
-                                </View>
-                                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 6 }}>
-                                    <TouchableOpacity onPress={() => navigation.navigate('chats', {
-                                friendId: friend._id,
-                                friendName: friend.name,
-                                friendAvatar: friend.avatar,
-                                friendEmail: friend.email,
-                                    })} style={{ marginRight: 10 }} activeOpacity={0.7}>
-                                        <FontAwesome name="comments" size={20} color={COLORS.primary} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => {
-                                        setSelectedFriendForMenu(friend);
-                                        setFriendMenuModalVisible(true);
-                                    }} activeOpacity={0.7}>
-                                        <FontAwesome name="ellipsis-v" size={18} color={COLORS.gray} />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        ))}
-                    </>
+                    </LinearGradient>
                 )}
+                
+                {/* Note: The friends list part is removed from here as the logic now navigates to a new screen */}
+                 {isVerified && friendsList.length === 0 && (
+                     <Text style={styles.noFriendsText}>You are currently single.</Text>
+                 )}
 
+
+            </ScrollView>
+            
+            {/* Password Modal */}
             <Modal
                 visible={passwordModalVisible}
                 transparent
                 animationType="fade"
-                onRequestClose={() => {
-                    setPasswordModalVisible(false);
-                    setInputPassword('');
-                }}
+                onRequestClose={() => setPasswordModalVisible(false)}
             >
-                <View style={{ flex: 1, backgroundColor: COLORS.overlay, justifyContent: 'center', alignItems: 'center' }}>
-                    {/* Modern, beautiful modal container (neutral, no pink border/shadow) */}
-                    <View style={{
-                        width: '88%',
-                        backgroundColor: COLORS.white,
-                        borderRadius: 28,
-                        padding: 32,
-                        alignItems: 'center',
-                        shadowColor: COLORS.cardShadow,
-                        shadowOffset: { width: 0, height: 10 },
-                        shadowOpacity: 0.13,
-                        shadowRadius: 24,
-                        elevation: 18,
-                        borderTopWidth: 4,
-                        borderTopColor: COLORS.border,
-                    }}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalBox}>
                         <MaterialCommunityIcons name="lock-question" size={38} color={COLORS.primary} style={{ marginBottom: 10 }} />
-                        <Text style={{ fontSize: 22, fontWeight: 'bold', color: COLORS.primary, marginBottom: 8, textAlign: 'center' }}>Enter Secret Code</Text>
-                        <Text style={{ fontSize: 15, color: COLORS.text, marginBottom: 18, textAlign: 'center' }}>To unlock your relationship status, please enter your secret code.</Text>
+                        <Text style={styles.modalTitle}>Enter Secret Code</Text>
+                        <Text style={styles.modalSubtitle}>To unlock your status, please enter the code.</Text>
                         <FloatingInput
                             label="Secret Code"
                             value={inputPassword}
                             setValue={setInputPassword}
-                            secure={true}
-                            numeric={true}
+                            secureTextEntry={true} 
+                            keyboardType="numeric"
                         />
                         <TouchableOpacity
                             onPress={verifyPasswordAndFetchFriends}
-                            style={{ marginTop: 8, backgroundColor: COLORS.accent, borderRadius: 18, paddingVertical: 12, paddingHorizontal: 38, alignItems: 'center', elevation: 2 }}
+                            style={styles.modalVerifyButton}
                             disabled={passwordVerifying}
-                            activeOpacity={0.8}
                         >
-                            {passwordVerifying ? (
-                                <ActivityIndicator size="small" color={COLORS.white} />
-                            ) : (
-                                <Text style={{ color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>Verify</Text>
-                            )}
+                            {passwordVerifying ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.modalButtonText}>Verify</Text>}
                         </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => {
-                                setPasswordModalVisible(false);
-                                setInputPassword('');
-                            }}
-                            style={{ marginTop: 12, paddingVertical: 10 }}
-                        >
-                            <Text style={{ color: COLORS.primary, fontWeight: '600', fontSize: 16 }}>Cancel</Text>
+                        <TouchableOpacity onPress={() => setPasswordModalVisible(false)} style={styles.modalCancelButton}>
+                            <Text style={styles.modalCancelText}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
-
-            <Modal
-                visible={friendMenuModalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => {
-                    setFriendMenuModalVisible(false);
-                    setSelectedFriendForMenu(null);
-                }}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalBox}>
-                        <Text style={styles.modalTitle}>Options for {selectedFriendForMenu?.name || 'Friend'}</Text>
-
-                        <TouchableOpacity
-                            onPress={() => handleRemoveFriend(selectedFriendForMenu?._id)}
-                            style={[styles.menuOptionButton, styles.removeFriendButton]}
-                        >
-                            <Text style={styles.menuOptionText}>Send Unfriend Request</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() => handleLocalHide(selectedFriendForMenu?._id)}
-                            style={styles.menuOptionButton}
-                        >
-                            <Text style={styles.menuOptionText}>Hide Card Locally</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() => {
-                                setFriendMenuModalVisible(false);
-                                setSelectedFriendForMenu(null);
-                            }}
-                            style={styles.cancelButton}
-                        >
-                            <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
+            
             <CustomAlert
                 visible={showAlert}
                 title={alertTitle}
@@ -542,229 +289,38 @@ export default function HomeScreen() {
                 }}
                 showCancel={alertShowCancel}
             />
-
-        </ScrollView>
-
-        </View>
         </>
     );
 }
 
-export const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 30,
-        alignItems: 'center',
-        backgroundColor: COLORS.background,
-        paddingHorizontal: 15,
-        minHeight: '100%',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: COLORS.background,
-    },
-    navItem: {
-        position: 'absolute',
-        top: 40,
-        right: 20,
-        zIndex: 999,
-    },
-    iconContainer: {
-        position: 'relative',
-        width: 30,
-        height: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    notificationNumber: {
-        position: 'absolute',
-        top: -6,
-        right: -6,
-        backgroundColor: 'red',
-        borderRadius: 12,
-        minWidth: 20,
-        height: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 4,
-    },
-    notificationText: {
-        color: 'white',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    dotIndicator: {
-        minWidth: 10,
-        height: 10,
-        borderRadius: 5,
-        paddingHorizontal: 0,
-    },
-    userBox: {
-        backgroundColor: COLORS.white,
-        borderRadius: 15,
-        width: '95%',
-        maxWidth: 360,
-        paddingVertical: 25,
-        paddingHorizontal: 20,
-        alignItems: 'center',
-        marginBottom: 18,
-        elevation: 8,
-        shadowColor: COLORS.cardShadow,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    mainUserCardCenter: {
-        marginTop: "40%",
-    },
-    mainUserCardBelow: {
-        marginTop: 60,
-    },
-    avatarContainer: {
-        backgroundColor: COLORS.lightGray,
-        borderRadius: 60,
-        padding: 15,
-        marginBottom: 12,
-        width: 110,
-        height: 110,
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-        borderWidth: 2,
-        borderColor: COLORS.primary,
-    },
-    avatarImage: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 55,
-        resizeMode: 'cover',
-    },
-    userText: {
-        fontSize: 22,
-        color: COLORS.darkText,
-        fontWeight: '800',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    infoContainer: {
-        width: '100%',
-        alignItems: 'flex-start',
-        paddingLeft: 15,
-        marginBottom: 12,
-    },
-    infoText: {
-        fontSize: 16,
-        color: COLORS.grayText,
-        marginVertical: 2,
-        fontWeight: '500',
-    },
-    statusContainer: {
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COLORS.border,
-        width: '100%',
-        paddingTop: 10,
-        alignItems: 'center',
-    },
-    statusText: {
-        fontSize: 15,
-        color: COLORS.grayText,
-        fontStyle: 'italic',
-        fontWeight: '600',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: COLORS.overlay,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-    },
-    modalBox: {
-        backgroundColor: COLORS.white,
-        width: '100%',
-        maxWidth: 320,
-        borderRadius: 15,
-        padding: 25,
-        alignItems: 'center',
-        elevation: 10,
-        shadowColor: COLORS.cardShadow,
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.25,
-        shadowRadius: 15,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        marginBottom: 20,
-        color: COLORS.darkText,
-        textAlign: 'center',
-    },
-    verifyButton: {
-        backgroundColor: COLORS.primary,
-        paddingHorizontal: 25,
-        paddingVertical: 14,
-        borderRadius: 12,
-        marginTop: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-    },
-    verifyText: {
-        color: COLORS.white,
-        fontWeight: 'bold',
-        fontSize: 17,
-    },
-    cancelButton: {
-        marginTop: 15,
-        paddingVertical: 10,
-    },
-    cancelText: {
-        color: COLORS.primary,
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    threeDotMenuButton: {
-        position: 'absolute',
-        top: 15,
-        right: 15,
-        zIndex: 2,
-        padding: 5,
-    },
-    chatButton: {
-        position: 'absolute',
-        top: 15,
-        left: 15,
-        zIndex: 2,
-        padding: 5,
-    },
-    menuOptionButton: {
-        backgroundColor: COLORS.lightGray,
-        width: '100%',
-        paddingVertical: 12,
-        borderRadius: 10,
-        alignItems: 'center',
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    menuOptionText: {
-        fontSize: 16,
-        color: COLORS.darkText,
-        fontWeight: '600',
-    },
-    removeFriendButton: {
-        backgroundColor: COLORS.red,
-        borderColor: COLORS.red,
-    },
-    noFriendsText: {
-        fontSize: 16,
-        color: COLORS.grayText,
-        marginTop: 20,
-        textAlign: 'center',
-    },
-    friendsLoader: {
-        marginTop: 20,
-    }
+// Styles
+const styles = StyleSheet.create({
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+    header: { paddingTop: 60, paddingBottom: 30, paddingHorizontal: 24, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, elevation: 8 },
+    headerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    headerAvatar: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: COLORS.white, marginRight: 16 },
+    headerGreeting: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
+    headerEmail: { color: COLORS.white, fontSize: 14, opacity: 0.85 },
+    notificationBadge: { position: 'absolute', top: -5, right: -5, backgroundColor: COLORS.badge, borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.white },
+    notificationText: { color: COLORS.white, fontSize: 12, fontWeight: 'bold' },
+    scrollContainer: { padding: 20, paddingTop: 16, flexGrow: 1, backgroundColor: COLORS.background },
+    mainCard: { borderRadius: 20, padding: 24, alignItems: 'center', elevation: 16, shadowColor: COLORS.cardShadow, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 20, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.5)' },
+    accentDot: { position: 'absolute', top: 16, left: 16, width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.accent },
+    cardAvatarRing: { borderRadius: 40, padding: 4, backgroundColor: COLORS.white, marginBottom: 12, elevation: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10 },
+    cardAvatar: { width: 68, height: 68, borderRadius: 34 },
+    cardName: { fontSize: 22, fontWeight: 'bold', color: COLORS.text, marginBottom: 4 },
+    cardEmail: { fontSize: 15, color: COLORS.gray, marginBottom: 16 },
+    statusPill: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingVertical: 5, paddingHorizontal: 15, marginBottom: 16 },
+    statusPillText: { fontSize: 13, color: '#fff', fontWeight: '600' },
+    verifyButton: { backgroundColor: COLORS.primary, borderRadius: 20, paddingVertical: 10, paddingHorizontal: 24, elevation: 4, shadowColor: COLORS.primary, shadowOpacity: 0.2, shadowRadius: 8 },
+    verifyButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 14 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+    modalBox: { width: '100%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center', elevation: 20, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 20 },
+    modalTitle: { fontSize: 22, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 },
+    modalSubtitle: { fontSize: 15, color: COLORS.gray, marginBottom: 20, textAlign: 'center' },
+    modalVerifyButton: { marginTop: 16, backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 12, width: '100%', alignItems: 'center' },
+    modalButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+    modalCancelButton: { marginTop: 12, padding: 8 },
+    modalCancelText: { color: COLORS.gray, fontWeight: '600', fontSize: 15 },
+    noFriendsText: {textAlign: 'center', marginTop: 30, fontSize: 16, color: COLORS.grayText}
 });
