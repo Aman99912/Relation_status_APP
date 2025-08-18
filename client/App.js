@@ -34,6 +34,7 @@ import UpdateMobileNum from './components/newNum';
 import { SocketProvider } from './context/SocketContext';
 import RelationshipScreen from './screens/RelationshipScreen';
 import LocationShare from './components/locationShare';
+import WatchPartyScreen from './components/ShareScreen';
 
 
 const Stack = createStackNavigator();
@@ -82,6 +83,7 @@ export default function App() {
               <Stack.Screen name="forgot-password" component={ForgotPass} />
               <Stack.Screen name="chats" component={ChatScreen}  />
               <Stack.Screen name="MainApp" component={MainAppTabs} />
+              <Stack.Screen name='WatchParty' component={WatchPartyScreen} />
             </Stack.Navigator>
           </NavigationContainer>
         </SocketProvider>

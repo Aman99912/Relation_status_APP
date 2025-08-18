@@ -95,7 +95,11 @@ export default function RelationshipScreen() {
           icon="film"
           title="Watch Movies"
           description="Watch your favorite movies together in real-time."
-          onPress={() => alert('Movies feature coming soon!')}
+          onPress={() => {
+  navigation.navigate('WatchParty', {
+    friendId: friend._id,
+  });
+}}
         />
         <FeatureCard
           icon="calendar"
