@@ -368,7 +368,7 @@ const ChatScreen = () => {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color="#232323" />
+          <Ionicons name="arrow-back" size={26} color={COLORS.headerText} />
         </TouchableOpacity>
         <Image source={{ uri: friendAvatar }} style={styles.avatar} />
         <View style={styles.headerTextContainer}>
@@ -378,8 +378,8 @@ const ChatScreen = () => {
           </Text>
         </View>
         <View style={styles.headerIcons}>
-          <TouchableOpacity><Icon name="phone" size={24} color="#232323" /></TouchableOpacity>
-          <TouchableOpacity style={{ marginLeft: 26 }}><Icon name="video" size={24} color="#232323" /></TouchableOpacity>
+                  <TouchableOpacity><Icon name="phone" size={24} color={COLORS.headerText} /></TouchableOpacity>
+        <TouchableOpacity style={{ marginLeft: 26 }}><Icon name="video" size={24} color={COLORS.headerText} /></TouchableOpacity>
         </View>
       </View>
 
@@ -444,28 +444,28 @@ export default ChatScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', backgroundColor: '#fff', paddingTop: Platform.OS === 'ios' ? 50 : 20, paddingBottom: 15, paddingHorizontal: 15, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  header: { flexDirection: 'row', backgroundColor: '#fff', paddingTop: Platform.OS === 'ios' ? 50 : 20, paddingBottom: 15, paddingHorizontal: 15, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.messageBorder },
   backButton: { padding: 5, marginRight: 10 },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   headerTextContainer: { flex: 1, marginLeft: 12, justifyContent: 'center' },
-  headerName: { fontSize: 18, fontWeight: '700', color: '#232323' },
-  headerStatus: { fontSize: 13, color: '#10B981', fontStyle: 'italic', marginTop: 2 },
+  headerName: { fontSize: 18, fontWeight: '700', color: COLORS.headerText },
+  headerStatus: { fontSize: 13, color: COLORS.statusText, fontStyle: 'italic', marginTop: 2 },
   headerIcons: { flexDirection: 'row', alignItems: 'center' },
   chatArea: { paddingHorizontal: 12, paddingBottom: 10 },
   messageContainer: { maxWidth: '80%', marginVertical: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1, elevation: 1 },
-  myMessage: { backgroundColor: '#E1F5FE', alignSelf: 'flex-end', borderBottomRightRadius: 2 },
-  theirMessage: { backgroundColor: '#F1F1F1', alignSelf: 'flex-start', borderBottomLeftRadius: 2 },
-  messageText: { color: '#232323', fontSize: 15 },
+  myMessage: { backgroundColor: COLORS.myMessageBg, alignSelf: 'flex-end', borderBottomRightRadius: 2 },
+  theirMessage: { backgroundColor: COLORS.theirMessageBg, alignSelf: 'flex-start', borderBottomLeftRadius: 2 },
+  messageText: { color: COLORS.messageText, fontSize: 15 },
   chatImage: { width: width * 0.65, aspectRatio: 1, borderRadius: 8, resizeMode: 'cover' },
-  audioText: { color: '#0277BD', fontStyle: 'italic' },
+  audioText: { color: COLORS.audioText, fontStyle: 'italic' },
   timestampContainer: { flexDirection: 'row', alignSelf: 'flex-end', alignItems: 'center', marginTop: 4 },
   timestamp: { fontSize: 10, color: '#666' },
   statusIcon: { fontSize: 14, color: '#666', marginLeft: 4 },
-  statusIconSeen: { fontSize: 14, color: '#3498db', marginLeft: 4 }, // Blue color for seen status
+  statusIconSeen: { fontSize: 14, color: COLORS.seenStatus, marginLeft: 4 }, // Blue color for seen status
   inputContainer: { flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 10, alignItems: 'center', backgroundColor: '#fff', borderTopColor: '#eee', borderTopWidth: 1, paddingBottom: Platform.OS === 'ios' ? 25 : 8 },
   icon: { marginHorizontal: 6 },
-  textInput: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#f0f0f0', borderRadius: 20, marginHorizontal: 5, maxHeight: 120, fontSize: 15 },
+  textInput: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: COLORS.textInputBg, borderRadius: 20, marginHorizontal: 5, maxHeight: 120, fontSize: 15 },
   sendButton: { backgroundColor: COLORS.primary, padding: 10, borderRadius: 25, marginLeft: 5 },
-  permissionContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F4F4F4' },
-  editingBanner: { backgroundColor: '#ffebcd', padding: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  permissionContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.permissionBg },
+  editingBanner: { backgroundColor: COLORS.editingBanner, padding: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

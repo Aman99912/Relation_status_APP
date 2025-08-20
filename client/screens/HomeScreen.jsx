@@ -20,7 +20,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIPATH } from '../utils/apiPath';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+// LinearGradient removed - using solid colors instead
 import CustomAlert from '../components/alert';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -171,10 +171,8 @@ export default function HomeScreen() {
 
     return (
         <>
-            <LinearGradient
-                colors={[COLORS.primary, COLORS.accent]}
-                style={styles.header}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+                style={[styles.header, { backgroundColor: COLORS.primary }]}
             >
                 <View style={styles.headerContent}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -196,7 +194,7 @@ export default function HomeScreen() {
                         )}
                     </TouchableOpacity>
                 </View>
-            </LinearGradient>
+            </View>
 
             <ScrollView
                 contentContainerStyle={styles.scrollContainer}
@@ -205,10 +203,8 @@ export default function HomeScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 {userData && (
-                    <LinearGradient
-                        colors={['#f8e1f4', '#e0e7ff', '#f7f7fa']}
-                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                        style={styles.mainCard}
+                    <View
+                        style={[styles.mainCard, { backgroundColor: COLORS.homeGradient1 }]}
                     >
                         <View style={styles.accentDot} />
                         <View style={styles.cardAvatarRing}>
@@ -233,7 +229,7 @@ export default function HomeScreen() {
                         >
                             <Text style={styles.verifyButtonText}>{isVerified ? 'Verified' : 'Verify Secret Code'}</Text>
                         </TouchableOpacity>
-                    </LinearGradient>
+                    </View>
                 )}
                 
                 {/* Note: The friends list part is removed from here as the logic now navigates to a new screen */}

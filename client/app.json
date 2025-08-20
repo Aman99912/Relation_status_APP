@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.amandeep-saroha.Front-End-React-Native"
     },
     "android": {
       "adaptiveIcon": {

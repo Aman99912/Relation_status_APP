@@ -247,7 +247,7 @@ const LocationShare = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' },
+          container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.lightGrayBg },
   header: { position: 'absolute', top: Platform.OS === 'ios' ? 50 : 20, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15 },
   backButton: { backgroundColor: 'rgba(255,255,255,0.8)', padding: 8, borderRadius: 20 },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginRight: 44 },

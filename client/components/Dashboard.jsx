@@ -23,7 +23,7 @@ const CircularProgress = ({ value, maxValue, title, color }) => {
         width={8}
         fill={percentage}
         tintColor={color || COLORS.primary}
-        backgroundColor="#e0e0e0"
+        backgroundColor={COLORS.lightGray}
         lineCap="round"
         rotation={0}
       >
@@ -111,22 +111,22 @@ const Dashboard = () => {
     {
       name: 'Friends',
       population: friends.total !== null && friends.total !== undefined ? friends.total : 0,
-      color: '#4CAF50',
-      legendFontColor: '#7F7F7F',
+      color: COLORS.chartGreen,
+      legendFontColor: COLORS.chartLegendText,
       legendFontSize: 12,
     },
     {
       name: 'Diary Entries',
       population: diary.total !== null && diary.total !== undefined ? diary.total : 0,
-      color: '#2196F3',
-      legendFontColor: '#7F7F7F',
+      color: COLORS.chartBlue,
+      legendFontColor: COLORS.chartLegendText,
       legendFontSize: 12,
     },
     {
       name: 'Notes',
       population: notes.total !== null && notes.total !== undefined ? notes.total : 0,
-      color: '#FFC107',
-      legendFontColor: '#7F7F7F',
+      color: COLORS.chartYellow,
+      legendFontColor: COLORS.chartLegendText,
       legendFontSize: 12,
     },
   ];
@@ -138,7 +138,7 @@ const Dashboard = () => {
       diary.total > 0 ? 1 : 0.05,
       notes.total > 0 ? 1 : 0.05,
     ],
-    colors: ['#4CAF50', '#2196F3', '#FFC107'],
+    colors: [COLORS.chartGreen, COLORS.chartBlue, COLORS.chartYellow],
   };
 
   const formatMessagePart = (part) => {
@@ -264,19 +264,19 @@ const Dashboard = () => {
             value={friends.streak || 0}
             maxValue={30}
             title="Friend Streak"
-            color="#4CAF50"
+            color={COLORS.chartGreen}
           />
           <CircularProgress
             value={diary.streak || 0}
             maxValue={30}
             title="Diary Streak"
-            color="#2196F3"
+            color={COLORS.chartBlue}
           />
           <CircularProgress
             value={notes.streak || 0}
             maxValue={30}
             title="Note Streak"
-            color="#FFC107"
+            color={COLORS.chartYellow}
           />
         </View>
       </View>

@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useContext } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Animated, Easing
+  Animated, Easing, Platform, Alert
 } from 'react-native';
 import { COLORS } from '../Color';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,7 @@ import { APIPATH } from '../utils/apiPath';
 import { responsiveWidth, responsiveHeight, responsiveFontSize } from '../utils/responsive';
 import Loader from '../components/Loader';
 import CustomAlert from '../components/alert';
+import messaging from '@react-native-firebase/messaging';
 // import { AuthContext } from '../context/UserContext';  
 
 export default function LoginScreen() {
@@ -27,6 +28,25 @@ export default function LoginScreen() {
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('info');
+
+  // Request FCM permission and get token
+  const requestFCMPermission = async () => {
+    try {
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        const fcmToken = await messaging().getToken();
+        return fcmToken;
+      }
+      return null;
+    } catch (error) {
+      console.log('FCM permission request failed:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -52,14 +72,25 @@ export default function LoginScreen() {
     const newEmail = email.toLowerCase();
     try {
       setLoading(true);
-      const body = { email: newEmail, password };
+      
+      // Get FCM token
+      const fcmToken = await requestFCMPermission();
+      
+      const body = { 
+        email: newEmail, 
+        password,
+        fcmToken: fcmToken || null // Include FCM token in login request
+      };
+      
       const res = await axios.post(`${APIPATH.BASE_URL}/${APIPATH.LOGIN_API}`, body, {
         headers: { 'Content-Type': 'application/json' }
       });
+      
       if (res.status === 200) {
         const userEmail = res.data?.user?.email;
         const userId = res.data?.user?.id;
         const userToken = res.data?.user?.token;
+        
         if (!userEmail || !userId || !userToken) {
           setAlertTitle('Error');
           setAlertMessage('Incomplete user data received');
@@ -67,9 +98,16 @@ export default function LoginScreen() {
           setShowAlert(true);
           return;
         }
+        
+        // Store FCM token locally for future use
+        if (fcmToken) {
+          await AsyncStorage.setItem('fcmToken', fcmToken);
+        }
+        
         await AsyncStorage.setItem('userEmail', userEmail);
         await AsyncStorage.setItem('Token', userToken);
         await AsyncStorage.setItem('userId', userId.toString());
+        
         navigation.navigate('MainApp', { screen: 'Home' });
       } else {
         setAlertTitle('Login Failed');

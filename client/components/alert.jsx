@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import { COLORS } from '../Color';
+import { COLORS } from '../Color'; // Assuming COLORS.white is defined here
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function CustomAlert({
@@ -21,14 +21,18 @@ export default function CustomAlert({
   showCancel = true,
   type = 'info', // 'info', 'success', 'error', 'warning'
 }) {
-  // Animation for scale/fade
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
+
   React.useEffect(() => {
     if (visible) {
       Animated.parallel([
         Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }),
-        Animated.timing(opacityAnim, { toValue: 1, duration: 180, useNativeDriver: true })
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
       ]).start();
     } else {
       scaleAnim.setValue(0.8);
@@ -36,25 +40,33 @@ export default function CustomAlert({
     }
   }, [visible]);
 
-  // Icon and color by type
   let icon = 'information';
   let accent = COLORS.accent;
-  if (type === 'success') { icon = 'check-circle'; accent = COLORS.success; }
-  else if (type === 'error') { icon = 'close-circle'; accent = COLORS.error; }
-  else if (type === 'warning') { icon = 'alert-circle'; accent = COLORS.warning; }
+  if (type === 'success') {
+    icon = 'check-circle';
+    accent = COLORS.success;
+  } else if (type === 'error') {
+    icon = 'close-circle';
+    accent = COLORS.error;
+  } else if (type === 'warning') {
+    icon = 'alert-circle';
+    accent = COLORS.warning;
+  }
 
   return (
     <Modal transparent animationType="none" visible={visible}>
       <View style={styles.overlay}>
-        <Animated.View style={[styles.container, {
-          borderTopColor: accent,
-          borderTopWidth: 5,
-          transform: [{ scale: scaleAnim }],
-          opacity: opacityAnim,
-        }]}
+        <Animated.View
+          style={[
+            styles.container,
+            {
+              borderTopColor: accent,
+              transform: [{ scale: scaleAnim }],
+              opacity: opacityAnim,
+            },
+          ]}
         >
-          {/* Icon */}
-          <View style={[styles.iconCircle, { backgroundColor: accent + '22' }]}> {/* 22 = ~13% opacity */}
+          <View style={[styles.iconCircle, { backgroundColor: accent + '22' }]}>
             <MaterialCommunityIcons name={icon} size={38} color={accent} />
           </View>
           <Text style={[styles.title, { color: accent }]}>{title}</Text>
@@ -66,7 +78,10 @@ export default function CustomAlert({
                 <Text style={styles.cancelText}>{cancelText}</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: accent }]} onPress={onConfirm}>
+            <TouchableOpacity
+              style={[styles.confirmBtn, { backgroundColor: accent }]}
+              onPress={onConfirm}
+            >
               <Text style={styles.confirmText}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
@@ -95,7 +110,6 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     alignItems: 'center',
     borderTopWidth: 5,
-    borderTopColor: COLORS.accent, // default, overridden by accent
   },
   iconCircle: {
     width: 60,
@@ -122,6 +136,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 8,
+    width: '100%',
   },
   cancelBtn: {
     backgroundColor: COLORS.addfriendbtn,
@@ -138,14 +153,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   confirmBtn: {
+    flex: 1, // Added for better button spacing
     backgroundColor: COLORS.addfriendbtn,
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 10,
   },
   confirmText: {
-    color: COLORS.text,
+    // ✨ FIX: Changed text color to white for better contrast on colored backgrounds
+    color: COLORS.white, 
     fontWeight: 'bold',
     fontSize: 16,
+    textAlign: 'center', // Added for better text alignment
   },
 });

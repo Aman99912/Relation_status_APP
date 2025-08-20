@@ -174,7 +174,7 @@ export default function Logout() {
   return (
     <View style={styles.LogoutContainer}>
       {loading ? (
-        <ActivityIndicator size="large" color="#e75480" />
+        <ActivityIndicator size="large" color={COLORS.loaderRed} />
       ) : (
         <TouchableOpacity style={[styles.logoutButton, { backgroundColor: COLORS.addfriendbtn }]} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>

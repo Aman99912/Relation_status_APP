@@ -6,7 +6,7 @@ export default function Loader({ visible = true, overlay = true }) {
   if (!visible) return null;
   return (
     <View style={[styles.container, overlay && styles.overlay]}>
-      <ActivityIndicator size="large" color="#ff98c3" style={{ width: responsiveWidth(10), height: responsiveWidth(10) }} />
+              <ActivityIndicator size="large" color={COLORS.loaderPink} style={{ width: responsiveWidth(10), height: responsiveWidth(10) }} />
     </View>
   );
 }

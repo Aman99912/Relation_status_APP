@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "773116592614",
+    "project_id": "bondmate-ede19",
+    "storage_bucket": "bondmate-ede19.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:773116592614:android:712f8a7cf16ad766b59627",
+        "android_client_info": {
+          "package_name": "com.bondmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGva1_m0D6mNVZ7d5AquE7YPReSLsySPs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

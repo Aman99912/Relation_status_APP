@@ -1,7 +1,7 @@
 import { Calendar } from "react-native-calendars";
 
 export const APIPATH = {
-  BASE_URL : "http://192.168.1.11:3000",
+  BASE_URL : "https://bondmate.onrender.com/",
   LOGIN_API : "api/user/login",
   VERIFY_PASS : "api/user/verify-pass",
   FRIENDDATA : "api/user/friend",

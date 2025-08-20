@@ -79,7 +79,7 @@ export default function UpdateEmailScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f0f2f5' }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.safeAreaBg }}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ebebeb',
+            borderBottomColor: COLORS.lightBorderColor,
   },
   backButton: {
     position: 'absolute',

@@ -93,7 +93,7 @@ const ChangePasswordScreen = () => {
    
   }
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f0f2f5' }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.safeAreaBg }}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"

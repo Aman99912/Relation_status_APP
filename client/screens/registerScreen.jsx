@@ -11,6 +11,7 @@ import axios from 'axios';
 import { APIPATH } from '../utils/apiPath';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import messaging from '@react-native-firebase/messaging';
 
 export default function SignupScreen() {
   const navigation = useNavigation();
@@ -24,6 +25,25 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [gender, setGender] = useState('');
   const [avatar, setAvatar] = useState(null);
+
+  // Request FCM permission and get token
+  const requestFCMPermission = async () => {
+    try {
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        const fcmToken = await messaging().getToken();
+        return fcmToken;
+      }
+      return null;
+    } catch (error) {
+      console.log('FCM permission request failed:', error);
+      return null;
+    }
+  };
 
   const handleDobChange = (text) => {
     const cleaned = text.replace(/\D/g, '');
@@ -84,6 +104,9 @@ export default function SignupScreen() {
     try {
       setLoading(true);
 
+      // Get FCM token
+      const fcmToken = await requestFCMPermission();
+
       let avatarBase64 = null;
       if (avatar) {
         const base64 = await FileSystem.readAsStringAsync(avatar, {
@@ -100,6 +123,7 @@ export default function SignupScreen() {
            dob: dob.trim(),                                           // Ensure proper formatting
            gender: gender.trim().toLowerCase(),                       // Trim and lowercase gender
            avatar: avatarBase64,
+           fcmToken: fcmToken || null, // Include FCM token in registration
 });
 
      

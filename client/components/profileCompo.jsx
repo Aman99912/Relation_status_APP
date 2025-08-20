@@ -142,7 +142,7 @@ const ProfileCompo = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.profileBg }}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         
         <TouchableOpacity
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.profileBg,
   },
   loadingText: {
     marginTop: 15,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.profileBg,
     paddingBottom: 90,
     paddingHorizontal: 20,
    

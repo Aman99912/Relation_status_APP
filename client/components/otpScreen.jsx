@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resendText: {
-    color: '#007bff',
+            color: COLORS.otpText,
     fontSize: 14,
   },
   disabled: {

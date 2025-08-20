@@ -8,7 +8,7 @@ import { SocketContext } from '../context/SocketContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../Color';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+// LinearGradient removed - using solid colors instead
 
 // Function to extract YouTube Video ID from a URL
 const getYoutubeVideoId = (url) => {
@@ -100,7 +100,7 @@ const WatchPartyScreen = () => {
     }, [socket, userId, friendId]);
 
     return (
-        <LinearGradient colors={['#232526', '#414345']} style={styles.container}>
+        <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -160,12 +160,12 @@ const WatchPartyScreen = () => {
                     </TouchableOpacity>
                 </View>
             )}
-        </LinearGradient>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingHorizontal: 20 },
+    container: { flex: 1, paddingHorizontal: 20, backgroundColor: COLORS.shareScreenBg },
     header: { flexDirection: 'row', alignItems: 'center', paddingTop: Platform.OS === 'ios' ? 50 : 20, marginBottom: 30 },
     backButton: { padding: 8 },
     title: { flex: 1, textAlign: 'center', fontSize: 24, fontWeight: 'bold', color: '#fff', marginRight: 32 },
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     nowPlayingText: { color: '#ccc', fontSize: 14 },
     friendName: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
     statusIndicator: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,255,0,0.2)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-    statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#00ff00', marginRight: 6 },
+    statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.statusDot, marginRight: 6 },
     statusText: { color: '#fff', fontSize: 12 },
     changeVideoButton: { borderColor: COLORS.primary, borderWidth: 1, paddingVertical: 16, borderRadius: 12, width: '100%', alignItems: 'center', marginTop: 'auto', marginBottom: 20 },
     changeVideoButtonText: { color: COLORS.primary, fontSize: 16, fontWeight: 'bold' },
